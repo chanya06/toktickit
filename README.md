@@ -1,1 +1,5 @@
-# TokTickIT 
+# TokTickIT
+
+## Project Setup
+
+### Backend
