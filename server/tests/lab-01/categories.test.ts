@@ -1,15 +1,33 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { app } from "../../src/app.js";
-void request; void app;
+import * as prismaModule from "../../src/prisma.js";
 
-// Issue 4 — write this test yourself, using health.test.ts as the pattern.
-// Requires the DB to be migrated and seeded first.
-// It should assert: GET /api/categories returns 200 and the four seeded
-// category names in id order.
-describe.todo("GET /api/categories", () => {
-  it.todo("returns the four seeded categories in id order", async () => {
-    // TODO(Issue 4): implement this assertion.
-    expect(true).toBe(true);
+describe("GET /api/categories", () => {
+  it("returns the four seeded categories in id order", async () => {
+    const res = await request(app).get("/api/categories");
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toHaveLength(4);
+    const categoryNames = res.body.map((c: { name: string }) => c.name);
+    expect(categoryNames).toEqual([
+      "Account and Access",
+      "Hardware",
+      "Software",
+      "Network",
+    ]);
+  });
+
+  it("returns 500 with safe error message when database query fails", async () => {
+    const prisma = prismaModule.getPrisma();
+    const findManySpy = vi
+      .spyOn(prisma.category, "findMany")
+      .mockRejectedValueOnce(new Error("Database connection failed"));
+
+    const res = await request(app).get("/api/categories");
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Failed to fetch categories" });
+
+    findManySpy.mockRestore();
   });
 });
