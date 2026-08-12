@@ -8,7 +8,7 @@
 |----|--------|------------------|
 | #7 | feature/1-project-foundation | Approved |
 | #8 | feature/2-health-check | Approved |
-|    | feature/3-category-seed |  |
+| #9 | feature/3-category-seed | Approved |
 |    | feature/4-category-list |  |
 
 Reviewer comment I received: <...>
