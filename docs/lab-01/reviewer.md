@@ -9,7 +9,7 @@
 | #7 | feature/1-project-foundation | Approved |
 | #8 | feature/2-health-check | Approved |
 | #9 | feature/3-category-seed | Approved |
-|    | feature/4-category-list |  |
+| #10 | feature/4-category-list | Approved |
 
 Reviewer comment I received: <...>
 How I responded: <...>
