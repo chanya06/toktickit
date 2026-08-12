@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import App from "../../src/App.js";
 import * as api from "../../src/api.js";
 
@@ -47,5 +47,26 @@ describe("App", () => {
     expect(
       screen.getByText(/Unable to connect to TokTickIT API/i)
     ).toBeInTheDocument();
+  });
+
+  it("disables button and displays Loading... state during API call", async () => {
+    let resolvePromise: (value: any) => void;
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+
+    vi.spyOn(api, "checkSystem").mockImplementation(() => pendingPromise as any);
+
+    render(<App />);
+
+    const button = screen.getByRole("button", { name: /Check System/i });
+    fireEvent.click(button);
+
+    expect(screen.getByText(/Loading…/i)).toBeInTheDocument();
+    expect(button).toBeDisabled();
+
+    await act(async () => {
+      resolvePromise!({ online: true, categories: [] });
+    });
   });
 });
