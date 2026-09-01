@@ -93,3 +93,15 @@ All automated tests passed successfully in final main branch build.
 - UI Component & Style Tests: **6 / 6 passed**
 - E2E Playwright Tests: **1 / 1 passed**
 - Total Test Coverage: **100% of Acceptance Criteria covered**.
+
+---
+
+## 7. Known Limitations or Deferred Tests
+
+The following features and test scenarios are explicitly excluded from Lab 2 and deferred to Lab 3 or later sprints as per Section 4.2 of the Lab 2 Handout:
+1. **Real Authentication & Security**: Login, logout, passwords, password hashing, sessions, JWT tokens, and real role-based authorization. Lab 2 uses a temporary Development Requester selector strictly for testing context switching.
+2. **IT Staff Workflow**: IT Staff dashboard and queue, claiming or reassigning tickets, updating IT Priority, and resolving/closing tickets.
+3. **Collaboration & Work Tracking**: Public Comments, Internal Notes, and Actions Taken on Ticket Details.
+4. **Ticket Lifecycle Transitions**: Ticket status changes beyond the initial `NEW` status (e.g. `OPEN`, `IN_PROGRESS`, `PENDING`, `RESOLVED`, `CLOSED`).
+5. **Administration Functions**: Administrator management of users, Requesters, roles, categories, and reference data.
+
