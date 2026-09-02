@@ -1,5 +1,4 @@
-// Prisma schema — datasource and generator are pre-wired.
-// Your DATABASE_URL lives in server/.env (copy it from .env.example).
+// Prisma schema for TokTickIT Lab 2
 
 generator client {
   provider = "prisma-client-js"
@@ -10,8 +9,99 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum RequestedPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ITPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  NEW
+  OPEN
+  IN_PROGRESS
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+model DevelopmentRequester {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  department String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tickets    Ticket[]
+}
+
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model RelatedSystem {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model Ticket {
+  id                Int                  @id @default(autoincrement())
+  ticketNumber      String               @unique
+  requesterId       Int
+  categoryId        Int
+  relatedSystemId   Int
+  summary           String
+  description       String
+  requestedPriority RequestedPriority
+  itPriority        ITPriority           @default(MEDIUM)
+  status            TicketStatus         @default(NEW)
+  ticketOwner       String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  requester     DevelopmentRequester @relation(fields: [requesterId], references: [id])
+  category      Category             @relation(fields: [categoryId], references: [id])
+  relatedSystem RelatedSystem        @relation(fields: [relatedSystemId], references: [id])
+  attachments   Attachment[]
+
+  @@index([requesterId])
+  @@index([status])
+  @@index([requestedPriority])
+  @@index([categoryId])
+  @@index([createdAt])
+}
+
+model Attachment {
+  id                   Int       @id @default(autoincrement())
+  ticketId             Int
+  filename             String
+  originalName         String
+  mimeType             String
+  sizeBytes            Int
+  filepath             String
+  isRemoved            Boolean   @default(false)
+  removalReason        String?
+  removedAt            DateTime?
+  removedByRequesterId Int?
+  createdAt            DateTime  @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([isRemoved])
 }
