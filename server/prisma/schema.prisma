@@ -33,14 +33,15 @@ enum TicketStatus {
 }
 
 model DevelopmentRequester {
-  id         Int      @id @default(autoincrement())
-  name       String
-  email      String   @unique
-  department String?
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  tickets    Ticket[]
+  id                 Int          @id @default(autoincrement())
+  name               String
+  email              String       @unique
+  department         String?
+  isActive           Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  tickets            Ticket[]
+  removedAttachments Attachment[] @relation("RemovedByRequester")
 }
 
 model Category {
@@ -87,21 +88,23 @@ model Ticket {
 }
 
 model Attachment {
-  id                   Int       @id @default(autoincrement())
+  id                   Int                   @id @default(autoincrement())
   ticketId             Int
   filename             String
   originalName         String
   mimeType             String
   sizeBytes            Int
   filepath             String
-  isRemoved            Boolean   @default(false)
+  isRemoved            Boolean               @default(false)
   removalReason        String?
   removedAt            DateTime?
   removedByRequesterId Int?
-  createdAt            DateTime  @default(now())
+  createdAt            DateTime              @default(now())
 
-  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticket               Ticket                @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  removedByRequester   DevelopmentRequester? @relation("RemovedByRequester", fields: [removedByRequesterId], references: [id])
 
   @@index([ticketId])
   @@index([isRemoved])
+  @@index([removedByRequesterId])
 }
