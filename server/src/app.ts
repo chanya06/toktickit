@@ -38,6 +38,27 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
+// Related Systems endpoint
+// ---------------------------------------------------------------------------
+app.get("/api/related-systems", async (_req: Request, res: Response) => {
+  try {
+    const systems = await getPrisma().relatedSystem.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
+    res.status(200).json(systems);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch related systems" });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Development Requesters endpoint (Issue 7)
 // ---------------------------------------------------------------------------
 app.get("/api/requesters", async (_req: Request, res: Response) => {
