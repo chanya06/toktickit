@@ -10,14 +10,13 @@ export function formatTicketNumber(year: number, sequence: number): string {
 
 /**
  * Generates next unique Ticket Number string based on highest ticket sequence in database
- * Prevents collisions even if records are deleted or created sequentially.
- * @param prisma Prisma instance or transaction handle
+ * @param prismaClient Prisma instance or transaction handle
  */
-export async function generateNextTicketNumber(prisma: any): Promise<string> {
+export async function generateNextTicketNumber(prismaClient: any): Promise<string> {
   const currentYear = new Date().getFullYear();
   
   // Find highest existing ticket record to derive next sequence
-  const lastTicket = await prisma.ticket.findFirst({
+  const lastTicket = await prismaClient.ticket.findFirst({
     orderBy: { id: "desc" },
     select: { id: true, ticketNumber: true },
   });
@@ -37,4 +36,40 @@ export async function generateNextTicketNumber(prisma: any): Promise<string> {
   }
   
   return formatTicketNumber(currentYear, nextSeq);
+}
+
+/**
+ * Creates a ticket atomically inside a Prisma transaction with automatic retry
+ * on unique constraint collision (P2002) to guarantee concurrency safety.
+ */
+export async function createTicketAtomically(prisma: any, ticketData: any, maxRetries = 5): Promise<any> {
+  let attempts = 0;
+
+  while (attempts < maxRetries) {
+    attempts++;
+    try {
+      return await prisma.$transaction(async (tx: any) => {
+        const ticketNumber = await generateNextTicketNumber(tx);
+        
+        return await tx.ticket.create({
+          data: {
+            ...ticketData,
+            ticketNumber,
+          },
+          include: {
+            requester: { select: { id: true, name: true, email: true } },
+            category: { select: { id: true, name: true } },
+            relatedSystem: { select: { id: true, name: true } },
+          },
+        });
+      });
+    } catch (error: any) {
+      // Prisma P2002 is unique constraint violation (ticketNumber collision)
+      if (error?.code === "P2002" && attempts < maxRetries) {
+        continue; // Retry with next ticket number
+      }
+      throw error;
+    }
+  }
+  throw new Error("Failed to generate a unique Ticket Number after max retries");
 }

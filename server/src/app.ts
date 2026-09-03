@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
-import { generateNextTicketNumber } from "./utils/ticketNumber.js";
+import { generateNextTicketNumber, createTicketAtomically } from "./utils/ticketNumber.js";
 import { RequestedPriority } from "@prisma/client";
 
 export const app = express();
@@ -143,26 +143,16 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
       return res.status(422).json({ error: "Active Related System not found" });
     }
 
-    // 5. Generate Ticket Number & create Ticket
-    const ticketNumber = await generateNextTicketNumber(prisma);
-
-    const newTicket = await prisma.ticket.create({
-      data: {
-        ticketNumber,
-        requesterId: Number(requesterId),
-        categoryId: Number(categoryId),
-        relatedSystemId: Number(relatedSystemId),
-        requestedPriority: requestedPriority as RequestedPriority,
-        summary: trimmedSummary,
-        description: trimmedDescription,
-        itPriority: "MEDIUM",
-        status: "NEW",
-      },
-      include: {
-        requester: { select: { id: true, name: true, email: true } },
-        category: { select: { id: true, name: true } },
-        relatedSystem: { select: { id: true, name: true } },
-      },
+    // 5. Generate Ticket Number & create Ticket atomically (handles concurrency & collisions via transaction retry)
+    const newTicket = await createTicketAtomically(prisma, {
+      requesterId: Number(requesterId),
+      categoryId: Number(categoryId),
+      relatedSystemId: Number(relatedSystemId),
+      requestedPriority: requestedPriority as RequestedPriority,
+      summary: trimmedSummary,
+      description: trimmedDescription,
+      itPriority: "MEDIUM",
+      status: "NEW",
     });
 
     return res.status(201).json(newTicket);
