@@ -37,7 +37,9 @@ export const RequesterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (found) {
           setSelectedRequester(found);
         } else {
-          // If stored ID is invalid or inactive, open modal
+          // If stored ID is invalid or inactive, clear identity and open modal
+          setSelectedRequester(null);
+          localStorage.removeItem(LOCAL_STORAGE_KEY);
           setIsModalOpen(true);
         }
       } else {

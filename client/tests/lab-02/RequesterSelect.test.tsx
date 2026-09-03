@@ -66,4 +66,19 @@ describe("Development Requester Selector (Issue 7)", () => {
     expect(await screen.findByText("Failed to load requesters")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Retry Connection/i })).toBeInTheDocument();
   });
+
+  it("clears identity and opens modal when saved localStorage requester is invalid or inactive", async () => {
+    localStorage.setItem("toktickit_dev_requester_id", "999"); // Inactive or non-existent ID
+    vi.spyOn(api, "fetchActiveRequesters").mockResolvedValue(mockActiveRequesters);
+
+    render(<App />);
+
+    expect(await screen.findByText("Select Development Requester")).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(localStorage.getItem("toktickit_dev_requester_id")).toBeNull();
+    });
+
+    expect(screen.queryByText(/Welcome,/i)).not.toBeInTheDocument();
+  });
 });

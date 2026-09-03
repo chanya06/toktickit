@@ -34,9 +34,9 @@ export const Header: React.FC = () => {
                 type="button"
                 className="btn btn-sm text-white text-decoration-underline p-0 ms-2"
                 onClick={openSelectorModal}
-                title="Switch Development Requester identity"
+                title="Change Development Requester identity"
               >
-                Switch
+                Change Requester
               </button>
             </div>
           ) : (
