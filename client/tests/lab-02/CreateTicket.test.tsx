@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import App from "../../src/App.js";
 import * as api from "../../src/api.js";
 
@@ -182,8 +182,8 @@ describe("Create Ticket Form Component (Issue 9)", () => {
     expect(descriptionInput).toHaveValue("VPN drops every 15 minutes when connected from home network.");
   });
 
-  it("renders Retry Connection button when categories or systems fail to load", async () => {
-    vi.spyOn(api, "fetchActiveCategories").mockRejectedValue(new Error("Network timeout"));
+  it("renders Retry Connection button when categories or systems fail to load and recovers data on retry click", async () => {
+    const catSpy = vi.spyOn(api, "fetchActiveCategories").mockRejectedValueOnce(new Error("Network timeout"));
 
     render(<App />);
 
@@ -191,6 +191,18 @@ describe("Create Ticket Form Component (Issue 9)", () => {
     fireEvent.click(createTabBtn);
 
     expect(await screen.findByText("Failed to load form metadata")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /🔄 Retry Connection/i })).toBeInTheDocument();
+    const retryBtn = screen.getByRole("button", { name: /🔄 Retry Connection/i });
+    expect(retryBtn).toBeInTheDocument();
+
+    // Now allow fetchActiveCategories to succeed on retry
+    catSpy.mockResolvedValueOnce(mockCategories);
+
+    fireEvent.click(retryBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByText("Failed to load form metadata")).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("option", { name: "Account and Access" })).toBeInTheDocument();
   });
 });
