@@ -44,6 +44,41 @@ describe("POST /api/tickets (Issue 8)", () => {
     expect(res.body).toHaveProperty("error", "Missing required ticket fields");
   });
 
+  it("returns 400 Bad Request when requesterId, categoryId, or relatedSystemId have invalid non-integer formats", async () => {
+    const invalidPayloads = [
+      {
+        requesterId: "abc", // Non-numeric string
+        categoryId: 2,
+        relatedSystemId: 7,
+        requestedPriority: "MEDIUM",
+        summary: "Valid summary text",
+        description: "Valid description text for support ticket.",
+      },
+      {
+        requesterId: 1,
+        categoryId: -5, // Negative integer
+        relatedSystemId: 7,
+        requestedPriority: "MEDIUM",
+        summary: "Valid summary text",
+        description: "Valid description text for support ticket.",
+      },
+      {
+        requesterId: 1,
+        categoryId: 2,
+        relatedSystemId: 3.14, // Floating point number
+        requestedPriority: "MEDIUM",
+        summary: "Valid summary text",
+        description: "Valid description text for support ticket.",
+      },
+    ];
+
+    for (const payload of invalidPayloads) {
+      const res = await request(app).post("/api/tickets").send(payload);
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty("error", "requesterId, categoryId, and relatedSystemId must be valid positive integers");
+    }
+  });
+
   it("returns 400 Bad Request when requestedPriority is invalid enum", async () => {
     const invalidPayload = {
       requesterId: 1,
@@ -106,5 +141,31 @@ describe("POST /api/tickets (Issue 8)", () => {
 
     expect(res.status).toBe(422);
     expect(res.body).toHaveProperty("error", "Active Development Requester not found");
+  });
+
+  it("handles concurrent ticket creation requests safely generating unique ticket numbers", async () => {
+    const payload = {
+      requesterId: 1,
+      categoryId: 2,
+      relatedSystemId: 7,
+      requestedPriority: "HIGH",
+      summary: "Concurrent ticket test issue",
+      description: "Testing concurrent submission of tickets to verify unique ticket numbers.",
+    };
+
+    const responses = await Promise.all([
+      request(app).post("/api/tickets").send(payload),
+      request(app).post("/api/tickets").send(payload),
+    ]);
+
+    expect(responses[0].status).toBe(201);
+    expect(responses[1].status).toBe(201);
+
+    const num1 = responses[0].body.ticketNumber;
+    const num2 = responses[1].body.ticketNumber;
+
+    expect(num1).not.toEqual(num2);
+    expect(num1).toMatch(/^TKT-\d{4}-\d{6}$/);
+    expect(num2).toMatch(/^TKT-\d{4}-\d{6}$/);
   });
 });
