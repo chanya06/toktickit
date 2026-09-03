@@ -1,7 +1,12 @@
 import React from "react";
 import { useRequester } from "../context/RequesterContext.js";
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  activeTab: "my-tickets" | "create-ticket";
+  onSelectTab: (tab: "my-tickets" | "create-ticket") => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
   const { selectedRequester, openSelectorModal } = useRequester();
 
   return (
@@ -9,16 +14,35 @@ export const Header: React.FC = () => {
       <div className="container-fluid d-flex align-items-center justify-content-between">
         {/* Application Brand Logo & Navigation */}
         <div className="d-flex align-items-center gap-4">
-          <a href="/" className="fs-4 fw-bold text-white d-flex align-items-center gap-2">
+          <a
+            href="#"
+            className="fs-4 fw-bold text-white d-flex align-items-center gap-2 text-decoration-none"
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectTab("my-tickets");
+            }}
+          >
             <span>🟢 TokTickIT</span>
           </a>
-          <nav className="d-flex gap-3">
-            <a href="#" className="nav-link text-white fw-medium active">
+          <nav className="d-flex gap-2">
+            <button
+              type="button"
+              className={`btn btn-link text-white text-decoration-none fw-medium ${
+                activeTab === "my-tickets" ? "opacity-100 text-decoration-underline" : "opacity-75"
+              }`}
+              onClick={() => onSelectTab("my-tickets")}
+            >
               📋 My Tickets
-            </a>
-            <a href="#" className="nav-link text-white fw-medium">
+            </button>
+            <button
+              type="button"
+              className={`btn btn-link text-white text-decoration-none fw-medium ${
+                activeTab === "create-ticket" ? "opacity-100 text-decoration-underline" : "opacity-75"
+              }`}
+              onClick={() => onSelectTab("create-ticket")}
+            >
               ➕ Create Ticket
-            </a>
+            </button>
           </nav>
         </div>
 

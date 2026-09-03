@@ -3,11 +3,12 @@ import { checkSystem, Category } from "./api.js";
 import { RequesterProvider, useRequester } from "./context/RequesterContext.js";
 import { Header } from "./components/Header.js";
 import { RequesterSelectorModal } from "./components/RequesterSelectorModal.js";
+import { CreateTicketForm } from "./components/CreateTicketForm.js";
 import "./index.css";
 
 type UiState = "idle" | "loading" | "success" | "error";
 
-function MainContent() {
+function HomeOverview({ onNavigateCreate }: { onNavigateCreate: () => void }) {
   const { selectedRequester } = useRequester();
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -27,16 +28,21 @@ function MainContent() {
   }
 
   return (
-    <main className="container py-4" style={{ maxWidth: 800 }}>
+    <>
       {selectedRequester ? (
         <div className="card shadow-sm mb-4">
-          <div className="card-body">
-            <h2 className="h4 fw-bold text-success mb-2">
-              Welcome, {selectedRequester.name} 👋
-            </h2>
-            <p className="text-muted mb-0">
-              Department: <strong>{selectedRequester.department || "N/A"}</strong> | Email: <strong>{selectedRequester.email}</strong>
-            </p>
+          <div className="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h2 className="h4 fw-bold text-success mb-1">
+                Welcome, {selectedRequester.name} 👋
+              </h2>
+              <p className="text-muted mb-0 small">
+                Department: <strong>{selectedRequester.department || "N/A"}</strong> | Email: <strong>{selectedRequester.email}</strong>
+              </p>
+            </div>
+            <button type="button" className="btn-zen-primary" onClick={onNavigateCreate}>
+              ➕ Create New Ticket
+            </button>
           </div>
         </div>
       ) : (
@@ -78,18 +84,32 @@ function MainContent() {
           )}
         </div>
       </div>
-    </main>
+    </>
+  );
+}
+
+function MainApp() {
+  const [activeTab, setActiveTab] = useState<"my-tickets" | "create-ticket">("my-tickets");
+
+  return (
+    <div className="min-vh-100 d-flex flex-column">
+      <Header activeTab={activeTab} onSelectTab={setActiveTab} />
+      <main className="container py-4" style={{ maxWidth: 840 }}>
+        {activeTab === "create-ticket" ? (
+          <CreateTicketForm onSuccessNavigate={() => setActiveTab("my-tickets")} />
+        ) : (
+          <HomeOverview onNavigateCreate={() => setActiveTab("create-ticket")} />
+        )}
+      </main>
+      <RequesterSelectorModal />
+    </div>
   );
 }
 
 export default function App() {
   return (
     <RequesterProvider>
-      <div className="min-vh-100 d-flex flex-column">
-        <Header />
-        <MainContent />
-        <RequesterSelectorModal />
-      </div>
+      <MainApp />
     </RequesterProvider>
   );
 }
