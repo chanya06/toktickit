@@ -5,9 +5,25 @@ export interface Category {
   name: string;
 }
 
+export interface DevelopmentRequester {
+  id: number;
+  name: string;
+  email: string;
+  department?: string | null;
+  isActive: boolean;
+}
+
 export interface SystemStatus {
   online: boolean;
   categories: Category[];
+}
+
+export async function fetchActiveRequesters(): Promise<DevelopmentRequester[]> {
+  const res = await fetch(`${API_URL}/api/requesters`).catch(() => null);
+  if (!res || !res.ok) {
+    throw new Error("Failed to load active development requesters");
+  }
+  return res.json();
 }
 
 // Issue 2 + Issue 4 — call the backend.

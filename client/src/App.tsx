@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { checkSystem, Category } from "./api.js";
+import { RequesterProvider, useRequester } from "./context/RequesterContext.js";
+import { Header } from "./components/Header.js";
+import { RequesterSelectorModal } from "./components/RequesterSelectorModal.js";
+import "./index.css";
 
-// UI states you must handle for Issue 4: idle, loading, success, error.
 type UiState = "idle" | "loading" | "success" | "error";
 
-export default function App() {
+function MainContent() {
+  const { selectedRequester } = useRequester();
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -23,39 +27,69 @@ export default function App() {
   }
 
   return (
-    <div className="container py-5" style={{ maxWidth: 640 }}>
-      <h1 className="h3 mb-4">
-        TokTickIT <span className="text-success">IT Service Desk</span>
-      </h1>
+    <main className="container py-4" style={{ maxWidth: 800 }}>
+      {selectedRequester ? (
+        <div className="card shadow-sm mb-4">
+          <div className="card-body">
+            <h2 className="h4 fw-bold text-success mb-2">
+              Welcome, {selectedRequester.name} 👋
+            </h2>
+            <p className="text-muted mb-0">
+              Department: <strong>{selectedRequester.department || "N/A"}</strong> | Email: <strong>{selectedRequester.email}</strong>
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="alert alert-info mb-4">
+          Please select a Development Requester context above to simulate user tickets.
+        </div>
+      )}
 
-      <button className="btn btn-success mb-4" onClick={handleCheck} disabled={state === "loading"}>
-        {state === "loading" ? "Loading…" : "Check System"}
-      </button>
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h3 className="h5 fw-semibold mb-3">System Health & Categories Check</h3>
+          <button className="btn-zen-primary mb-3" onClick={handleCheck} disabled={state === "loading"}>
+            {state === "loading" ? "Loading…" : "Check System Status"}
+          </button>
 
-      {state === "success" && (
-        <div className="mt-3">
-          <p className="fw-bold mb-3">System Status: <span className="text-success">Online</span></p>
-          {categories.length > 0 && (
-            <div>
-              <p className="fw-semibold mb-2">Supported Request Categories:</p>
-              <ul className="list-group">
-                {categories.map((cat) => (
-                  <li key={cat.id} className="list-group-item">
-                    {cat.name}
-                  </li>
-                ))}
-              </ul>
+          {state === "success" && (
+            <div className="mt-3">
+              <p className="fw-bold text-success mb-3">System Status: Online 🟢</p>
+              {categories.length > 0 && (
+                <div>
+                  <p className="fw-semibold mb-2">Supported Request Categories:</p>
+                  <ul className="list-group">
+                    {categories.map((cat) => (
+                      <li key={cat.id} className="list-group-item">
+                        {cat.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {state === "error" && (
+            <div className="mt-3 text-danger">
+              <p className="fw-bold mb-1">System Status: Offline 🔴</p>
+              <p>{errorMessage}</p>
             </div>
           )}
         </div>
-      )}
+      </div>
+    </main>
+  );
+}
 
-      {state === "error" && (
-        <div className="mt-3 text-danger">
-          <p className="fw-bold mb-1">System Status: Offline</p>
-          <p>{errorMessage}</p>
-        </div>
-      )}
-    </div>
+export default function App() {
+  return (
+    <RequesterProvider>
+      <div className="min-vh-100 d-flex flex-column">
+        <Header />
+        <MainContent />
+        <RequesterSelectorModal />
+      </div>
+    </RequesterProvider>
   );
 }
