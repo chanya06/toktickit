@@ -174,9 +174,9 @@ enum TicketStatus {
    - `isRemoved`: Boolean `@default(false)`
    - `removalReason`: String?
    - `removedAt`: DateTime?
-   - `removedByRequesterId`: Int?
+   - `removedByRequesterId`: Int? (FK -> `DevelopmentRequester`)
    - `createdAt`: DateTime `@default(now())`
-   - *Indexes*: `@@index([ticketId])`, `@@index([isRemoved])`
+   - *Indexes*: `@@index([ticketId])`, `@@index([isRemoved])`, `@@index([removedByRequesterId])`
 
 ---
 
