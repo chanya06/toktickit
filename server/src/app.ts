@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
-import { generateNextTicketNumber, createTicketAtomically } from "./utils/ticketNumber.js";
+import { createTicketAtomically } from "./utils/ticketNumber.js";
 import { RequestedPriority } from "@prisma/client";
 
 export const app = express();
