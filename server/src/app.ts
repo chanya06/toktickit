@@ -40,14 +40,13 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Related Systems endpoint
 // ---------------------------------------------------------------------------
-app.get("/api/systems", async (_req: Request, res: Response) => {
+app.get("/api/related-systems", async (_req: Request, res: Response) => {
   try {
     const systems = await getPrisma().relatedSystem.findMany({
       where: { isActive: true },
       select: {
         id: true,
         name: true,
-        description: true,
       },
       orderBy: {
         id: "asc",

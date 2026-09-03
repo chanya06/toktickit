@@ -67,7 +67,7 @@ export async function fetchActiveCategories(): Promise<Category[]> {
 }
 
 export async function fetchActiveSystems(): Promise<RelatedSystem[]> {
-  const res = await fetch(`${API_URL}/api/systems`).catch(() => null);
+  const res = await fetch(`${API_URL}/api/related-systems`).catch(() => null);
   if (!res || !res.ok) {
     throw new Error("Failed to load related systems");
   }

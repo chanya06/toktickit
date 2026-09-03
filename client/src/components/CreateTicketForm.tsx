@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   fetchActiveCategories,
   fetchActiveSystems,
@@ -41,39 +41,29 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
   const [apiError, setApiError] = useState<string | null>(null);
   const [createdTicket, setCreatedTicket] = useState<TicketResponse | null>(null);
 
-  // Fetch dropdown categories and related systems on mount
-  useEffect(() => {
-    let isMounted = true;
-    const loadDropdownData = async () => {
-      setIsLoadingDropdowns(true);
-      setDropdownError(null);
-      try {
-        const [catData, sysData] = await Promise.all([
-          fetchActiveCategories(),
-          fetchActiveSystems(),
-        ]);
-        if (isMounted) {
-          setCategories(catData);
-          setSystems(sysData);
-          if (catData.length > 0) setCategoryId(String(catData[0].id));
-          if (sysData.length > 0) setRelatedSystemId(String(sysData[0].id));
-        }
-      } catch (err: any) {
-        if (isMounted) {
-          setDropdownError(err.message || "Failed to load form options");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingDropdowns(false);
-        }
-      }
-    };
-
-    loadDropdownData();
-    return () => {
-      isMounted = false;
-    };
+  // Fetch dropdown categories and related systems
+  const loadDropdownData = useCallback(async () => {
+    setIsLoadingDropdowns(true);
+    setDropdownError(null);
+    try {
+      const [catData, sysData] = await Promise.all([
+        fetchActiveCategories(),
+        fetchActiveSystems(),
+      ]);
+      setCategories(catData);
+      setSystems(sysData);
+      if (catData.length > 0) setCategoryId((prev) => prev || String(catData[0].id));
+      if (sysData.length > 0) setRelatedSystemId((prev) => prev || String(sysData[0].id));
+    } catch (err: any) {
+      setDropdownError(err.message || "Failed to load form options");
+    } finally {
+      setIsLoadingDropdowns(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadDropdownData();
+  }, [loadDropdownData]);
 
   const validateForm = (): boolean => {
     const errors: {
@@ -156,6 +146,8 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
     if (systems.length > 0) setRelatedSystemId(String(systems[0].id));
     setRequestedPriority("MEDIUM");
   };
+
+  const currentDateString = `${new Date().toISOString().split("T")[0]} (Today)`;
 
   // SUCCESS CONFIRMATION VIEW
   if (createdTicket) {
@@ -243,11 +235,20 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
           </div>
         )}
 
-        {/* Dropdown Load Error */}
+        {/* Dropdown Load Error with Retry Option */}
         {dropdownError && (
-          <div className="alert alert-danger mb-4">
-            <p className="fw-bold mb-1">Failed to load form metadata</p>
-            <p className="mb-0 small">{dropdownError}</p>
+          <div className="alert alert-danger mb-4 d-flex justify-content-between align-items-center" role="alert">
+            <div>
+              <strong className="d-block mb-1">Failed to load form metadata</strong>
+              <span className="small">{dropdownError}</span>
+            </div>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger"
+              onClick={loadDropdownData}
+            >
+              🔄 Retry Connection
+            </button>
           </div>
         )}
 
@@ -261,6 +262,36 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} noValidate>
+          {/* Read-Only Auto-Generated Fields per ui-spec.md */}
+          <div className="row g-3 mb-3">
+            <div className="col-md-6">
+              <label htmlFor="ticketNumberPreview" className="form-label fw-semibold text-muted">
+                Ticket Number <span className="small text-muted">(Read-only)</span>
+              </label>
+              <input
+                type="text"
+                id="ticketNumberPreview"
+                className="form-control bg-light"
+                value="TKT-YYYY-XXXXXX (Auto-generated upon submission)"
+                readOnly
+                disabled
+              />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="ticketDatePreview" className="form-label fw-semibold text-muted">
+                Ticket Date <span className="small text-muted">(Read-only)</span>
+              </label>
+              <input
+                type="text"
+                id="ticketDatePreview"
+                className="form-control bg-light"
+                value={currentDateString}
+                readOnly
+                disabled
+              />
+            </div>
+          </div>
+
           {/* Row 1: Category & Related System */}
           <div className="row g-3 mb-3">
             <div className="col-md-6">
@@ -397,8 +428,23 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
             )}
           </div>
 
+          {/* Notice for Attachment Scope */}
+          <div className="alert alert-secondary py-2 px-3 mb-4 small">
+            📎 <strong>File Attachments:</strong> File upload and drag-and-drop attachment management will be activated in <strong>Issue 13 (Attachment Lifecycle)</strong>.
+          </div>
+
           {/* Form Actions */}
           <div className="d-flex justify-content-end gap-2 border-top pt-3">
+            {onSuccessNavigate && (
+              <button
+                type="button"
+                className="btn-zen-secondary"
+                onClick={onSuccessNavigate}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+            )}
             <button
               type="submit"
               className="btn-zen-primary d-flex align-items-center gap-2"

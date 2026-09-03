@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import App from "../../src/App.js";
 import * as api from "../../src/api.js";
 
@@ -32,7 +32,7 @@ describe("Create Ticket Form Component (Issue 9)", () => {
     vi.spyOn(api, "fetchActiveSystems").mockResolvedValue(mockSystems);
   });
 
-  it("renders Create Ticket form with red asterisk markers on required fields", async () => {
+  it("renders Create Ticket form with red asterisk markers, read-only previews, and cancel button", async () => {
     render(<App />);
 
     // Click 'Create Ticket' in header
@@ -44,6 +44,13 @@ describe("Create Ticket Form Component (Issue 9)", () => {
     expect(screen.getByLabelText(/Related System/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Summary/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Description/i)).toBeInTheDocument();
+
+    // Read-only previews check
+    expect(screen.getByDisplayValue(/TKT-YYYY-XXXXXX/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue(/Today/i)).toBeInTheDocument();
+
+    // Cancel button check
+    expect(screen.getByRole("button", { name: /Cancel/i })).toBeInTheDocument();
   });
 
   it("shows field-level error messages below inputs when summary or description are too short", async () => {
@@ -65,7 +72,47 @@ describe("Create Ticket Form Component (Issue 9)", () => {
     expect(screen.getByText("Description must be at least 10 characters.")).toBeInTheDocument();
   });
 
-  it("submits valid form, disables submit button during API request, and renders success confirmation screen", async () => {
+  it("disables submit button and displays 'Submitting Ticket…' text during active submission", async () => {
+    let resolvePromise: (value: any) => void;
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+
+    vi.spyOn(api, "createTicket").mockImplementation(() => pendingPromise as any);
+
+    render(<App />);
+
+    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    fireEvent.click(createTabBtn);
+
+    const summaryInput = await screen.findByLabelText(/Summary/i);
+    const descriptionInput = screen.getByLabelText(/Description/i);
+
+    fireEvent.change(summaryInput, {
+      target: { value: "Valid summary text for busy state" },
+    });
+    fireEvent.change(descriptionInput, {
+      target: { value: "Valid description text for busy state test." },
+    });
+
+    const submitBtn = screen.getByRole("button", { name: /Submit Ticket/i });
+    fireEvent.click(submitBtn);
+
+    // Verify button is disabled and displays Submitting Ticket…
+    expect(screen.getByText(/Submitting Ticket…/i)).toBeInTheDocument();
+    expect(submitBtn).toBeDisabled();
+
+    await act(async () => {
+      resolvePromise!({
+        id: 1,
+        ticketNumber: "TKT-2026-000001",
+        status: "NEW",
+        summary: "Valid summary text for busy state",
+      });
+    });
+  });
+
+  it("submits valid form and renders success confirmation screen", async () => {
     const mockCreatedTicket: api.TicketResponse = {
       id: 101,
       ticketNumber: "TKT-2026-000101",
@@ -133,5 +180,17 @@ describe("Create Ticket Form Component (Issue 9)", () => {
     // Verify inputs were preserved
     expect(summaryInput).toHaveValue("Persistent VPN connection drop");
     expect(descriptionInput).toHaveValue("VPN drops every 15 minutes when connected from home network.");
+  });
+
+  it("renders Retry Connection button when categories or systems fail to load", async () => {
+    vi.spyOn(api, "fetchActiveCategories").mockRejectedValue(new Error("Network timeout"));
+
+    render(<App />);
+
+    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    fireEvent.click(createTabBtn);
+
+    expect(await screen.findByText("Failed to load form metadata")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /🔄 Retry Connection/i })).toBeInTheDocument();
   });
 });
