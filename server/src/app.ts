@@ -318,6 +318,92 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Get Owned Ticket Detail endpoint with Ownership Guard (Issue 12)
+// ---------------------------------------------------------------------------
+app.get("/api/tickets/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const headerRequesterId = req.headers["x-requester-id"];
+    const queryRequesterId = req.query.requesterId;
+    const rawRequesterId = queryRequesterId !== undefined && queryRequesterId !== null && queryRequesterId !== ""
+      ? queryRequesterId
+      : headerRequesterId;
+
+    // 1. Ticket ID format validation -> 400 Bad Request
+    if (!isPositiveInteger(id)) {
+      return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
+    }
+
+    // 2. Requester ID mandatory validation -> 400 Bad Request
+    if (rawRequesterId === undefined || rawRequesterId === null || rawRequesterId === "") {
+      return res.status(400).json({ error: "requesterId parameter is required" });
+    }
+
+    if (!isPositiveInteger(rawRequesterId)) {
+      return res.status(400).json({ error: "requesterId must be a valid positive integer" });
+    }
+
+    const ticketId = Number(id);
+    const numericRequesterId = Number(rawRequesterId);
+
+    const prisma = getPrisma();
+
+    // 3. Find target ticket
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      select: {
+        id: true,
+        ticketNumber: true,
+        requesterId: true,
+        categoryId: true,
+        relatedSystemId: true,
+        summary: true,
+        description: true,
+        requestedPriority: true,
+        itPriority: true,
+        status: true,
+        ticketOwner: true,
+        createdAt: true,
+        updatedAt: true,
+        requester: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        relatedSystem: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // 4. Enforce strict requester ownership check -> 403 Forbidden
+    if (ticket.requesterId !== numericRequesterId) {
+      return res.status(403).json({ error: "Forbidden: You do not have access to this ticket" });
+    }
+
+    return res.status(200).json(ticket);
+  } catch (error) {
+    console.error("Get ticket detail error:", error);
+    return res.status(500).json({ error: "Failed to fetch ticket detail" });
+  }
+});
+
 app.post("/api/tickets", async (req: Request, res: Response) => {
   try {
     const { requesterId, categoryId, relatedSystemId, requestedPriority, summary, description } = req.body;

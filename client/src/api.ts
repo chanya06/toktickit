@@ -184,6 +184,36 @@ export async function fetchTickets(
   return data;
 }
 
+export async function fetchTicketDetail(
+  ticketId: number,
+  requesterId: number,
+  signal?: AbortSignal
+): Promise<TicketResponse> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}?requesterId=${requesterId}`, {
+    headers: { "x-requester-id": String(requesterId) },
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) {
+      throw err;
+    }
+    return null;
+  });
+
+  if (!res) {
+    throw new Error("Network error: Unable to connect to server");
+  }
+
+  const data = await res.json();
+  if (!res.ok) {
+    const errorMsg = data.error || (res.status === 403 ? "Forbidden: You do not have access to this ticket" : "Failed to fetch ticket detail");
+    const err = new Error(errorMsg);
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  return data;
+}
+
 export async function checkSystem(): Promise<SystemStatus> {
   const healthRes = await fetch(`${API_URL}/api/health`).catch(() => null);
   if (!healthRes || !healthRes.ok) {
