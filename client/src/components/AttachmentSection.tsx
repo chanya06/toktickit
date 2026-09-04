@@ -61,6 +61,8 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
     setSelectedFile(null);
     setUploadError(null);
     setDownloadError(null);
+    setUploading(false);
+    setSubmittingRemove(false);
     setSoftRemoveTarget(null);
     setRemovalReason("");
     setSoftRemoveError(null);

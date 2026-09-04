@@ -82,9 +82,23 @@ describe("Attachment Lifecycle API Endpoints (Issue 13)", () => {
       expect(res.body.error).toContain("File type not supported");
     });
 
+    it("returns 400 Bad Request when file extension (.pdf) and MIME type (application/pdf) match but binary content magic bytes do not match", async () => {
+      const res = await request(app)
+        .post(`/api/tickets/${createdTicketId}/attachments`)
+        .field("requesterId", 1)
+        .attach("file", Buffer.from("this is plain text content not starting with PDF header"), {
+          filename: "fake_header.pdf",
+          contentType: "application/pdf",
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toContain("Binary content signature does not match extension");
+    });
+
     it("returns 413 Payload Too Large when file size exceeds 5MB", async () => {
-      // 5.5MB dummy buffer
+      // 5.5MB dummy buffer with valid PDF header
       const largeBuffer = Buffer.alloc(5.5 * 1024 * 1024);
+      largeBuffer.write("%PDF-1.4", 0);
       const res = await request(app)
         .post(`/api/tickets/${createdTicketId}/attachments`)
         .field("requesterId", 1)

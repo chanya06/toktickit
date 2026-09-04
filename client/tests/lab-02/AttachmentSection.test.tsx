@@ -281,8 +281,14 @@ describe("AttachmentSection Component (Issue 13)", () => {
       });
     });
 
-    // Verify state remains Requester 2 (0 active attachments) and stale file was NOT rendered
+    // Verify state remains Requester 2 (0 active attachments) and busy state was reset
     expect(screen.getByTestId("active-attachment-count")).toHaveTextContent("Active Attachments: 0 / 5");
     expect(screen.queryByText("new_doc.pdf")).not.toBeInTheDocument();
+
+    // Verify upload form for Requester 2 is functional and not stuck in busy state
+    const newFileInput = screen.getByTestId("file-input");
+    const req2File = new File(["req2 file content"], "req2_doc.pdf", { type: "application/pdf" });
+    fireEvent.change(newFileInput, { target: { files: [req2File] } });
+    expect(screen.getByTestId("upload-submit-btn")).not.toBeDisabled();
   });
 });

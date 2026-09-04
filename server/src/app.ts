@@ -523,6 +523,43 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
   }
 });
 
+function validateFileBufferSignature(filePath: string, ext: string): boolean {
+  try {
+    const fd = fs.openSync(filePath, "r");
+    const buffer = Buffer.alloc(12);
+    fs.readSync(fd, buffer, 0, 12, 0);
+    fs.closeSync(fd);
+
+    const cleanExt = ext.toLowerCase();
+    if (cleanExt === ".pdf") {
+      return buffer.slice(0, 5).toString("ascii") === "%PDF-";
+    }
+    if (cleanExt === ".jpg" || cleanExt === ".jpeg") {
+      return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+    }
+    if (cleanExt === ".png") {
+      return (
+        buffer[0] === 0x89 &&
+        buffer[1] === 0x50 &&
+        buffer[2] === 0x4e &&
+        buffer[3] === 0x47 &&
+        buffer[4] === 0x0d &&
+        buffer[5] === 0x0a &&
+        buffer[6] === 0x1a &&
+        buffer[7] === 0x0a
+      );
+    }
+    if (cleanExt === ".webp") {
+      const isRiff = buffer.slice(0, 4).toString("ascii") === "RIFF";
+      const isWebp = buffer.slice(8, 12).toString("ascii") === "WEBP";
+      return isRiff && isWebp;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Attachment Endpoints (Issue 13)
 // ---------------------------------------------------------------------------
@@ -672,10 +709,23 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next) => 
       return res.status(413).json({ error: "File size exceeds maximum allowed limit of 5 MB" });
     }
 
-    // Check active attachments limit & create record atomically via Prisma transaction
+    // Binary file signature / magic bytes validation
+    if (!validateFileBufferSignature(req.file.path, ext)) {
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: "File type not supported. Binary content signature does not match extension" });
+    }
+
+    // Check active attachments limit & create record atomically via Prisma transaction with row-level locking
     let newAttachment;
     try {
       newAttachment = await prisma.$transaction(async (tx) => {
+        // Lock ticket row to serialize concurrent upload transactions for this ticket
+        try {
+          await tx.$queryRaw`SELECT id FROM "Ticket" WHERE id = ${ticketId} FOR UPDATE`;
+        } catch {
+          // Fallback if db driver / provider does not support raw FOR UPDATE lock
+        }
+
         const activeCount = await tx.attachment.count({
           where: {
             ticketId,
