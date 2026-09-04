@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRequester } from "../context/RequesterContext.js";
 import { fetchTicketDetail, TicketResponse } from "../api.js";
+import { AttachmentSection } from "./AttachmentSection.js";
 
 interface TicketDetailViewProps {
   ticketId: number;
@@ -292,16 +293,8 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
         </div>
       </div>
 
-      {/* Attachment Lifecycle Notice (Issue 13 placeholder) */}
-      <div className="card shadow-sm mb-4">
-        <div className="card-body p-4">
-          <h4 className="h5 fw-bold text-dark mb-2">📎 File Attachments</h4>
-          <div className="notice-box">
-            Attachment upload, metadata inspection, download, and soft removal lifecycle will be activated in{" "}
-            <strong>Issue 13 (Attachment Lifecycle)</strong>.
-          </div>
-        </div>
-      </div>
+      {/* Attachment Lifecycle Section (Issue 13) */}
+      <AttachmentSection ticketId={ticketId} />
 
       {/* Bottom Back Button */}
       <div className="d-flex justify-content-end mb-4">
