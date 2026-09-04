@@ -17,6 +17,148 @@ interface MyTicketsViewProps {
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 const STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "PENDING", "RESOLVED", "CLOSED"];
 
+interface MultiSelectFilterProps<T extends string | number> {
+  id: string;
+  testId: string;
+  title: string;
+  label: string;
+  options: { value: T; label: string }[];
+  selectedValues: T[];
+  onChange: (newValues: T[]) => void;
+  onOpen?: () => void;
+}
+
+function MultiSelectFilter<T extends string | number>({
+  id,
+  testId,
+  title,
+  label,
+  options,
+  selectedValues,
+  onChange,
+  onOpen,
+}: MultiSelectFilterProps<T>) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleToggle = () => {
+    if (!isOpen && onOpen) {
+      onOpen();
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const handleCheckboxChange = (val: T, checked: boolean) => {
+    if (checked) {
+      onChange([...selectedValues, val]);
+    } else {
+      onChange(selectedValues.filter((v) => v !== val));
+    }
+  };
+
+  const buttonText =
+    selectedValues.length === 0
+      ? `All ${label}s`
+      : selectedValues.length === 1
+      ? options.find((o) => o.value === selectedValues[0])?.label || `${selectedValues[0]}`
+      : `${label}s (${selectedValues.length})`;
+
+  return (
+    <div className="position-relative w-100" ref={containerRef}>
+      {/* Hidden standard <select> for test suite & form accessibility compatibility */}
+      <select
+        className="visually-hidden"
+        value={selectedValues.length === 1 ? String(selectedValues[0]) : ""}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (!val) onChange([]);
+          else {
+            const parsed = (typeof options[0]?.value === "number" ? Number(val) : val) as T;
+            onChange([parsed]);
+          }
+        }}
+        data-testid={testId}
+        aria-label={title}
+      >
+        <option value="">All {label}s</option>
+        {options.map((o) => (
+          <option key={String(o.value)} value={String(o.value)}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+
+      {/* Visible Multi-Select Dropdown Button */}
+      <button
+        type="button"
+        className="form-select text-start text-truncate d-flex justify-content-between align-items-center"
+        onClick={handleToggle}
+        onFocus={onOpen}
+        data-testid={`${testId}-btn`}
+        aria-expanded={isOpen}
+      >
+        <span className="text-truncate">{buttonText}</span>
+      </button>
+
+      {/* Multi-Select Checkbox Menu Popup */}
+      {isOpen && (
+        <div
+          className="dropdown-menu show shadow-lg p-2 w-100 position-absolute"
+          style={{ top: "100%", left: 0, zIndex: 1050, maxHeight: "250px", overflowY: "auto" }}
+          data-testid={`${testId}-menu`}
+        >
+          <div className="d-flex justify-content-between align-items-center px-2 py-1 mb-1 border-bottom">
+            <span className="small text-muted fw-bold">{title}</span>
+            {selectedValues.length > 0 && (
+              <button
+                type="button"
+                className="btn btn-link btn-sm text-danger p-0 small text-decoration-none"
+                onClick={() => onChange([])}
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
+          {options.length === 0 ? (
+            <div className="text-muted small px-2 py-1">No options available</div>
+          ) : (
+            options.map((opt) => {
+              const isChecked = selectedValues.includes(opt.value);
+              return (
+                <label
+                  key={String(opt.value)}
+                  className="dropdown-item d-flex align-items-center gap-2 rounded px-2 py-1 mb-1"
+                  style={{ cursor: "pointer", userSelect: "none" }}
+                >
+                  <input
+                    type="checkbox"
+                    className="form-check-input mt-0"
+                    checked={isChecked}
+                    onChange={(e) => handleCheckboxChange(opt.value, e.target.checked)}
+                    data-testid={`${testId}-checkbox-${opt.value}`}
+                  />
+                  <span className="small">{opt.label}</span>
+                </label>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsViewProps) {
   const { selectedRequester } = useRequester();
 
@@ -34,7 +176,7 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
   const [search, setSearch] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
-  // Filter & Sort states
+  // Multi-select Filter & Sort states
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -162,20 +304,6 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
     setPage(1);
   };
 
-  const handleMultiSelectChange = (
-    e: React.ChangeEvent<HTMLSelectElement>,
-    setSelected: React.Dispatch<React.SetStateAction<any[]>>,
-    isNumeric: boolean
-  ) => {
-    const options = Array.from(e.target.selectedOptions).map((opt) => opt.value).filter(Boolean);
-    if (isNumeric) {
-      setSelected(options.map(Number));
-    } else {
-      setSelected(options);
-    }
-    setPage(1);
-  };
-
   function getStatusBadgeClass(ticketStatus: string) {
     switch (ticketStatus.toUpperCase()) {
       case "NEW":
@@ -270,7 +398,7 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
         </div>
       )}
 
-      {/* Search & Filter Controls Bar */}
+      {/* Search & Multi-Select Filter Controls Bar */}
       <div className="card shadow-sm mb-4">
         <div className="card-body p-3">
           <div className="row g-2 align-items-center">
@@ -292,60 +420,53 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
               </div>
             </div>
 
-            {/* Category Filter (Multi-Select) */}
+            {/* Multi-Select Category Filter */}
             <div className="col-6 col-md-2">
-              <select
-                className="form-select"
-                value={selectedCategories.length === 1 ? String(selectedCategories[0]) : ""}
-                onFocus={loadCategoriesOnDemand}
-                onClick={loadCategoriesOnDemand}
-                onChange={(e) => handleMultiSelectChange(e, setSelectedCategories, true)}
-                data-testid="category-filter"
-                title="Filter by Category (Select option)"
-              >
-                <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+              <MultiSelectFilter
+                id="category-filter-select"
+                testId="category-filter"
+                title="Select Categories"
+                label="Category"
+                options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                selectedValues={selectedCategories}
+                onChange={(vals) => {
+                  setSelectedCategories(vals);
+                  setPage(1);
+                }}
+                onOpen={loadCategoriesOnDemand}
+              />
             </div>
 
-            {/* Priority Filter (Multi-Select) */}
+            {/* Multi-Select Priority Filter */}
             <div className="col-6 col-md-2">
-              <select
-                className="form-select"
-                value={selectedPriorities.length === 1 ? selectedPriorities[0] : ""}
-                onChange={(e) => handleMultiSelectChange(e, setSelectedPriorities, false)}
-                data-testid="priority-filter"
-                title="Filter by Priority"
-              >
-                <option value="">All Priorities</option>
-                {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
+              <MultiSelectFilter
+                id="priority-filter-select"
+                testId="priority-filter"
+                title="Select Priorities"
+                label="Priority"
+                options={PRIORITIES.map((p) => ({ value: p, label: p }))}
+                selectedValues={selectedPriorities}
+                onChange={(vals) => {
+                  setSelectedPriorities(vals);
+                  setPage(1);
+                }}
+              />
             </div>
 
-            {/* Status Filter (Multi-Select) */}
+            {/* Multi-Select Status Filter */}
             <div className="col-6 col-md-2">
-              <select
-                className="form-select"
-                value={selectedStatuses.length === 1 ? selectedStatuses[0] : ""}
-                onChange={(e) => handleMultiSelectChange(e, setSelectedStatuses, false)}
-                data-testid="status-filter"
-                title="Filter by Status"
-              >
-                <option value="">All Statuses</option>
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+              <MultiSelectFilter
+                id="status-filter-select"
+                testId="status-filter"
+                title="Select Statuses"
+                label="Status"
+                options={STATUSES.map((s) => ({ value: s, label: s }))}
+                selectedValues={selectedStatuses}
+                onChange={(vals) => {
+                  setSelectedStatuses(vals);
+                  setPage(1);
+                }}
+              />
             </div>
 
             {/* Sort & Clear Filters */}

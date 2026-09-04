@@ -142,7 +142,7 @@ describe("MyTicketsView Component (Issue 11)", () => {
     expect(screen.getByText(/Requester Context Required/i)).toBeInTheDocument();
   });
 
-  it("UI-04: renders My Tickets table, search bar, category/priority/status filter controls, desktop table, and mobile cards", async () => {
+  it("UI-04: renders My Tickets view, search bar, category/priority/status filter controls, desktop table, and mobile cards", async () => {
     render(<TestWrapper />);
 
     expect(screen.getByText(/Welcome, Jennifer Anderson/i)).toBeInTheDocument();
@@ -161,6 +161,18 @@ describe("MyTicketsView Component (Issue 11)", () => {
     expect(screen.getByTestId("desktop-tickets-table")).toBeInTheDocument();
     expect(screen.getByTestId("mobile-tickets-cards")).toBeInTheDocument();
     expect(screen.getAllByText("TKT-2026-000101").length).toBeGreaterThan(0);
+  });
+
+  it("renders responsive desktop table and mobile cards with correct responsive CSS classes", async () => {
+    render(<TestWrapper />);
+
+    await waitFor(() => expect(api.fetchTickets).toHaveBeenCalled());
+
+    const desktopTable = screen.getByTestId("desktop-tickets-table");
+    const mobileCards = screen.getByTestId("mobile-tickets-cards");
+
+    expect(desktopTable).toHaveClass("d-none", "d-md-block");
+    expect(mobileCards).toHaveClass("d-block", "d-md-none");
   });
 
   it("prevents stale responses when switching Requester context (UI Requester Isolation)", async () => {
@@ -228,13 +240,18 @@ describe("MyTicketsView Component (Issue 11)", () => {
     vi.useRealTimers();
   });
 
-  it("filters tickets by priority, status, and sort options", async () => {
+  it("supports multi-select filter selection for category, priority, and status", async () => {
     render(<TestWrapper />);
 
     await waitFor(() => expect(api.fetchTickets).toHaveBeenCalled());
 
-    // Priority filter
-    fireEvent.change(screen.getByTestId("priority-filter"), { target: { value: "HIGH" } });
+    // Priority multi-select filter via checkbox menu popup
+    const priorityBtn = screen.getByTestId("priority-filter-btn");
+    fireEvent.click(priorityBtn);
+
+    const highCheckbox = screen.getByTestId("priority-filter-checkbox-HIGH");
+    fireEvent.click(highCheckbox);
+
     await waitFor(() => {
       expect(api.fetchTickets).toHaveBeenLastCalledWith(
         expect.objectContaining({ requestedPriority: ["HIGH"] }),
@@ -242,11 +259,12 @@ describe("MyTicketsView Component (Issue 11)", () => {
       );
     });
 
-    // Status filter
-    fireEvent.change(screen.getByTestId("status-filter"), { target: { value: "NEW" } });
+    const urgentCheckbox = screen.getByTestId("priority-filter-checkbox-URGENT");
+    fireEvent.click(urgentCheckbox);
+
     await waitFor(() => {
       expect(api.fetchTickets).toHaveBeenLastCalledWith(
-        expect.objectContaining({ status: ["NEW"] }),
+        expect.objectContaining({ requestedPriority: ["HIGH", "URGENT"] }),
         expect.anything()
       );
     });
@@ -280,6 +298,117 @@ describe("MyTicketsView Component (Issue 11)", () => {
     });
   });
 
+  it("renders empty state when no tickets exist for requester", async () => {
+    vi.mocked(api.fetchTickets).mockResolvedValueOnce({
+      data: [],
+      pagination: {
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: 1,
+        pageSize: 10,
+      },
+    });
+
+    render(<TestWrapper />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+      expect(screen.getByText(/No Tickets Found/i)).toBeInTheDocument();
+    });
+  });
+
+  it("renders no-results state when search/filter returns 0 items and clears filters on click", async () => {
+    render(<TestWrapper />);
+
+    await waitFor(() => expect(api.fetchTickets).toHaveBeenCalledTimes(1));
+
+    vi.mocked(api.fetchTickets).mockResolvedValueOnce({
+      data: [],
+      pagination: {
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: 1,
+        pageSize: 10,
+      },
+    });
+
+    fireEvent.change(screen.getByTestId("search-input"), { target: { value: "NonExistentTerm" } });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("no-results-state")).toBeInTheDocument();
+      expect(screen.getByText(/No Matching Tickets/i)).toBeInTheDocument();
+    });
+
+    const clearBtn = screen.getByTestId("no-results-clear-btn");
+    fireEvent.click(clearBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("search-input")).toHaveValue("");
+    });
+  });
+
+  it("handles pagination next, previous, and page number buttons", async () => {
+    vi.mocked(api.fetchTickets).mockResolvedValue({
+      data: mockTicketsReq1,
+      pagination: {
+        totalItems: 25,
+        totalPages: 3,
+        currentPage: 1,
+        pageSize: 10,
+      },
+    });
+
+    render(<TestWrapper />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pagination-info")).toHaveTextContent("Showing 1 to 10 of 25 tickets");
+    });
+
+    // Mock page 2 response on Next click
+    vi.mocked(api.fetchTickets).mockResolvedValueOnce({
+      data: mockTicketsReq1,
+      pagination: {
+        totalItems: 25,
+        totalPages: 3,
+        currentPage: 2,
+        pageSize: 10,
+      },
+    });
+
+    const nextBtn = screen.getByTestId("next-page-btn");
+    fireEvent.click(nextBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("pagination-info")).toHaveTextContent("Showing 11 to 20 of 25 tickets");
+      expect(api.fetchTickets).toHaveBeenLastCalledWith(
+        expect.objectContaining({ requesterId: 1, page: 2 }),
+        expect.anything()
+      );
+    });
+
+    // Mock page 1 response on Previous click
+    vi.mocked(api.fetchTickets).mockResolvedValueOnce({
+      data: mockTicketsReq1,
+      pagination: {
+        totalItems: 25,
+        totalPages: 3,
+        currentPage: 1,
+        pageSize: 10,
+      },
+    });
+
+    const prevBtn = screen.getByTestId("prev-page-btn");
+    expect(prevBtn).not.toBeDisabled();
+    fireEvent.click(prevBtn);
+
+    await waitFor(() => {
+      expect(api.fetchTickets).toHaveBeenLastCalledWith(
+        expect.objectContaining({ requesterId: 1, page: 1 }),
+        expect.anything()
+      );
+    });
+  });
+
   it("renders Error state with Retry button and re-fetches tickets on click", async () => {
     vi.mocked(api.fetchTickets).mockRejectedValueOnce(new Error("Server offline"));
 
@@ -304,18 +433,28 @@ describe("MyTicketsView Component (Issue 11)", () => {
     });
   });
 
-  it("handles category load error gracefully showing notification banner", async () => {
-    vi.mocked(api.fetchActiveCategories).mockRejectedValueOnce(new Error("Category API Error"));
+  it("handles category load error gracefully and recovers data upon clicking Retry Categories", async () => {
+    const catSpy = vi.spyOn(api, "fetchActiveCategories").mockRejectedValueOnce(new Error("Category API Error"));
 
     render(<TestWrapper />);
 
     await waitFor(() => expect(api.fetchTickets).toHaveBeenCalled());
 
-    // Focus category filter to trigger lazy fetch
-    const catFilter = screen.getByTestId("category-filter");
-    fireEvent.focus(catFilter);
+    // Click category filter button to trigger lazy fetch
+    const catFilterBtn = screen.getByTestId("category-filter-btn");
+    fireEvent.click(catFilterBtn);
 
     expect(await screen.findByTestId("category-load-error")).toBeInTheDocument();
     expect(screen.getByText(/Category API Error/i)).toBeInTheDocument();
+
+    // Mock success on retry click
+    catSpy.mockResolvedValueOnce(mockCategories);
+
+    const retryCatBtn = screen.getByRole("button", { name: /Retry Categories/i });
+    fireEvent.click(retryCatBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("category-load-error")).not.toBeInTheDocument();
+    });
   });
 });
