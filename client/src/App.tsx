@@ -5,6 +5,7 @@ import { Header } from "./components/Header.js";
 import { RequesterSelectorModal } from "./components/RequesterSelectorModal.js";
 import { CreateTicketForm } from "./components/CreateTicketForm.js";
 import { MyTicketsView } from "./components/MyTicketsView.js";
+import { TicketDetailView } from "./components/TicketDetailView.js";
 import "./index.css";
 
 type UiState = "idle" | "loading" | "success" | "error";
@@ -65,16 +66,27 @@ function HomeOverview() {
 }
 
 function MainApp() {
-  const [activeTab, setActiveTab] = useState<"my-tickets" | "create-ticket">("my-tickets");
+  const [activeTab, setActiveTab] = useState<"my-tickets" | "create-ticket" | "ticket-detail">("my-tickets");
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+
+  const handleSelectTicket = (id: number) => {
+    setSelectedTicketId(id);
+    setActiveTab("ticket-detail");
+  };
 
   return (
     <div className="min-vh-100 d-flex flex-column">
-      <Header activeTab={activeTab} onSelectTab={setActiveTab} />
+      <Header activeTab={activeTab === "ticket-detail" ? "my-tickets" : activeTab} onSelectTab={setActiveTab} />
       <main className="container py-4" style={{ maxWidth: 1040 }}>
         {activeTab === "create-ticket" ? (
           <CreateTicketForm onSuccessNavigate={() => setActiveTab("my-tickets")} />
+        ) : activeTab === "ticket-detail" && selectedTicketId !== null ? (
+          <TicketDetailView ticketId={selectedTicketId} onBack={() => setActiveTab("my-tickets")} />
         ) : (
-          <MyTicketsView onNavigateCreate={() => setActiveTab("create-ticket")} />
+          <MyTicketsView
+            onNavigateCreate={() => setActiveTab("create-ticket")}
+            onSelectTicket={handleSelectTicket}
+          />
         )}
         <HomeOverview />
       </main>

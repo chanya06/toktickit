@@ -168,8 +168,9 @@ This document details the HTTP REST API endpoints, request/response formats, que
 ### 2.3 Get Owned Ticket Detail
 - **HTTP Method**: `GET`
 - **Path**: `/api/tickets/:id`
-- **Description**: Returns single ticket details. Requires `requesterId` in query param or header to enforce data isolation.
-- **Headers / Query**: `requesterId` parameter mandatory.
+- **Description**: Returns single ticket details. Requires `requesterId` in query parameter to enforce data isolation.
+- **Query Parameters**:
+  - `requesterId` (REQUIRED): Integer - ID of selected requester.
 - **Response `200 OK`**:
 ```json
 {
@@ -192,6 +193,7 @@ This document details the HTTP REST API endpoints, request/response formats, que
 }
 ```
 - **Error Responses**:
+  - `400 Bad Request`: Missing `requesterId` query parameter or conflicting header.
   - `403 Forbidden` / `404 Not Found`: Attempting to access a ticket belonging to another requester or non-existent ID.
 
 ---
