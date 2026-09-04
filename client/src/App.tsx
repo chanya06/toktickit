@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { checkSystem, Category } from "./api.js";
-import { RequesterProvider, useRequester } from "./context/RequesterContext.js";
+import { RequesterProvider } from "./context/RequesterContext.js";
 import { Header } from "./components/Header.js";
 import { RequesterSelectorModal } from "./components/RequesterSelectorModal.js";
 import { CreateTicketForm } from "./components/CreateTicketForm.js";
+import { MyTicketsView } from "./components/MyTicketsView.js";
 import "./index.css";
 
 type UiState = "idle" | "loading" | "success" | "error";
 
-function HomeOverview({ onNavigateCreate }: { onNavigateCreate: () => void }) {
-  const { selectedRequester } = useRequester();
+function HomeOverview() {
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -28,63 +28,39 @@ function HomeOverview({ onNavigateCreate }: { onNavigateCreate: () => void }) {
   }
 
   return (
-    <>
-      {selectedRequester ? (
-        <div className="card shadow-sm mb-4">
-          <div className="card-body d-flex justify-content-between align-items-center">
-            <div>
-              <h2 className="h4 fw-bold text-success mb-1">
-                Welcome, {selectedRequester.name} 👋
-              </h2>
-              <p className="text-muted mb-0 small">
-                Department: <strong>{selectedRequester.department || "N/A"}</strong> | Email: <strong>{selectedRequester.email}</strong>
-              </p>
-            </div>
-            <button type="button" className="btn-zen-primary" onClick={onNavigateCreate}>
-              ➕ Create New Ticket
-            </button>
+    <div className="card shadow-sm mt-4">
+      <div className="card-body">
+        <h3 className="h6 fw-semibold mb-2">System Health & API Check</h3>
+        <button className="btn-zen-primary mb-3" onClick={handleCheck} disabled={state === "loading"}>
+          {state === "loading" ? "Loading…" : "Check System Status"}
+        </button>
+
+        {state === "success" && (
+          <div className="mt-2">
+            <p className="fw-bold text-success mb-2">System Status: Online 🟢</p>
+            {categories.length > 0 && (
+              <div>
+                <p className="fw-semibold mb-1 small">Supported Categories:</p>
+                <ul className="list-group list-group-flush small">
+                  {categories.map((cat) => (
+                    <li key={cat.id} className="list-group-item py-1">
+                      {cat.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        </div>
-      ) : (
-        <div className="alert alert-info mb-4">
-          Please select a Development Requester context above to simulate user tickets.
-        </div>
-      )}
+        )}
 
-      <div className="card shadow-sm">
-        <div className="card-body">
-          <h3 className="h5 fw-semibold mb-3">System Health & Categories Check</h3>
-          <button className="btn-zen-primary mb-3" onClick={handleCheck} disabled={state === "loading"}>
-            {state === "loading" ? "Loading…" : "Check System Status"}
-          </button>
-
-          {state === "success" && (
-            <div className="mt-3">
-              <p className="fw-bold text-success mb-3">System Status: Online 🟢</p>
-              {categories.length > 0 && (
-                <div>
-                  <p className="fw-semibold mb-2">Supported Request Categories:</p>
-                  <ul className="list-group">
-                    {categories.map((cat) => (
-                      <li key={cat.id} className="list-group-item">
-                        {cat.name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          {state === "error" && (
-            <div className="mt-3 text-danger">
-              <p className="fw-bold mb-1">System Status: Offline 🔴</p>
-              <p>{errorMessage}</p>
-            </div>
-          )}
-        </div>
+        {state === "error" && (
+          <div className="mt-2 text-danger">
+            <p className="fw-bold mb-1">System Status: Offline 🔴</p>
+            <p className="small mb-0">{errorMessage}</p>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -94,12 +70,13 @@ function MainApp() {
   return (
     <div className="min-vh-100 d-flex flex-column">
       <Header activeTab={activeTab} onSelectTab={setActiveTab} />
-      <main className="container py-4" style={{ maxWidth: 840 }}>
+      <main className="container py-4" style={{ maxWidth: 1040 }}>
         {activeTab === "create-ticket" ? (
           <CreateTicketForm onSuccessNavigate={() => setActiveTab("my-tickets")} />
         ) : (
-          <HomeOverview onNavigateCreate={() => setActiveTab("create-ticket")} />
+          <MyTicketsView onNavigateCreate={() => setActiveTab("create-ticket")} />
         )}
+        <HomeOverview />
       </main>
       <RequesterSelectorModal />
     </div>

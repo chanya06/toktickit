@@ -15,7 +15,7 @@ interface RequesterContextType {
   refreshRequesters: () => Promise<void>;
 }
 
-const RequesterContext = createContext<RequesterContextType | undefined>(undefined);
+export const RequesterContext = createContext<RequesterContextType | undefined>(undefined);
 
 export const RequesterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [selectedRequester, setSelectedRequester] = useState<DevelopmentRequester | null>(null);
