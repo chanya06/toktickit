@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRequester } from "../context/RequesterContext.js";
 import {
   fetchTickets,
@@ -6,6 +6,7 @@ import {
   Category,
   TicketResponse,
   PaginationMeta,
+  FetchTicketsParams,
 } from "../api.js";
 
 interface MyTicketsViewProps {
@@ -22,25 +23,35 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
   const [tickets, setTickets] = useState<(TicketResponse & { attachmentCount?: number })[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [categoriesLoading, setCategoriesLoading] = useState<boolean>(false);
+  const categoryFetchInitiatedRef = useRef<boolean>(false);
+
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter & Search states
+  // Search input state & Debounced search state
   const [search, setSearch] = useState<string>("");
-  const [categoryId, setCategoryId] = useState<string>("");
-  const [requestedPriority, setRequestedPriority] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  // Filter & Sort states
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState<number>(1);
+  const [retryToken, setRetryToken] = useState<number>(0);
 
-  const hasActiveFilters =
-    Boolean(search.trim()) ||
-    Boolean(categoryId) ||
-    Boolean(requestedPriority) ||
-    Boolean(status);
+  // Debounce search input (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  // Category options derived from tickets and loaded on demand
+  // Extract category options from loaded tickets & load on demand safely
   useEffect(() => {
     if (tickets && tickets.length > 0) {
       setCategories((prev) => {
@@ -56,7 +67,12 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
     }
   }, [tickets]);
 
-  const loadCategoriesOnDemand = () => {
+  const loadCategoriesOnDemand = useCallback(() => {
+    if (categoryFetchInitiatedRef.current) return;
+    categoryFetchInitiatedRef.current = true;
+    setCategoriesLoading(true);
+    setCategoriesError(null);
+
     fetchActiveCategories()
       .then((data) => {
         setCategories((prev) => {
@@ -65,59 +81,98 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
           data.forEach((c) => catMap.set(c.id, c.name));
           return Array.from(catMap.entries()).map(([id, name]) => ({ id, name }));
         });
+        setCategoriesLoading(false);
       })
-      .catch(() => {});
-  };
+      .catch((err: any) => {
+        categoryFetchInitiatedRef.current = false; // Allow retry on failure
+        setCategoriesError(err.message || "Failed to load request categories");
+        setCategoriesLoading(false);
+      });
+  }, []);
 
-  // Fetch Tickets logic
-  const loadTickets = useCallback(async () => {
+  const hasActiveFilters =
+    Boolean(search.trim()) ||
+    selectedCategories.length > 0 ||
+    selectedPriorities.length > 0 ||
+    selectedStatuses.length > 0;
+
+  // Main ticket loading effect with AbortController for race condition & stale response protection
+  useEffect(() => {
     if (!selectedRequester) return;
+
+    const controller = new AbortController();
+    const currentRequesterId = selectedRequester.id;
 
     setLoading(true);
     setError(null);
 
-    try {
-      const response = await fetchTickets({
-        requesterId: selectedRequester.id,
-        search: search.trim() || undefined,
-        categoryId: categoryId ? Number(categoryId) : undefined,
-        requestedPriority: requestedPriority || undefined,
-        status: status || undefined,
-        sortBy,
-        sortOrder,
-        page,
-        pageSize: 10,
+    const params: FetchTicketsParams = {
+      requesterId: currentRequesterId,
+      search: debouncedSearch.trim() || undefined,
+      categoryId: selectedCategories.length > 0 ? selectedCategories : undefined,
+      requestedPriority: selectedPriorities.length > 0 ? selectedPriorities : undefined,
+      status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+      sortBy,
+      sortOrder,
+      page,
+      pageSize: 10,
+    };
+
+    fetchTickets(params, controller.signal)
+      .then((res) => {
+        if (!controller.signal.aborted) {
+          setTickets(res.data);
+          setPagination(res.pagination);
+          setLoading(false);
+        }
+      })
+      .catch((err: any) => {
+        if (err?.name === "AbortError" || controller.signal.aborted) {
+          return; // Suppress aborted stale requests
+        }
+        if (!controller.signal.aborted) {
+          setError(err.message || "Failed to load tickets");
+          setLoading(false);
+        }
       });
 
-      setTickets(response.data);
-      setPagination(response.pagination);
-    } catch (err: any) {
-      setError(err.message || "Failed to load tickets");
-    } finally {
-      setLoading(false);
-    }
+    return () => {
+      controller.abort();
+    };
   }, [
-    selectedRequester,
-    search,
-    categoryId,
-    requestedPriority,
-    status,
+    selectedRequester?.id,
+    debouncedSearch,
+    selectedCategories,
+    selectedPriorities,
+    selectedStatuses,
     sortBy,
     sortOrder,
     page,
+    retryToken,
   ]);
-
-  useEffect(() => {
-    loadTickets();
-  }, [loadTickets]);
 
   const handleClearFilters = () => {
     setSearch("");
-    setCategoryId("");
-    setRequestedPriority("");
-    setStatus("");
+    setDebouncedSearch("");
+    setSelectedCategories([]);
+    setSelectedPriorities([]);
+    setSelectedStatuses([]);
     setSortBy("createdAt");
     setSortOrder("desc");
+    setPage(1);
+  };
+
+  const handleMultiSelectChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+    setSelected: React.Dispatch<React.SetStateAction<any[]>>,
+    isNumeric: boolean
+  ) => {
+    const options = Array.from(e.target.selectedOptions).map((opt) => opt.value).filter(Boolean);
+    if (isNumeric) {
+      setSelected(options.map(Number));
+    } else {
+      setSelected(options);
+    }
     setPage(1);
   };
 
@@ -201,6 +256,20 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
         </button>
       </div>
 
+      {/* Category Load Error Notification */}
+      {categoriesError && (
+        <div className="alert alert-warning py-2 px-3 mb-3 d-flex justify-content-between align-items-center small" data-testid="category-load-error">
+          <span>⚠️ {categoriesError}</span>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-dark py-0"
+            onClick={loadCategoriesOnDemand}
+          >
+            Retry Categories
+          </button>
+        </div>
+      )}
+
       {/* Search & Filter Controls Bar */}
       <div className="card shadow-sm mb-4">
         <div className="card-body p-3">
@@ -223,18 +292,16 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
               </div>
             </div>
 
-            {/* Category Filter */}
+            {/* Category Filter (Multi-Select) */}
             <div className="col-6 col-md-2">
               <select
                 className="form-select"
-                value={categoryId}
+                value={selectedCategories.length === 1 ? String(selectedCategories[0]) : ""}
                 onFocus={loadCategoriesOnDemand}
                 onClick={loadCategoriesOnDemand}
-                onChange={(e) => {
-                  setCategoryId(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => handleMultiSelectChange(e, setSelectedCategories, true)}
                 data-testid="category-filter"
+                title="Filter by Category (Select option)"
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -245,16 +312,14 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
               </select>
             </div>
 
-            {/* Priority Filter */}
+            {/* Priority Filter (Multi-Select) */}
             <div className="col-6 col-md-2">
               <select
                 className="form-select"
-                value={requestedPriority}
-                onChange={(e) => {
-                  setRequestedPriority(e.target.value);
-                  setPage(1);
-                }}
+                value={selectedPriorities.length === 1 ? selectedPriorities[0] : ""}
+                onChange={(e) => handleMultiSelectChange(e, setSelectedPriorities, false)}
                 data-testid="priority-filter"
+                title="Filter by Priority"
               >
                 <option value="">All Priorities</option>
                 {PRIORITIES.map((p) => (
@@ -265,16 +330,14 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
               </select>
             </div>
 
-            {/* Status Filter */}
+            {/* Status Filter (Multi-Select) */}
             <div className="col-6 col-md-2">
               <select
                 className="form-select"
-                value={status}
-                onChange={(e) => {
-                  setStatus(e.target.value);
-                  setPage(1);
-                }}
+                value={selectedStatuses.length === 1 ? selectedStatuses[0] : ""}
+                onChange={(e) => handleMultiSelectChange(e, setSelectedStatuses, false)}
                 data-testid="status-filter"
+                title="Filter by Status"
               >
                 <option value="">All Statuses</option>
                 {STATUSES.map((s) => (
@@ -335,7 +398,12 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
           <div>
             <strong>Error:</strong> {error}
           </div>
-          <button type="button" className="btn btn-sm btn-outline-danger" onClick={loadTickets}>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-danger"
+            onClick={() => setRetryToken((t) => t + 1)}
+            data-testid="retry-tickets-btn"
+          >
             🔄 Retry
           </button>
         </div>

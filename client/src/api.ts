@@ -118,7 +118,10 @@ export interface PaginatedTicketsResponse {
   pagination: PaginationMeta;
 }
 
-export async function fetchTickets(params: FetchTicketsParams): Promise<PaginatedTicketsResponse> {
+export async function fetchTickets(
+  params: FetchTicketsParams,
+  signal?: AbortSignal
+): Promise<PaginatedTicketsResponse> {
   const query = new URLSearchParams();
   query.set("requesterId", String(params.requesterId));
 
@@ -162,7 +165,12 @@ export async function fetchTickets(params: FetchTicketsParams): Promise<Paginate
     query.set("pageSize", String(params.pageSize));
   }
 
-  const res = await fetch(`${API_URL}/api/tickets?${query.toString()}`).catch(() => null);
+  const res = await fetch(`${API_URL}/api/tickets?${query.toString()}`, { signal }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) {
+      throw err;
+    }
+    return null;
+  });
 
   if (!res) {
     throw new Error("Network error: Unable to connect to server");
