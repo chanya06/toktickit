@@ -100,6 +100,18 @@ const VALID_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 const VALID_STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "PENDING", "RESOLVED", "CLOSED"];
 const ALLOWED_SORT_FIELDS = ["createdAt", "ticketNumber", "summary", "status", "requestedPriority", "itPriority", "updatedAt"];
 
+// Helper to parse multi-select query params (comma-separated string or array of strings)
+function parseMultiSelectParam(val: any): string[] {
+  if (!val) return [];
+  if (Array.isArray(val)) {
+    return val.flatMap((item) => String(item).split(",")).map((s) => s.trim()).filter(Boolean);
+  }
+  if (typeof val === "string") {
+    return val.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return [String(val).trim()].filter(Boolean);
+}
+
 // ---------------------------------------------------------------------------
 // Get Owned Tickets (My Tickets) endpoint (Issue 10)
 // ---------------------------------------------------------------------------
@@ -131,57 +143,95 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
 
     const numericRequesterId = Number(requesterId);
 
+    // 2. Pagination parameter validation -> 400 Bad Request
+    let currentPage = 1;
+    if (page !== undefined && page !== null && page !== "") {
+      if (!isPositiveInteger(page)) {
+        return res.status(400).json({ error: "page must be a valid positive integer" });
+      }
+      currentPage = Number(page);
+    }
+
+    let perPage = 10;
+    const rawSize = pageSize !== undefined && pageSize !== null && pageSize !== "" ? pageSize : limit;
+    if (rawSize !== undefined && rawSize !== null && rawSize !== "") {
+      if (!isPositiveInteger(rawSize)) {
+        return res.status(400).json({ error: "pageSize must be a valid positive integer" });
+      }
+      perPage = Math.min(Number(rawSize), 100);
+    }
+
+    // 3. Sorting parameter validation -> 400 Bad Request
+    let sortField = "createdAt";
+    if (sortBy !== undefined && sortBy !== null && sortBy !== "") {
+      if (typeof sortBy !== "string" || !ALLOWED_SORT_FIELDS.includes(sortBy)) {
+        return res.status(400).json({ error: "Invalid sortBy parameter" });
+      }
+      sortField = sortBy;
+    }
+
+    let sortDirection: "asc" | "desc" = "desc";
+    if (sortOrder !== undefined && sortOrder !== null && sortOrder !== "") {
+      if (typeof sortOrder !== "string" || !["asc", "desc"].includes(sortOrder.toLowerCase())) {
+        return res.status(400).json({ error: "Invalid sortOrder parameter" });
+      }
+      sortDirection = sortOrder.toLowerCase() as "asc" | "desc";
+    }
+
     // Build filter criteria
     const where: any = {
       requesterId: numericRequesterId,
     };
 
-    // Category filter
-    if (categoryId !== undefined && isPositiveInteger(categoryId)) {
-      where.categoryId = Number(categoryId);
+    // Category filter (supports multi-select comma-separated or array)
+    if (categoryId !== undefined && categoryId !== null && categoryId !== "") {
+      const categoryStrList = parseMultiSelectParam(categoryId);
+      if (categoryStrList.length === 0 || !categoryStrList.every(isPositiveInteger)) {
+        return res.status(400).json({ error: "categoryId must be valid positive integer(s)" });
+      }
+      const categoryIds = categoryStrList.map(Number);
+      where.categoryId = categoryIds.length === 1 ? categoryIds[0] : { in: categoryIds };
     }
 
-    // Related System filter
-    if (relatedSystemId !== undefined && isPositiveInteger(relatedSystemId)) {
-      where.relatedSystemId = Number(relatedSystemId);
+    // Related System filter (supports multi-select comma-separated or array)
+    if (relatedSystemId !== undefined && relatedSystemId !== null && relatedSystemId !== "") {
+      const systemStrList = parseMultiSelectParam(relatedSystemId);
+      if (systemStrList.length === 0 || !systemStrList.every(isPositiveInteger)) {
+        return res.status(400).json({ error: "relatedSystemId must be valid positive integer(s)" });
+      }
+      const systemIds = systemStrList.map(Number);
+      where.relatedSystemId = systemIds.length === 1 ? systemIds[0] : { in: systemIds };
     }
 
-    // Priority filter (supports requestedPriority or priority)
-    const priorityVal = (requestedPriority || priority) as string | undefined;
-    if (priorityVal && VALID_PRIORITIES.includes(priorityVal.toUpperCase())) {
-      where.requestedPriority = priorityVal.toUpperCase();
+    // Priority filter (supports multi-select comma-separated or array for requestedPriority / priority)
+    const priorityRaw = requestedPriority || priority;
+    if (priorityRaw !== undefined && priorityRaw !== null && priorityRaw !== "") {
+      const priorityStrList = parseMultiSelectParam(priorityRaw).map((s) => s.toUpperCase());
+      if (priorityStrList.length === 0 || !priorityStrList.every((p) => VALID_PRIORITIES.includes(p))) {
+        return res.status(400).json({ error: "Invalid priority filter value" });
+      }
+      where.requestedPriority = priorityStrList.length === 1 ? priorityStrList[0] : { in: priorityStrList };
     }
 
-    // Status filter
-    if (status && typeof status === "string" && VALID_STATUSES.includes(status.toUpperCase())) {
-      where.status = status.toUpperCase();
+    // Status filter (supports multi-select comma-separated or array)
+    if (status !== undefined && status !== null && status !== "") {
+      const statusStrList = parseMultiSelectParam(status).map((s) => s.toUpperCase());
+      if (statusStrList.length === 0 || !statusStrList.every((s) => VALID_STATUSES.includes(s))) {
+        return res.status(400).json({ error: "Invalid status filter value" });
+      }
+      where.status = statusStrList.length === 1 ? statusStrList[0] : { in: statusStrList };
     }
 
-    // Search query filter (across ticketNumber, summary, description)
-    if (search && typeof search === "string" && search.trim() !== "") {
-      const searchStr = search.trim();
-      where.OR = [
-        { ticketNumber: { contains: searchStr, mode: "insensitive" } },
-        { summary: { contains: searchStr, mode: "insensitive" } },
-        { description: { contains: searchStr, mode: "insensitive" } },
-      ];
+    // Search query filter (contract specified: across ticketNumber and summary ONLY)
+    if (search !== undefined && search !== null && search !== "") {
+      const searchStr = String(search).trim();
+      if (searchStr !== "") {
+        where.OR = [
+          { ticketNumber: { contains: searchStr, mode: "insensitive" } },
+          { summary: { contains: searchStr, mode: "insensitive" } },
+        ];
+      }
     }
-
-    // Sorting
-    const sortField = typeof sortBy === "string" && ALLOWED_SORT_FIELDS.includes(sortBy)
-      ? sortBy
-      : "createdAt";
-    const sortDirection = typeof sortOrder === "string" && sortOrder.toLowerCase() === "asc"
-      ? "asc"
-      : "desc";
-
-    // Pagination
-    const pageNum = parseInt(String(page || 1), 10);
-    const currentPage = isNaN(pageNum) || pageNum < 1 ? 1 : pageNum;
-
-    const sizeVal = pageSize || limit || 10;
-    const sizeNum = parseInt(String(sizeVal), 10);
-    const perPage = isNaN(sizeNum) || sizeNum < 1 ? 10 : Math.min(sizeNum, 100);
 
     const skip = (currentPage - 1) * perPage;
     const take = perPage;
@@ -191,9 +241,10 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
     const [tickets, totalItems] = await Promise.all([
       prisma.ticket.findMany({
         where,
-        orderBy: {
-          [sortField]: sortDirection,
-        },
+        orderBy: [
+          { [sortField]: sortDirection },
+          { id: sortDirection }, // Deterministic secondary sorting
+        ],
         skip,
         take,
         select: {
