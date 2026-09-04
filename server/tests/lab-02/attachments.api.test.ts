@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import request from "supertest";
 import { app } from "../../src/app.js";
 
@@ -187,6 +187,23 @@ describe("Attachment Lifecycle API Endpoints (Issue 13)", () => {
       // Verify DB count is exactly 5 (never 6)
       const listRes = await request(app).get(`/api/tickets/${concTicketId}/attachments?requesterId=1`);
       expect(listRes.body.length).toBe(5);
+    });
+
+    it("aborts upload and creates no Attachment record if transaction or locking query fails", async () => {
+      const { getPrisma } = await import("../../src/prisma.js");
+      const prisma = getPrisma();
+      const spyTransaction = vi.spyOn(prisma, "$transaction").mockRejectedValueOnce(new Error("Database lock error"));
+
+      const pdfBuffer = Buffer.from("%PDF-1.4 Content");
+      const res = await request(app)
+        .post(`/api/tickets/${createdTicketId}/attachments`)
+        .field("requesterId", 1)
+        .attach("file", pdfBuffer, "lock_fail_test.pdf");
+
+      expect(res.status).toBe(500);
+      expect(res.body).toHaveProperty("error", "Failed to upload attachment");
+
+      spyTransaction.mockRestore();
     });
   });
 

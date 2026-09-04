@@ -720,11 +720,7 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next) => 
     try {
       newAttachment = await prisma.$transaction(async (tx) => {
         // Lock ticket row to serialize concurrent upload transactions for this ticket
-        try {
-          await tx.$queryRaw`SELECT id FROM "Ticket" WHERE id = ${ticketId} FOR UPDATE`;
-        } catch {
-          // Fallback if db driver / provider does not support raw FOR UPDATE lock
-        }
+        await tx.$queryRaw`SELECT id FROM "Ticket" WHERE id = ${ticketId} FOR UPDATE`;
 
         const activeCount = await tx.attachment.count({
           where: {
