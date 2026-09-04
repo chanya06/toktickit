@@ -26,6 +26,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     setLoading(true);
     setError(null);
     setStatusCode(null);
+    setTicket(null);
 
     fetchTicketDetail(ticketId, selectedRequester.id, controller.signal)
       .then((data) => {

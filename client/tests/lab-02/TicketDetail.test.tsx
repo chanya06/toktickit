@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React, { useState } from "react";
 import { TicketDetailView } from "../../src/components/TicketDetailView.js";
@@ -178,10 +178,18 @@ describe("TicketDetailView Component", () => {
     expect(onBack).toHaveBeenCalledTimes(2);
   });
 
-  it("refetches and enforces ownership guard when selected requester changes while viewing ticket detail", async () => {
-    (api.fetchTicketDetail as any).mockImplementation((ticketId: number, reqId: number) => {
+  it("cancels in-flight requests and ignores stale responses when requester changes while fetching", async () => {
+    let resolveFirstRequest: (value: any) => void;
+    const firstRequestPromise = new Promise((resolve) => {
+      resolveFirstRequest = resolve;
+    });
+
+    const capturedSignals: AbortSignal[] = [];
+
+    (api.fetchTicketDetail as any).mockImplementation((ticketId: number, reqId: number, signal?: AbortSignal) => {
+      if (signal) capturedSignals.push(signal);
       if (reqId === 1) {
-        return Promise.resolve(mockTicketData);
+        return firstRequestPromise;
       } else {
         const err = new Error("Forbidden: You do not have access to this ticket") as any;
         err.status = 403;
@@ -219,21 +227,29 @@ describe("TicketDetailView Component", () => {
 
     render(<DynamicTestComponent />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId("ticket-detail-view")).toBeInTheDocument();
-    });
+    // Expect loading spinner initially for Requester 1
+    expect(screen.getByTestId("ticket-detail-loading")).toBeInTheDocument();
+    expect(capturedSignals.length).toBe(1);
+    expect(capturedSignals[0].aborted).toBe(false);
 
-    expect(screen.getByText("Laptop battery draining fast")).toBeInTheDocument();
-    expect(api.fetchTicketDetail).toHaveBeenCalledWith(101, 1, expect.any(Object));
-
-    // Switch requester to Requester 2 (non-owner)
+    // Switch to Requester 2 while 1st request is still in-flight
     fireEvent.click(screen.getByTestId("switch-to-req2-btn"));
 
+    // Verify 1st request's signal was aborted immediately
+    expect(capturedSignals[0].aborted).toBe(true);
+
+    // Wait for 2nd request (Requester 2) to complete with 403 Forbidden
     await waitFor(() => {
       expect(screen.getByTestId("forbidden-error-card")).toBeInTheDocument();
     });
 
-    expect(api.fetchTicketDetail).toHaveBeenCalledWith(101, 2, expect.any(Object));
+    // Now resolve the 1st request (stale response) AFTER Requester 2 has received 403
+    await act(async () => {
+      resolveFirstRequest!(mockTicketData);
+    });
+
+    // Verify stale response did NOT overwrite the 403 Forbidden state and ticket data is NOT displayed
+    expect(screen.getByTestId("forbidden-error-card")).toBeInTheDocument();
     expect(screen.queryByTestId("ticket-detail-view")).not.toBeInTheDocument();
     expect(screen.queryByText("Laptop battery draining fast")).not.toBeInTheDocument();
   });
