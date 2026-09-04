@@ -324,25 +324,34 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
 app.get("/api/tickets/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const headerRequesterId = req.headers["x-requester-id"];
     const queryRequesterId = req.query.requesterId;
-    const rawRequesterId = queryRequesterId !== undefined && queryRequesterId !== null && queryRequesterId !== ""
-      ? queryRequesterId
-      : headerRequesterId;
+    const headerRequesterId = req.headers["x-requester-id"];
 
     // 1. Ticket ID format validation -> 400 Bad Request
     if (!isPositiveInteger(id)) {
       return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
     }
 
-    // 2. Requester ID mandatory validation -> 400 Bad Request
-    if (rawRequesterId === undefined || rawRequesterId === null || rawRequesterId === "") {
-      return res.status(400).json({ error: "requesterId parameter is required" });
+    // 2. Requester ID query parameter mandatory validation -> 400 Bad Request
+    if (queryRequesterId === undefined || queryRequesterId === null || queryRequesterId === "") {
+      return res.status(400).json({ error: "requesterId query parameter is required" });
     }
 
-    if (!isPositiveInteger(rawRequesterId)) {
+    if (!isPositiveInteger(queryRequesterId)) {
       return res.status(400).json({ error: "requesterId must be a valid positive integer" });
     }
+
+    // 3. Conflict check: if header is also supplied, ensure it matches query parameter
+    if (
+      headerRequesterId !== undefined &&
+      headerRequesterId !== null &&
+      headerRequesterId !== "" &&
+      String(headerRequesterId) !== String(queryRequesterId)
+    ) {
+      return res.status(400).json({ error: "Conflicting requester identity between query parameter and header" });
+    }
+
+    const rawRequesterId = queryRequesterId;
 
     const ticketId = Number(id);
     const numericRequesterId = Number(rawRequesterId);

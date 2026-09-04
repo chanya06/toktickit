@@ -20,21 +20,30 @@ describe("GET /api/tickets/:id (Issue 12)", () => {
     createdTicketId = res.body.id;
   });
 
-  it("returns 400 Bad Request when ticket id or requesterId is missing or invalid format", async () => {
+  it("returns 400 Bad Request when ticket id or requesterId query param is missing or invalid format", async () => {
     // Invalid ticket ID format
     const resInvalidId = await request(app).get("/api/tickets/abc?requesterId=1");
     expect(resInvalidId.status).toBe(400);
     expect(resInvalidId.body).toHaveProperty("error", "Ticket id must be a valid positive integer");
 
-    // Missing requesterId
+    // Missing requesterId query param
     const resMissingRequester = await request(app).get(`/api/tickets/${createdTicketId}`);
     expect(resMissingRequester.status).toBe(400);
-    expect(resMissingRequester.body).toHaveProperty("error", "requesterId parameter is required");
+    expect(resMissingRequester.body).toHaveProperty("error", "requesterId query parameter is required");
 
-    // Non-numeric requesterId
+    // Non-numeric requesterId query param
     const resNonNumericRequester = await request(app).get(`/api/tickets/${createdTicketId}?requesterId=invalid`);
     expect(resNonNumericRequester.status).toBe(400);
     expect(resNonNumericRequester.body).toHaveProperty("error", "requesterId must be a valid positive integer");
+  });
+
+  it("returns 400 Bad Request when requesterId query parameter and x-requester-id header conflict", async () => {
+    const res = await request(app)
+      .get(`/api/tickets/${createdTicketId}?requesterId=1`)
+      .set("x-requester-id", "2");
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty("error", "Conflicting requester identity between query parameter and header");
   });
 
   it("returns 404 Not Found when accessing a non-existent ticket ID", async () => {
@@ -65,22 +74,5 @@ describe("GET /api/tickets/:id (Issue 12)", () => {
     expect(res.body).toHaveProperty("relatedSystem");
     expect(res.body).toHaveProperty("requester");
     expect(res.body.requester.id).toBe(1);
-  });
-
-  it("supports x-requester-id header as an alternative to query parameter for requester identity", async () => {
-    // Access with x-requester-id header as owner
-    const resHeaderOwner = await request(app)
-      .get(`/api/tickets/${createdTicketId}`)
-      .set("x-requester-id", "1");
-
-    expect(resHeaderOwner.status).toBe(200);
-    expect(resHeaderOwner.body.id).toBe(createdTicketId);
-
-    // Access with x-requester-id header as non-owner
-    const resHeaderNonOwner = await request(app)
-      .get(`/api/tickets/${createdTicketId}`)
-      .set("x-requester-id", "2");
-
-    expect(resHeaderNonOwner.status).toBe(403);
   });
 });

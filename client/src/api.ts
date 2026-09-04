@@ -190,7 +190,6 @@ export async function fetchTicketDetail(
   signal?: AbortSignal
 ): Promise<TicketResponse> {
   const res = await fetch(`${API_URL}/api/tickets/${ticketId}?requesterId=${requesterId}`, {
-    headers: { "x-requester-id": String(requesterId) },
     signal,
   }).catch((err) => {
     if (err?.name === "AbortError" || signal?.aborted) {

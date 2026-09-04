@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import React from "react";
+import React, { useState } from "react";
 import { TicketDetailView } from "../../src/components/TicketDetailView.js";
 import { RequesterContext } from "../../src/context/RequesterContext.js";
 import * as api from "../../src/api.js";
@@ -19,6 +19,14 @@ const mockRequester = {
   name: "Jennifer Anderson",
   email: "jennifer.a@toktickit.dev",
   department: "Engineering",
+  isActive: true,
+};
+
+const mockRequester2 = {
+  id: 2,
+  name: "Michael Brown",
+  email: "michael.b@toktickit.dev",
+  department: "IT Support",
   isActive: true,
 };
 
@@ -168,5 +176,65 @@ describe("TicketDetailView Component", () => {
     const bottomBackBtn = screen.getByTestId("bottom-back-btn");
     fireEvent.click(bottomBackBtn);
     expect(onBack).toHaveBeenCalledTimes(2);
+  });
+
+  it("refetches and enforces ownership guard when selected requester changes while viewing ticket detail", async () => {
+    (api.fetchTicketDetail as any).mockImplementation((ticketId: number, reqId: number) => {
+      if (reqId === 1) {
+        return Promise.resolve(mockTicketData);
+      } else {
+        const err = new Error("Forbidden: You do not have access to this ticket") as any;
+        err.status = 403;
+        return Promise.reject(err);
+      }
+    });
+
+    function DynamicTestComponent() {
+      const [selectedRequester, setSelectedRequester] = useState<any>(mockRequester);
+
+      return (
+        <RequesterContext.Provider
+          value={{
+            selectedRequester,
+            requesters: [mockRequester, mockRequester2],
+            isLoading: false,
+            error: null,
+            isModalOpen: false,
+            selectRequester: (r) => setSelectedRequester(r),
+            openSelectorModal: vi.fn(),
+            closeSelectorModal: vi.fn(),
+            refreshRequesters: vi.fn(),
+          }}
+        >
+          <button
+            data-testid="switch-to-req2-btn"
+            onClick={() => setSelectedRequester(mockRequester2)}
+          >
+            Switch Requester
+          </button>
+          <TicketDetailView ticketId={101} onBack={vi.fn()} />
+        </RequesterContext.Provider>
+      );
+    }
+
+    render(<DynamicTestComponent />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ticket-detail-view")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Laptop battery draining fast")).toBeInTheDocument();
+    expect(api.fetchTicketDetail).toHaveBeenCalledWith(101, 1, expect.any(Object));
+
+    // Switch requester to Requester 2 (non-owner)
+    fireEvent.click(screen.getByTestId("switch-to-req2-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("forbidden-error-card")).toBeInTheDocument();
+    });
+
+    expect(api.fetchTicketDetail).toHaveBeenCalledWith(101, 2, expect.any(Object));
+    expect(screen.queryByTestId("ticket-detail-view")).not.toBeInTheDocument();
+    expect(screen.queryByText("Laptop battery draining fast")).not.toBeInTheDocument();
   });
 });
