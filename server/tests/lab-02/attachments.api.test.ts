@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import request from "supertest";
-import path from "path";
-import fs from "fs";
 import { app } from "../../src/app.js";
 
 describe("Attachment Lifecycle API Endpoints (Issue 13)", () => {
@@ -71,6 +69,19 @@ describe("Attachment Lifecycle API Endpoints (Issue 13)", () => {
       expect(res.body.error).toContain("File type not supported");
     });
 
+    it("returns 400 Bad Request when file extension is valid (.pdf) but MIME type is mismatched (text/plain)", async () => {
+      const res = await request(app)
+        .post(`/api/tickets/${createdTicketId}/attachments`)
+        .field("requesterId", 1)
+        .attach("file", Buffer.from("plain text payload pretending to be pdf"), {
+          filename: "fake_document.pdf",
+          contentType: "text/plain",
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toContain("File type not supported");
+    });
+
     it("returns 413 Payload Too Large when file size exceeds 5MB", async () => {
       // 5.5MB dummy buffer
       const largeBuffer = Buffer.alloc(5.5 * 1024 * 1024);
@@ -106,7 +117,7 @@ describe("Attachment Lifecycle API Endpoints (Issue 13)", () => {
         const res = await request(app)
           .post(`/api/tickets/${createdTicketId}/attachments`)
           .field("requesterId", 1)
-          .attach("file", pdfBuffer, `document_${i}.png`);
+          .attach("file", pdfBuffer, `document_${i}.pdf`);
         expect(res.status).toBe(201);
       }
 
@@ -114,10 +125,54 @@ describe("Attachment Lifecycle API Endpoints (Issue 13)", () => {
       const resExceed = await request(app)
         .post(`/api/tickets/${createdTicketId}/attachments`)
         .field("requesterId", 1)
-        .attach("file", pdfBuffer, "document_6.png");
+        .attach("file", pdfBuffer, "document_6.pdf");
 
       expect(resExceed.status).toBe(422);
       expect(resExceed.body).toHaveProperty("error", "Maximum active attachments limit (5) reached");
+    });
+
+    it("prevents race conditions when uploading files concurrently near limit (never exceeds 5 active files)", async () => {
+      // Create a separate ticket for concurrent testing
+      const ticketRes = await request(app).post("/api/tickets").send({
+        requesterId: 1,
+        categoryId: 1,
+        relatedSystemId: 1,
+        requestedPriority: "MEDIUM",
+        summary: "Concurrent Upload Test Ticket Summary",
+        description: "Testing concurrent file uploads near 5-active attachment limit.",
+      });
+      const concTicketId = ticketRes.body.id;
+
+      const pdfBuffer = Buffer.from("%PDF-1.4 Content");
+
+      // Upload 4 files sequentially -> exactly 4 active attachments
+      for (let i = 1; i <= 4; i++) {
+        const res = await request(app)
+          .post(`/api/tickets/${concTicketId}/attachments`)
+          .field("requesterId", 1)
+          .attach("file", pdfBuffer, `conc_${i}.pdf`);
+        expect(res.status).toBe(201);
+      }
+
+      // Now trigger 2 concurrent uploads at the exact same time
+      const [res1, res2] = await Promise.all([
+        request(app)
+          .post(`/api/tickets/${concTicketId}/attachments`)
+          .field("requesterId", 1)
+          .attach("file", pdfBuffer, "conc_5a.pdf"),
+        request(app)
+          .post(`/api/tickets/${concTicketId}/attachments`)
+          .field("requesterId", 1)
+          .attach("file", pdfBuffer, "conc_5b.pdf"),
+      ]);
+
+      const statuses = [res1.status, res2.status];
+      expect(statuses).toContain(201);
+      expect(statuses).toContain(422);
+
+      // Verify DB count is exactly 5 (never 6)
+      const listRes = await request(app).get(`/api/tickets/${concTicketId}/attachments?requesterId=1`);
+      expect(listRes.body.length).toBe(5);
     });
   });
 

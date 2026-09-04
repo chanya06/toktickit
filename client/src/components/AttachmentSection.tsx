@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRequester } from "../context/RequesterContext.js";
 import {
   fetchTicketAttachments,
@@ -14,6 +14,7 @@ interface AttachmentSectionProps {
 
 export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
   const { selectedRequester } = useRequester();
+  const currentRequesterIdRef = useRef(selectedRequester?.id);
 
   const [attachments, setAttachments] = useState<AttachmentMetadata[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -30,6 +31,10 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
 
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
+  useEffect(() => {
+    currentRequesterIdRef.current = selectedRequester?.id;
+  }, [selectedRequester?.id]);
+
   const loadAttachments = (signal?: AbortSignal) => {
     if (!selectedRequester) return;
     setLoading(true);
@@ -37,13 +42,13 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
 
     fetchTicketAttachments(ticketId, selectedRequester.id, signal)
       .then((data) => {
-        if (!signal?.aborted) {
+        if (!signal?.aborted && currentRequesterIdRef.current === selectedRequester.id) {
           setAttachments(data);
           setLoading(false);
         }
       })
       .catch((err: any) => {
-        if (err?.name === "AbortError" || signal?.aborted) return;
+        if (err?.name === "AbortError" || signal?.aborted || currentRequesterIdRef.current !== selectedRequester.id) return;
         setError(err.message || "Failed to load attachments");
         setLoading(false);
       });
@@ -52,6 +57,14 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
   useEffect(() => {
     const controller = new AbortController();
     setAttachments([]);
+    setError(null);
+    setSelectedFile(null);
+    setUploadError(null);
+    setDownloadError(null);
+    setSoftRemoveTarget(null);
+    setRemovalReason("");
+    setSoftRemoveError(null);
+
     loadAttachments(controller.signal);
 
     return () => {
@@ -123,11 +136,15 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
       return;
     }
 
+    const requestRequesterId = selectedRequester.id;
     setUploading(true);
     setUploadError(null);
 
-    uploadTicketAttachment(ticketId, selectedRequester.id, selectedFile)
+    uploadTicketAttachment(ticketId, requestRequesterId, selectedFile)
       .then(() => {
+        if (currentRequesterIdRef.current !== requestRequesterId) {
+          return;
+        }
         setUploading(false);
         setSelectedFile(null);
         // Reset file input element
@@ -136,6 +153,9 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
         loadAttachments();
       })
       .catch((err: any) => {
+        if (currentRequesterIdRef.current !== requestRequesterId) {
+          return;
+        }
         setUploading(false);
         setUploadError(err.message || "Failed to upload file");
       });
@@ -165,6 +185,7 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
     e.preventDefault();
     if (!softRemoveTarget || !selectedRequester) return;
 
+    const requestRequesterId = selectedRequester.id;
     const trimmed = removalReason.trim();
     if (trimmed.length < 3) {
       setSoftRemoveError("Soft-removal reason must be at least 3 characters");
@@ -179,13 +200,19 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
     setSubmittingRemove(true);
     setSoftRemoveError(null);
 
-    softRemoveAttachment(softRemoveTarget.id, selectedRequester.id, trimmed)
+    softRemoveAttachment(softRemoveTarget.id, requestRequesterId, trimmed)
       .then(() => {
+        if (currentRequesterIdRef.current !== requestRequesterId) {
+          return;
+        }
         setSubmittingRemove(false);
         closeSoftRemoveModal();
         loadAttachments();
       })
       .catch((err: any) => {
+        if (currentRequesterIdRef.current !== requestRequesterId) {
+          return;
+        }
         setSubmittingRemove(false);
         setSoftRemoveError(err.message || "Failed to soft-remove attachment");
       });

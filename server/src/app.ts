@@ -647,12 +647,22 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next) => 
       return res.status(400).json({ error: "File payload is required" });
     }
 
-    // Allowed extensions check (.jpg, .jpeg, .png, .webp, .pdf)
-    const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp", ".pdf"];
+    // Allowed extensions & MIME types check (.jpg, .jpeg, .png, .webp, .pdf)
+    const allowedMap: Record<string, string[]> = {
+      ".jpg": ["image/jpeg", "image/jpg"],
+      ".jpeg": ["image/jpeg", "image/jpg"],
+      ".png": ["image/png"],
+      ".webp": ["image/webp"],
+      ".pdf": ["application/pdf"],
+    };
+
     const ext = path.extname(req.file.originalname).toLowerCase();
-    if (!allowedExtensions.includes(ext)) {
+    const mime = (req.file.mimetype || "").toLowerCase();
+    const validMimes = allowedMap[ext];
+
+    if (!validMimes || !validMimes.includes(mime)) {
       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ error: "File type not supported. Allowed formats: .jpg, .jpeg, .png, .webp, .pdf" });
+      return res.status(400).json({ error: "File type not supported. Allowed formats: .jpg, .jpeg, .png, .webp, .pdf with matching content type" });
     }
 
     // 5MB size check (5,242,880 bytes)
@@ -662,39 +672,49 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next) => 
       return res.status(413).json({ error: "File size exceeds maximum allowed limit of 5 MB" });
     }
 
-    // Check active attachments limit (< 5 active)
-    const activeCount = await prisma.attachment.count({
-      where: {
-        ticketId,
-        isRemoved: false,
-      },
-    });
+    // Check active attachments limit & create record atomically via Prisma transaction
+    let newAttachment;
+    try {
+      newAttachment = await prisma.$transaction(async (tx) => {
+        const activeCount = await tx.attachment.count({
+          where: {
+            ticketId,
+            isRemoved: false,
+          },
+        });
 
-    if (activeCount >= 5) {
+        if (activeCount >= 5) {
+          throw { status: 422, message: "Maximum active attachments limit (5) reached" };
+        }
+
+        return await tx.attachment.create({
+          data: {
+            ticketId,
+            filename: req.file!.filename,
+            originalName: req.file!.originalname,
+            mimeType: req.file!.mimetype || "application/octet-stream",
+            sizeBytes: req.file!.size,
+            filepath: req.file!.path,
+            isRemoved: false,
+          },
+          select: {
+            id: true,
+            ticketId: true,
+            originalName: true,
+            mimeType: true,
+            sizeBytes: true,
+            isRemoved: true,
+            createdAt: true,
+          },
+        });
+      });
+    } catch (txError: any) {
       if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-      return res.status(422).json({ error: "Maximum active attachments limit (5) reached" });
+      if (txError?.status === 422) {
+        return res.status(422).json({ error: txError.message });
+      }
+      throw txError;
     }
-
-    const newAttachment = await prisma.attachment.create({
-      data: {
-        ticketId,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        mimeType: req.file.mimetype || "application/octet-stream",
-        sizeBytes: req.file.size,
-        filepath: req.file.path,
-        isRemoved: false,
-      },
-      select: {
-        id: true,
-        ticketId: true,
-        originalName: true,
-        mimeType: true,
-        sizeBytes: true,
-        isRemoved: true,
-        createdAt: true,
-      },
-    });
 
     return res.status(201).json(newAttachment);
   } catch (error) {

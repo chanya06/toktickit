@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import React from "react";
+import React, { useState } from "react";
 import { AttachmentSection } from "../../src/components/AttachmentSection.js";
 import { RequesterContext } from "../../src/context/RequesterContext.js";
 import * as api from "../../src/api.js";
@@ -22,6 +22,14 @@ const mockRequester = {
   name: "Jennifer Anderson",
   email: "jennifer.a@toktickit.dev",
   department: "Engineering",
+  isActive: true,
+};
+
+const mockRequester2 = {
+  id: 2,
+  name: "Michael Brown",
+  email: "michael.b@toktickit.dev",
+  department: "IT Support",
   isActive: true,
 };
 
@@ -197,5 +205,84 @@ describe("AttachmentSection Component (Issue 13)", () => {
     await waitFor(() => {
       expect(api.softRemoveAttachment).toHaveBeenCalledWith(10, 1, "Obsolete file version");
     });
+  });
+
+  it("ignores stale upload completion if requester changes while upload is pending", async () => {
+    let resolveUpload: (value: any) => void;
+    const uploadPromise = new Promise((resolve) => {
+      resolveUpload = resolve;
+    });
+
+    (api.fetchTicketAttachments as any).mockImplementation((_tId: number, reqId: number) => {
+      if (reqId === 1) return Promise.resolve([mockActiveAttachment]);
+      return Promise.resolve([]);
+    });
+
+    (api.uploadTicketAttachment as any).mockReturnValue(uploadPromise);
+
+    function DynamicComponent() {
+      const [selectedRequester, setSelectedRequester] = useState<any>(mockRequester);
+
+      return (
+        <RequesterContext.Provider
+          value={{
+            selectedRequester,
+            requesters: [mockRequester, mockRequester2],
+            isLoading: false,
+            error: null,
+            isModalOpen: false,
+            selectRequester: (r) => setSelectedRequester(r),
+            openSelectorModal: vi.fn(),
+            closeSelectorModal: vi.fn(),
+            refreshRequesters: vi.fn(),
+          }}
+        >
+          <button
+            data-testid="switch-to-req2-btn"
+            onClick={() => setSelectedRequester(mockRequester2)}
+          >
+            Switch Requester
+          </button>
+          <AttachmentSection ticketId={101} />
+        </RequesterContext.Provider>
+      );
+    }
+
+    render(<DynamicComponent />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("active-attachment-count")).toHaveTextContent("Active Attachments: 1 / 5");
+    });
+
+    const fileInput = screen.getByTestId("file-input");
+    const validFile = new File(["dummy content"], "new_doc.pdf", { type: "application/pdf" });
+    fireEvent.change(fileInput, { target: { files: [validFile] } });
+
+    const uploadBtn = screen.getByTestId("upload-submit-btn");
+    fireEvent.click(uploadBtn);
+
+    // Switch requester context while upload is pending
+    fireEvent.click(screen.getByTestId("switch-to-req2-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("active-attachment-count")).toHaveTextContent("Active Attachments: 0 / 5");
+    });
+
+    // Now resolve stale upload for Requester 1
+    await act(async () => {
+      resolveUpload!({
+        id: 99,
+        ticketId: 101,
+        originalName: "new_doc.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 1024,
+        isRemoved: false,
+        createdAt: "2026-09-01T12:00:00.000Z",
+      });
+    });
+
+    // Verify state remains Requester 2 (0 active attachments) and stale file was NOT rendered
+    expect(screen.getByTestId("active-attachment-count")).toHaveTextContent("Active Attachments: 0 / 5");
+    expect(screen.queryByText("new_doc.pdf")).not.toBeInTheDocument();
   });
 });
