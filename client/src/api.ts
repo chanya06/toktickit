@@ -93,6 +93,89 @@ export async function createTicket(payload: CreateTicketPayload): Promise<Ticket
   return data;
 }
 
+export interface FetchTicketsParams {
+  requesterId: number;
+  search?: string;
+  categoryId?: number | number[];
+  relatedSystemId?: number | number[];
+  requestedPriority?: string | string[];
+  status?: string | string[];
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PaginationMeta {
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
+export interface PaginatedTicketsResponse {
+  data: (TicketResponse & { attachmentCount?: number })[];
+  pagination: PaginationMeta;
+}
+
+export async function fetchTickets(params: FetchTicketsParams): Promise<PaginatedTicketsResponse> {
+  const query = new URLSearchParams();
+  query.set("requesterId", String(params.requesterId));
+
+  if (params.search && params.search.trim() !== "") {
+    query.set("search", params.search.trim());
+  }
+
+  if (params.categoryId) {
+    const cats = Array.isArray(params.categoryId) ? params.categoryId.join(",") : String(params.categoryId);
+    if (cats) query.set("categoryId", cats);
+  }
+
+  if (params.relatedSystemId) {
+    const sys = Array.isArray(params.relatedSystemId) ? params.relatedSystemId.join(",") : String(params.relatedSystemId);
+    if (sys) query.set("relatedSystemId", sys);
+  }
+
+  if (params.requestedPriority) {
+    const pri = Array.isArray(params.requestedPriority) ? params.requestedPriority.join(",") : String(params.requestedPriority);
+    if (pri) query.set("requestedPriority", pri);
+  }
+
+  if (params.status) {
+    const st = Array.isArray(params.status) ? params.status.join(",") : String(params.status);
+    if (st) query.set("status", st);
+  }
+
+  if (params.sortBy) {
+    query.set("sortBy", params.sortBy);
+  }
+
+  if (params.sortOrder) {
+    query.set("sortOrder", params.sortOrder);
+  }
+
+  if (params.page !== undefined) {
+    query.set("page", String(params.page));
+  }
+
+  if (params.pageSize !== undefined) {
+    query.set("pageSize", String(params.pageSize));
+  }
+
+  const res = await fetch(`${API_URL}/api/tickets?${query.toString()}`).catch(() => null);
+
+  if (!res) {
+    throw new Error("Network error: Unable to connect to server");
+  }
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch tickets");
+  }
+
+  return data;
+}
+
 export async function checkSystem(): Promise<SystemStatus> {
   const healthRes = await fetch(`${API_URL}/api/health`).catch(() => null);
   if (!healthRes || !healthRes.ok) {
