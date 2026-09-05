@@ -37,11 +37,20 @@ for (const vp of viewports) {
       await page.waitForTimeout(500);
       await page.screenshot({ path: path.join(outputDir, `my-tickets-${vp.name}.png`), fullPage: true });
 
-      // Capture Create Ticket screen
+      // Capture Create Ticket screen with Initial Attachment dropzone
       await page.click("nav button:has-text('Create Ticket')");
       await page.waitForSelector("#ticketCategory option", { state: "attached" });
       await page.fill("#ticketSummary", `Responsive UI Test (${vp.name})`);
-      await page.fill("#ticketDescription", "Capturing responsive visual design system inspection screenshot.");
+      await page.fill("#ticketDescription", "Capturing responsive visual design system inspection screenshot with initial attachment.");
+
+      const fileInput = page.locator('[data-testid="initial-file-input"]');
+      await fileInput.setInputFiles({
+        name: "sample-attachment.pdf",
+        mimeType: "application/pdf",
+        buffer: Buffer.from("%PDF-1.4 Sample Screenshot Attachment"),
+      });
+      await page.waitForTimeout(300);
+
       await page.screenshot({ path: path.join(outputDir, `create-ticket-${vp.name}.png`), fullPage: true });
 
       // Submit form
