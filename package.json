@@ -1,0 +1,14 @@
+{
+  "name": "toktickit-root",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:server": "npm run test --prefix server",
+    "test:client": "npm run test --prefix client",
+    "test:e2e": "npx playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
+  }
+}
