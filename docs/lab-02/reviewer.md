@@ -20,7 +20,8 @@
 | **#32** | `feature/11-my-tickets-ui` | My Tickets screen, search/filter controls, and mobile card view | Merged | Approved |
 | **#33** | `feature/12-ticket-detail` | Ticket Detail view, read-only layout, and ownership guard | Merged | Approved |
 | **#34** | `feature/13-attachment-lifecycle` | Attachment upload stream, magic bytes validation, soft removal & metadata list | Merged | Approved |
-| **#35** | `feature/14-qa-release` | QA, Initial Attachments, HTML5 Drag & Drop, State Screenshots, Section 14 Deliverable PDF Report | Open | Approved |
+| **#35** | `feature/14-qa-release` | QA, Initial Attachments, HTML5 Drag & Drop, State Screenshots, Section 14 Deliverable PDF Report | Merged | Approved |
+| **#36** | `feature/15-ui-refinement` | Refine Web UI layout alignment with instructor mockups (Figure 1, Section 8.1, Section 8.4) and remove emojis | Merged | Approved |
 
 ---
 
@@ -61,3 +62,8 @@
 ### Review Item 9: Handout Section 14 Deliverable Structure, State Screenshots & Handout Section 12 Repository Structure (PR #35)
 - **Comment Given**: "Structure `docs/lab-02/final-deliverable.md` into exact Answer Part 1 to Answer Part 9 headings from Section 14 of the handout. Add working state screenshots (validation error, busy state, success ticket number from DB, backend failure retained data, soft remove modal prompt, soft-removed status badge). Rename `TicketDetail.test.tsx` to `RequesterTicketDetail.test.tsx` and organize screenshot subdirectories under `artifacts/lab-02/screenshots/` (`create-ticket/`, `my-tickets/`, `ticket-detail/`). Generate single deliverable PDF report."
 - **Response & Action Taken**: "Renamed client test file to `RequesterTicketDetail.test.tsx`, reorganized screenshot subdirectories into `create-ticket/`, `my-tickets/`, and `ticket-detail/`, captured all 15 working state & responsive layout screenshots, restructured `docs/lab-02/final-deliverable.md` into exact Answer Part 1..9 headings, and re-compiled `docs/lab-02/final-deliverable.pdf` via `scripts/generate-pdf.js`."
+
+### Review Item 10: Instructor Mockup Visual Alignment & Emoji Removal (Issue #36 / PR #36)
+- **Comment Given**: "Align web UI components strictly with instructor mockups (Figure 1, Section 8.1, Section 8.4) and remove all raw emoji characters from source code, replacing them with clean SVG vector icons."
+- **Response & Action Taken**: "Refactored `Header.tsx`, `RequesterSelectorModal.tsx`, `CreateTicketForm.tsx`, `MyTicketsView.tsx`, `TicketDetailView.tsx`, and `AttachmentSection.tsx` to use SVG vector icons, updated unit test assertions, re-captured Playwright screenshots, and compiled `final-deliverable.pdf`."
+

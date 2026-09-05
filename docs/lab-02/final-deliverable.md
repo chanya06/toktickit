@@ -15,7 +15,7 @@ TokTickIT Lab 2 followed a disciplined Git feature-branch workflow. Every sprint
 
 ### 1.2 Pull Request & Kanban Board Audit Log
 - **Sprint Project Board**: TokTickIT Individual Sprints (Kanban statuses: `Backlog`, `Specified`, `Started`, `PR Review`, `Fixing`, `Done`).
-- **Peer Review Record**: All feature PRs (#23, #25, #27, #29, #30, #31, #32, #33, #34, #35) were reviewed, audited, and approved by peer reviewer `lmaybelgracel`. Complete review comments and resolution logs are documented in [`docs/lab-02/reviewer.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-02/reviewer.md).
+- **Peer Review Record**: All feature PRs (#23, #25, #27, #29, #30, #31, #32, #33, #34, #35, #36) were reviewed, audited, and approved by peer reviewer `lmaybelgracel`. Complete review comments and resolution logs are documented in [`docs/lab-02/reviewer.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-02/reviewer.md).
 
 ### 1.3 Repository Setup & Exclusions
 - **Repository README**: Contains full setup instructions, seed commands, database configuration, and test execution guides.
