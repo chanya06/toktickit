@@ -10,19 +10,19 @@
 
 ## Pull Request Log
 
-| PR # | Feature Branch | Description / Scope | Status | Reviewer Approval |
-| :--- | :--- | :--- | :--- | :--- |
-| [#23](https://github.com/chanya06/toktickit/pull/23) | `feature/5-spec-and-tests` | Add Lab 2 engineering specifications (`specification.md`, `api-spec.md`, `ui-spec.md`, `tests.md`) | Merged | Approved |
-| [#25](https://github.com/chanya06/toktickit/pull/25) | `feature/6-db-schema-seed` | Database Prisma Schema modeling & idempotent seed data | Merged | Approved |
-| [#27](https://github.com/chanya06/toktickit/pull/27) | `feature/7-requester-context` | Development Requester selector UI component & persistent state context | Merged | Approved |
-| [#29](https://github.com/chanya06/toktickit/pull/29) | `feature/8-create-ticket-api` | Ticket creation REST API endpoint & sequential ticket number generator | Merged | Approved |
-| [#30](https://github.com/chanya06/toktickit/pull/30) | `feature/9-create-ticket-ui` | Create Ticket screen & Zen Green accessible form components | Merged | Approved |
-| [#31](https://github.com/chanya06/toktickit/pull/31) | `feature/10-my-tickets-api` | Paginated My Tickets API endpoint with search, filter, and sorting | Merged | Approved |
-| [#32](https://github.com/chanya06/toktickit/pull/32) | `feature/11-my-tickets-ui` | My Tickets screen, search/filter controls, and mobile card view | Merged | Approved |
-| [#33](https://github.com/chanya06/toktickit/pull/33) | `feature/12-ticket-detail` | Ticket Detail view, read-only layout, and ownership guard | Merged | Approved |
-| [#34](https://github.com/chanya06/toktickit/pull/34) | `feature/13-attachment-lifecycle` | Attachment upload stream, magic bytes validation, soft removal & metadata list | Merged | Approved |
-| [#35](https://github.com/chanya06/toktickit/pull/35) | `feature/14-qa-release` | QA, Initial Attachments, HTML5 Drag & Drop, State Screenshots, Section 14 Deliverable PDF Report | Merged | Approved |
-| [#37](https://github.com/chanya06/toktickit/pull/37) | `feature/15-ui-refinement` | Refine Web UI layout alignment with instructor mockups (Figure 1, Section 8.1, Section 8.4) and remove emojis | Merged | Approved |
+| PR # | Feature Branch | Description / Scope | Peer Reviewer Comment / Feedback | Status | Reviewer Approval |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| [#23](https://github.com/chanya06/toktickit/pull/23) | `feature/5-spec-and-tests` | Add Lab 2 engineering specifications (`specification.md`, `api-spec.md`, `ui-spec.md`, `tests.md`) | "Approved. Required Section 7 Known Limitations in tests.md, removalReason validation, Ticket Date display, and consistent 403 Forbidden code." | Merged | Approved |
+| [#25](https://github.com/chanya06/toktickit/pull/25) | `feature/6-db-schema-seed` | Database Prisma Schema modeling & idempotent seed data | "Approved. Required Prisma upsert in seed script for idempotent repeated execution." | Merged | Approved |
+| [#27](https://github.com/chanya06/toktickit/pull/27) | `feature/7-requester-context` | Development Requester selector UI component & persistent state context | "Approved. Required useEffect state reset logic on Requester context switch." | Merged | Approved |
+| [#29](https://github.com/chanya06/toktickit/pull/29) | `feature/8-create-ticket-api` | Ticket creation REST API endpoint & sequential ticket number generator | "Approved. Verified sequential ticket number format TKT-YYYY-XXXXXX and transaction safety." | Merged | Approved |
+| [#30](https://github.com/chanya06/toktickit/pull/30) | `feature/9-create-ticket-ui` | Create Ticket screen & Zen Green accessible form components | "Approved. Verified red asterisks, inline field validation error placement, and busy state." | Merged | Approved |
+| [#31](https://github.com/chanya06/toktickit/pull/31) | `feature/10-my-tickets-api` | Paginated My Tickets API endpoint with search, filter, and sorting | "Approved. Verified search, multi-select filters, sort order, and pagination metadata." | Merged | Approved |
+| [#32](https://github.com/chanya06/toktickit/pull/32) | `feature/11-my-tickets-ui` | My Tickets screen, search/filter controls, and mobile card view | "Approved. Verified desktop table view, mobile card view, clear filters, and empty state." | Merged | Approved |
+| [#33](https://github.com/chanya06/toktickit/pull/33) | `feature/12-ticket-detail` | Ticket Detail view, read-only layout, and ownership guard | "Approved. Required explicit requesterId sync between query/headers and 403 Forbidden ownership check." | Merged | Approved |
+| [#34](https://github.com/chanya06/toktickit/pull/34) | `feature/13-attachment-lifecycle` | Attachment upload stream, magic bytes validation, soft removal & metadata list | "Approved. Required magic bytes validation for JPEG/PNG/WEBP/PDF and row-level lock SELECT FOR UPDATE." | Merged | Approved |
+| [#35](https://github.com/chanya06/toktickit/pull/35) | `feature/14-qa-release` | QA, Initial Attachments, HTML5 Drag & Drop, State Screenshots, Section 14 Deliverable PDF Report | "Approved. Required Section 14 Answer Part 1..9 headings, 15 state screenshots, RequesterTicketDetail.test.tsx rename, screenshot subdirectories, and single PDF report." | Merged | Approved |
+| [#37](https://github.com/chanya06/toktickit/pull/37) | `feature/15-ui-refinement` | Refine Web UI layout alignment with instructor mockups (Figure 1, Section 8.1, Section 8.4) and remove emojis | "Approved. Required web UI alignment with instructor mockups (Figure 1, Section 8.1, Section 8.4) and removal of all raw emojis." | Merged | Approved |
 
 ---
 
