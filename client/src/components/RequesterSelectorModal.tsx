@@ -41,15 +41,19 @@ export const RequesterSelectorModal: React.FC = () => {
         {/* Header Icon & Title matching Section 8.1 of Lab 2 Handout */}
         <div className="text-center mb-3">
           <div
-            className="d-inline-flex align-items-center justify-content-center rounded-circle mb-2"
-            style={{ width: "56px", height: "56px", backgroundColor: "var(--pale-green, #EAF6EF)", color: "var(--primary-green, #006B3C)" }}
+            className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow-sm"
+            style={{ width: "64px", height: "64px", backgroundColor: "var(--pale-green, #EAF6EF)", color: "var(--primary-green, #006B3C)" }}
           >
-            <span className="fs-3">👤⚙️</span>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <polyline points="17 11 19 13 23 9" />
+            </svg>
           </div>
-          <h2 id="modal-title" className="h4 fw-bold mb-1 text-dark">
+          <h2 id="modal-title" className="h4 fw-bold mb-2 text-dark">
             Select Development Requester
           </h2>
-          <p className="text-muted small mb-0 px-3">
+          <p className="text-muted small mb-0 px-2">
             Select a Development Requester to test requester-specific ticket behavior. Choose a development requester to simulate the current requester context for Lab 2. This is for testing only and is not a login screen.
           </p>
         </div>
@@ -95,7 +99,7 @@ export const RequesterSelectorModal: React.FC = () => {
             </label>
             <select
               id="requesterSelect"
-              className="form-select form-select-lg mb-3"
+              className="form-select form-select-lg mb-3 fs-6"
               value={tempSelectedId}
               onChange={(e) => setTempSelectedId(Number(e.target.value))}
             >
@@ -107,15 +111,24 @@ export const RequesterSelectorModal: React.FC = () => {
             </select>
 
             {/* Info Callout Notice (Section 8.1 Handout) */}
-            <div className="alert alert-success py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
-              <span>ℹ️</span>
+            <div className="notice-box mb-3 d-flex align-items-center gap-2 small">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-success flex-shrink-0">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
               <span>Only active development requesters are shown.</span>
             </div>
 
             {/* Lab 3 Lock Notice (Section 8.1 Handout) */}
-            <div className="card bg-light border mb-3">
+            <div className="card bg-light border-0 rounded-3 mb-3">
               <div className="card-body p-3 d-flex gap-3 align-items-start">
-                <span className="fs-5">🔒</span>
+                <div className="p-2 rounded bg-white border text-secondary flex-shrink-0">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
                 <div>
                   <strong className="d-block small text-dark mb-1">Authentication coming in Lab 3</strong>
                   <span className="small text-muted">
@@ -132,7 +145,7 @@ export const RequesterSelectorModal: React.FC = () => {
           {selectedRequester && (
             <button
               type="button"
-              className="btn btn-outline-secondary"
+              className="btn btn-outline-secondary px-3"
               onClick={closeSelectorModal}
             >
               Cancel
@@ -140,12 +153,15 @@ export const RequesterSelectorModal: React.FC = () => {
           )}
           <button
             type="button"
-            className="btn-zen-primary d-flex align-items-center gap-2"
+            className="btn-zen-primary d-flex align-items-center gap-2 px-4"
             disabled={isLoading || requesters.length === 0 || tempSelectedId === ""}
             onClick={handleContinue}
           >
             <span>Continue</span>
-            <span>&rarr;</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
           </button>
         </div>
       </div>

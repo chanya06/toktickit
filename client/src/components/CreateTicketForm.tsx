@@ -225,7 +225,12 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
       <div className="card shadow-sm border-success mb-4">
         <div className="card-body p-4 text-center">
           <div className="mb-3">
-            <span className="display-4 text-success">🟢</span>
+            <div className="d-inline-flex align-items-center justify-content-center rounded-circle p-3 bg-success bg-opacity-10 text-success mb-2">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            </div>
           </div>
           <h2 className="h4 fw-bold text-success mb-2">Ticket Created Successfully!</h2>
           <p className="text-muted mb-3">
@@ -256,18 +261,26 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
           <div className="d-flex justify-content-center gap-3">
             <button
               type="button"
-              className="btn-zen-secondary"
+              className="btn-zen-secondary d-flex align-items-center gap-1"
               onClick={handleResetForm}
             >
-              ➕ Create Another Ticket
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span>Create Another Ticket</span>
             </button>
             {onSuccessNavigate && (
               <button
                 type="button"
-                className="btn-zen-primary"
+                className="btn-zen-primary d-flex align-items-center gap-1"
                 onClick={onSuccessNavigate}
               >
-                📋 View My Tickets
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                <span>View My Tickets</span>
               </button>
             )}
           </div>
@@ -317,7 +330,7 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
               className="btn btn-sm btn-outline-danger"
               onClick={loadDropdownData}
             >
-              🔄 Retry Connection
+              Retry Connection
             </button>
           </div>
         )}

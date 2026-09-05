@@ -369,10 +369,10 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
           <h2 className="h4 fw-bold text-dark mb-1">
-            Welcome, {selectedRequester.name} 👋
+            Welcome, {selectedRequester.name}
           </h2>
           <p className="text-muted small mb-0">
-            📋 <strong>My Tickets</strong> — View and track support tickets created by <strong>{selectedRequester.name}</strong>
+            <strong>My Tickets</strong> — View and track support tickets created by <strong>{selectedRequester.name}</strong>
           </p>
         </div>
         <button
@@ -380,14 +380,18 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
           className="btn-zen-primary d-inline-flex align-items-center gap-2"
           onClick={onNavigateCreate}
         >
-          <span>➕</span> Create Ticket
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span>Create Ticket</span>
         </button>
       </div>
 
       {/* Category Load Error Notification */}
       {categoriesError && (
         <div className="alert alert-warning py-2 px-3 mb-3 d-flex justify-content-between align-items-center small" data-testid="category-load-error">
-          <span>⚠️ {categoriesError}</span>
+          <span>{categoriesError}</span>
           <button
             type="button"
             className="btn btn-sm btn-outline-dark py-0"
@@ -405,7 +409,12 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
             {/* Search Input */}
             <div className="col-12 col-md-4">
               <div className="input-group">
-                <span className="input-group-text bg-white text-muted">🔍</span>
+                <span className="input-group-text bg-white text-muted">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </span>
                 <input
                   type="text"
                   className="form-control"
@@ -525,7 +534,7 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
             onClick={() => setRetryToken((t) => t + 1)}
             data-testid="retry-tickets-btn"
           >
-            🔄 Retry
+            Retry
           </button>
         </div>
       ) : pagination && pagination.totalItems === 0 ? (
@@ -533,7 +542,12 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
           /* No Results State */
           <div className="card shadow-sm text-center py-5" data-testid="no-results-state">
             <div className="card-body">
-              <div className="fs-1 text-muted mb-2">🔍</div>
+              <div className="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-light text-muted mb-3">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
               <h4 className="h5 fw-bold text-dark mb-1">No Matching Tickets</h4>
               <p className="text-muted mb-3">
                 No tickets match your search or filter criteria. Try adjusting your filters.
@@ -552,18 +566,26 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
           /* Empty State */
           <div className="card shadow-sm text-center py-5" data-testid="empty-state">
             <div className="card-body">
-              <div className="fs-1 text-muted mb-2">📦</div>
+              <div className="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-light text-muted mb-3">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                </svg>
+              </div>
               <h4 className="h5 fw-bold text-dark mb-1">No Tickets Found</h4>
               <p className="text-muted mb-3">
                 You haven't submitted any IT support tickets yet.
               </p>
               <button
                 type="button"
-                className="btn-zen-primary"
+                className="btn-zen-primary d-inline-flex align-items-center gap-2"
                 onClick={onNavigateCreate}
                 data-testid="empty-state-create-btn"
               >
-                ➕ Create Your First Ticket
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Create Your First Ticket</span>
               </button>
             </div>
           </div>
@@ -609,7 +631,10 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
                         <span className={getStatusBadgeClass(t.status)}>{t.status}</span>
                       </td>
                       <td className="text-center text-muted small">
-                        📎 {t.attachmentCount ?? 0}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="me-1">
+                          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                        </svg>
+                        {t.attachmentCount ?? 0}
                       </td>
                       {onSelectTicket && (
                         <td className="text-end">
@@ -646,8 +671,11 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
                     <span className={getPriorityBadgeClass(t.requestedPriority)}>
                       {t.requestedPriority}
                     </span>
-                    <span className="text-muted small align-self-center">
-                      📎 {t.attachmentCount ?? 0} files
+                    <span className="text-muted small align-self-center d-flex align-items-center gap-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                      </svg>
+                      {t.attachmentCount ?? 0} files
                     </span>
                   </div>
                   <div className="d-flex justify-content-between align-items-center pt-2 border-top">
