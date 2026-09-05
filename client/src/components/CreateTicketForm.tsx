@@ -44,15 +44,14 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
   // Initial Attachments State
   const [initialFiles, setInitialFiles] = useState<File[]>([]);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".pdf"];
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const processFiles = (newFiles: File[]) => {
     setAttachmentError(null);
-    if (!e.target.files || e.target.files.length === 0) return;
-
-    const newFiles = Array.from(e.target.files);
+    if (newFiles.length === 0) return;
 
     if (initialFiles.length + newFiles.length > 5) {
       setAttachmentError("Maximum initial attachments limit (5 files) exceeded.");
@@ -72,7 +71,33 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
     }
 
     setInitialFiles((prev) => [...prev, ...newFiles]);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    processFiles(Array.from(e.target.files));
     e.target.value = "";
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(Array.from(e.dataTransfer.files));
+    }
   };
 
   const handleRemoveFile = (index: number) => {
@@ -474,11 +499,22 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
           </div>
 
           {/* Initial File Attachments Section (FR-07, ui-spec.md) */}
-          <div className="card bg-light border mb-4">
+          <div
+            data-testid="initial-attachments-dropzone"
+            className={`card mb-4 ${isDragging ? "bg-light border-success shadow" : "bg-light border"}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            style={{
+              borderStyle: isDragging ? "dashed" : "solid",
+              borderWidth: isDragging ? "2px" : "1px",
+              borderColor: isDragging ? "var(--primary-green, #006B3C)" : "#dee2e6",
+            }}
+          >
             <div className="card-body p-3">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <label htmlFor="initialFileInput" className="form-label fw-semibold mb-0">
-                  Initial Attachments <span className="small text-muted">(Optional — Max 5 files)</span>
+                  Initial Attachments <span className="small text-muted">(Optional — Drag & Drop or Browse, Max 5 files)</span>
                 </label>
                 <span className="small text-muted">{initialFiles.length} / 5 files</span>
               </div>

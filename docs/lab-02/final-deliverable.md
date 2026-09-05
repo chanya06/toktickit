@@ -169,6 +169,24 @@ Tickets are assigned a unique, immutable ticket number formatted as `TKT-YYYY-XX
 - **Soft-Removal with Reason (`DELETE /api/attachments/:id/soft-remove`)**: Soft-removes attachment record (`isRemoved: true`, records `removalReason` min 3 chars, and `removedAt` timestamp).
 - **Stream Blocking**: `GET /api/attachments/:id/download` checks `isRemoved` flag; soft-removed attachments return `403 Forbidden` and block binary file streaming.
 
+### 7.2 Responsive Visual Screenshots Documentation
+All 9 required screenshots were captured using automated Playwright layout tests across Desktop (1280px), Tablet (768px), and Mobile (375px) viewports:
+
+#### Create Ticket Form Viewport Layouts
+- **Desktop (1280px)**: `![Create Ticket Desktop](../../artifacts/lab-02/screenshots/create-ticket-desktop.png)`
+- **Tablet (768px)**: `![Create Ticket Tablet](../../artifacts/lab-02/screenshots/create-ticket-tablet.png)`
+- **Mobile (375px)**: `![Create Ticket Mobile](../../artifacts/lab-02/screenshots/create-ticket-mobile.png)`
+
+#### My Tickets Viewport Layouts
+- **Desktop (1280px)**: `![My Tickets Desktop](../../artifacts/lab-02/screenshots/my-tickets-desktop.png)`
+- **Tablet (768px)**: `![My Tickets Tablet](../../artifacts/lab-02/screenshots/my-tickets-tablet.png)`
+- **Mobile (375px)**: `![My Tickets Mobile](../../artifacts/lab-02/screenshots/my-tickets-mobile.png)`
+
+#### Ticket Detail Viewport Layouts
+- **Desktop (1280px)**: `![Ticket Detail Desktop](../../artifacts/lab-02/screenshots/ticket-detail-desktop.png)`
+- **Tablet (768px)**: `![Ticket Detail Tablet](../../artifacts/lab-02/screenshots/ticket-detail-tablet.png)`
+- **Mobile (375px)**: `![Ticket Detail Mobile](../../artifacts/lab-02/screenshots/ticket-detail-mobile.png)`
+
 ---
 
 ## Answer Part 8: Complete Automated Test Execution & Traceability Matrix
@@ -182,8 +200,8 @@ Tickets are assigned a unique, immutable ticket number formatted as `TKT-YYYY-XX
 | **AC-03** | My Tickets owned tickets filtering | `my-tickets.api.test.ts`, `MyTickets.test.tsx`, `requester-ticket-flow.spec.ts` | Pass |
 | **AC-04** | Cross-Requester Ticket Access Blocked (403 Forbidden) | `ticket-detail.api.test.ts`, `attachments.api.test.ts`, `requester-ticket-flow.spec.ts` | Pass |
 | **AC-05** | Soft removal with reason & blocked download | `attachments.api.test.ts`, `AttachmentSection.test.tsx`, `requester-ticket-flow.spec.ts` | Pass |
-| **AC-06** | Max 5 active attachments limit | `attachment-validator.test.ts`, `attachments.api.test.ts` | Pass |
-| **AC-07** | File size & type restriction validation | `attachment-validator.test.ts`, `CreateTicket.test.tsx`, `AttachmentSection.test.tsx` | Pass |
+| **AC-06** | Max 5 active attachments limit | `create-ticket.api.test.ts`, `attachments.api.test.ts` | Pass |
+| **AC-07** | File size & type restriction validation | `create-ticket.api.test.ts`, `CreateTicket.test.tsx`, `AttachmentSection.test.tsx` | Pass |
 | **AC-08** | Search term in My Tickets | `my-tickets.api.test.ts`, `MyTickets.test.tsx`, `requester-ticket-flow.spec.ts` | Pass |
 | **AC-09** | Ticket Date displayed on screens | `create-ticket.api.test.ts`, `CreateTicket.test.tsx`, `TicketDetail.test.tsx` | Pass |
 | **AC-10** | Form values preserved on submission failure | `CreateTicket.test.tsx` | Pass |

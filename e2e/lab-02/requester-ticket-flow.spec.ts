@@ -101,6 +101,24 @@ test.describe("Requester Ticket Lifecycle End-to-End Flow (Issue 14 / AC-01..AC-
     // Verify download button is no longer present for soft-removed attachment
     await expect(page.locator('button:has-text("Download")')).toHaveCount(0);
 
+    // Verify direct download endpoint request returns HTTP 403 for soft-removed attachment (BR-12 Stream Blocking)
+    const currentUrl = page.url();
+    const ticketIdMatch = currentUrl.match(/tickets[=/](\d+)/) || currentUrl.match(/id=(\d+)/);
+    if (ticketIdMatch) {
+      const ticketId = ticketIdMatch[1];
+      const attachListRes = await page.request.get(`/api/tickets/${ticketId}/attachments?requesterId=1`);
+      if (attachListRes.ok()) {
+        const attachments = await attachListRes.json();
+        if (attachments && attachments.length > 0) {
+          const removedAttachId = attachments[0].id;
+          const downloadRes = await page.request.get(`/api/attachments/${removedAttachId}/download?requesterId=1`);
+          expect(downloadRes.status()).toBe(403);
+          const errData = await downloadRes.json();
+          expect(errData.error).toContain("soft-removed");
+        }
+      }
+    }
+
     // 10. Verify switching active requester to Michael Brown (ID 2) clears ticket detail view (AC-04)
     await page.click("header button:has-text('Change Requester')");
     await expect(page.locator("#modal-title")).toBeVisible();

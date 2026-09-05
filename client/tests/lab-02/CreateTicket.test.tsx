@@ -224,4 +224,28 @@ describe("Create Ticket Form Component (Issue 9)", () => {
 
     expect(screen.queryByText("screenshot.png")).not.toBeInTheDocument();
   });
+
+  it("supports drag and drop file attachments onto initial attachments dropzone", async () => {
+    render(<App />);
+
+    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    fireEvent.click(createTabBtn);
+
+    const dropzone = await screen.findByTestId("initial-attachments-dropzone");
+
+    const mockFile = new File(["drag content"], "dragged-doc.pdf", { type: "application/pdf" });
+
+    // Drag over
+    fireEvent.dragOver(dropzone);
+    expect(dropzone).toHaveClass("border-success");
+
+    // Drop
+    fireEvent.drop(dropzone, {
+      dataTransfer: {
+        files: [mockFile],
+      },
+    });
+
+    expect(await screen.findByText("dragged-doc.pdf")).toBeInTheDocument();
+  });
 });
