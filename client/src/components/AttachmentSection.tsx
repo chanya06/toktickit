@@ -224,7 +224,12 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
     <div className="card shadow-sm mb-4" data-testid="attachment-section">
       <div className="card-body p-4">
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-          <h4 className="h5 fw-bold text-dark mb-0">📎 File Attachments</h4>
+          <h4 className="h5 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-success">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </svg>
+            <span>File Attachments</span>
+          </h4>
           <span className="badge bg-light text-dark border" data-testid="active-attachment-count">
             Active Attachments: <strong>{activeCount} / 5</strong>
           </span>

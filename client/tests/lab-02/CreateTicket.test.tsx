@@ -36,7 +36,7 @@ describe("Create Ticket Form Component (Issue 9)", () => {
     render(<App />);
 
     // Click 'Create Ticket' in header
-    const createBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    const createBtn = await screen.findByRole("button", { name: /Create Ticket/i });
     fireEvent.click(createBtn);
 
     expect(await screen.findByText("Create IT Support Ticket")).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe("Create Ticket Form Component (Issue 9)", () => {
   it("shows field-level error messages below inputs when summary or description are too short", async () => {
     render(<App />);
 
-    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    const createTabBtn = await screen.findByRole("button", { name: /Create Ticket/i });
     fireEvent.click(createTabBtn);
 
     const summaryInput = await screen.findByLabelText(/Summary/i);
@@ -82,7 +82,7 @@ describe("Create Ticket Form Component (Issue 9)", () => {
 
     render(<App />);
 
-    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    const createTabBtn = await screen.findByRole("button", { name: /Create Ticket/i });
     fireEvent.click(createTabBtn);
 
     const summaryInput = await screen.findByLabelText(/Summary/i);
@@ -131,7 +131,7 @@ describe("Create Ticket Form Component (Issue 9)", () => {
 
     render(<App />);
 
-    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    const createTabBtn = await screen.findByRole("button", { name: /Create Ticket/i });
     fireEvent.click(createTabBtn);
 
     const summaryInput = await screen.findByLabelText(/Summary/i);
@@ -158,7 +158,7 @@ describe("Create Ticket Form Component (Issue 9)", () => {
 
     render(<App />);
 
-    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    const createTabBtn = await screen.findByRole("button", { name: /Create Ticket/i });
     fireEvent.click(createTabBtn);
 
     const summaryInput = await screen.findByLabelText(/Summary/i);
@@ -187,11 +187,11 @@ describe("Create Ticket Form Component (Issue 9)", () => {
 
     render(<App />);
 
-    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    const createTabBtn = await screen.findByRole("button", { name: /Create Ticket/i });
     fireEvent.click(createTabBtn);
 
     expect(await screen.findByText("Failed to load form metadata")).toBeInTheDocument();
-    const retryBtn = screen.getByRole("button", { name: /🔄 Retry Connection/i });
+    const retryBtn = screen.getByRole("button", { name: /Retry Connection/i });
     expect(retryBtn).toBeInTheDocument();
 
     // Now allow fetchActiveCategories to succeed on retry
@@ -204,5 +204,48 @@ describe("Create Ticket Form Component (Issue 9)", () => {
     });
 
     expect(screen.getByRole("option", { name: "Account and Access" })).toBeInTheDocument();
+  });
+
+  it("allows selecting initial file attachments, displaying draft list, and removing files before submission (FR-07)", async () => {
+    render(<App />);
+
+    const createTabBtn = await screen.findByRole("button", { name: /Create Ticket/i });
+    fireEvent.click(createTabBtn);
+
+    const fileInput = (await screen.findByTestId("initial-file-input")) as HTMLInputElement;
+
+    const mockFile = new File(["test content"], "screenshot.png", { type: "image/png" });
+    fireEvent.change(fileInput, { target: { files: [mockFile] } });
+
+    expect(await screen.findByText("screenshot.png")).toBeInTheDocument();
+
+    const removeBtn = screen.getByRole("button", { name: /Remove/i });
+    fireEvent.click(removeBtn);
+
+    expect(screen.queryByText("screenshot.png")).not.toBeInTheDocument();
+  });
+
+  it("supports drag and drop file attachments onto initial attachments dropzone", async () => {
+    render(<App />);
+
+    const createTabBtn = await screen.findByRole("button", { name: /Create Ticket/i });
+    fireEvent.click(createTabBtn);
+
+    const dropzone = await screen.findByTestId("initial-attachments-dropzone");
+
+    const mockFile = new File(["drag content"], "dragged-doc.pdf", { type: "application/pdf" });
+
+    // Drag over
+    fireEvent.dragOver(dropzone);
+    expect(dropzone).toHaveClass("border-success");
+
+    // Drop
+    fireEvent.drop(dropzone, {
+      dataTransfer: {
+        files: [mockFile],
+      },
+    });
+
+    expect(await screen.findByText("dragged-doc.pdf")).toBeInTheDocument();
   });
 });

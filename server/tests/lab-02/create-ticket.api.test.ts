@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import request from "supertest";
+import fs from "fs";
+import path from "path";
 import { app } from "../../src/app.js";
+import { getPrisma } from "../../src/prisma.js";
 
 describe("POST /api/tickets (Issue 8)", () => {
   it("API-01: creates a valid ticket with format TKT-YYYY-XXXXXX, status NEW, and default itPriority MEDIUM", async () => {
@@ -167,5 +170,68 @@ describe("POST /api/tickets (Issue 8)", () => {
     expect(num1).not.toEqual(num2);
     expect(num1).toMatch(/^TKT-\d{4}-\d{6}$/);
     expect(num2).toMatch(/^TKT-\d{4}-\d{6}$/);
+  });
+
+  it("creates a ticket with initial attachments and saves attachments atomically (FR-07, BR-15)", async () => {
+    const pdfBuffer = Buffer.from("%PDF-1.4 initial test file content");
+
+    const res = await request(app)
+      .post("/api/tickets")
+      .field("requesterId", 1)
+      .field("categoryId", 2)
+      .field("relatedSystemId", 7)
+      .field("requestedPriority", "HIGH")
+      .field("summary", "Ticket with Initial Attachment")
+      .field("description", "Testing initial attachment upload during ticket creation.")
+      .attach("files", pdfBuffer, { filename: "initial-doc.pdf", contentType: "application/pdf" });
+
+    expect(res.status).toBe(201);
+    expect(res.body.ticketNumber).toMatch(/^TKT-\d{4}-\d{6}$/);
+
+    // Verify attachment record was created
+    const attachRes = await request(app).get(`/api/tickets/${res.body.id}/attachments?requesterId=1`);
+    expect(attachRes.status).toBe(200);
+    expect(attachRes.body.length).toBe(1);
+    expect(attachRes.body[0].originalName).toBe("initial-doc.pdf");
+  });
+
+  it("cleans up temporary files from disk and rolls back DB transaction when creation fails due to validation error (BR-15 Compensation)", async () => {
+    const prisma = getPrisma();
+    const testSummary = `Invalid Attachment Ticket - ${Date.now()}`;
+    const testFilename = `fake-${Date.now()}.pdf`;
+
+    const uploadsDir = path.resolve("uploads");
+    const filesBefore = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [];
+
+    const fakeBuffer = Buffer.from("NOT_A_REAL_PDF_HEADER");
+
+    const res = await request(app)
+      .post("/api/tickets")
+      .field("requesterId", 1)
+      .field("categoryId", 2)
+      .field("relatedSystemId", 7)
+      .field("requestedPriority", "HIGH")
+      .field("summary", testSummary)
+      .field("description", "Testing file cleanup on validation failure.")
+      .attach("files", fakeBuffer, { filename: testFilename, contentType: "application/pdf" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain("Binary content signature does not match extension");
+
+    // 1. Verify no ticket record created in database for this summary
+    const createdTicket = await prisma.ticket.findFirst({
+      where: { summary: testSummary },
+    });
+    expect(createdTicket).toBeNull();
+
+    // 2. Verify no attachment record created in database for this original file name
+    const createdAttachment = await prisma.attachment.findFirst({
+      where: { originalName: testFilename },
+    });
+    expect(createdAttachment).toBeNull();
+
+    // 3. Verify no leaked temporary files left on disk in uploads directory
+    const filesAfter = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [];
+    expect(filesAfter.length).toBe(filesBefore.length);
   });
 });

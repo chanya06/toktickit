@@ -91,7 +91,7 @@ describe("TicketDetailView Component", () => {
       expect(screen.getByTestId("ticket-detail-view")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("TKT-2026-000101")).toBeInTheDocument();
+    expect(screen.getAllByText("TKT-2026-000101")[0]).toBeInTheDocument();
     expect(screen.getByText("Laptop battery draining fast")).toBeInTheDocument();
     expect(screen.getByText("Battery issue on corporate workstation")).toBeInTheDocument();
     expect(screen.getByText("Hardware")).toBeInTheDocument();

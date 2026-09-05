@@ -1,8 +1,8 @@
 # Lab 2 Peer Review Record
 
 ## Reviewer Information
-- **Reviewer Identity**: Peer Reviewer (Course Peer Reviewer)
-- **Review Date**: 2026-09-01
+- **Reviewer Identity**: Peer Reviewer (`lmaybelgracel`)
+- **Review Date**: 2026-09-01 - 2026-09-06
 - **Target Branch**: `lab2-staging` -> `main`
 
 ---
@@ -11,7 +11,16 @@
 
 | PR # | Feature Branch | Description / Scope | Status | Reviewer Approval |
 | :--- | :--- | :--- | :--- | :--- |
-| **#23** | `feature/5-spec-and-tests` | Add Lab 2 engineering specifications (`specification.md`, `api-spec.md`, `ui-spec.md`, `tests.md`) | Open | Approved |
+| **#23** | `feature/5-spec-and-tests` | Add Lab 2 engineering specifications (`specification.md`, `api-spec.md`, `ui-spec.md`, `tests.md`) | Merged | Approved |
+| **#25** | `feature/6-db-schema-seed` | Database Prisma Schema modeling & idempotent seed data | Merged | Approved |
+| **#27** | `feature/7-requester-context` | Development Requester selector UI component & persistent state context | Merged | Approved |
+| **#29** | `feature/8-create-ticket-api` | Ticket creation REST API endpoint & sequential ticket number generator | Merged | Approved |
+| **#30** | `feature/9-create-ticket-ui` | Create Ticket screen & Zen Green accessible form components | Merged | Approved |
+| **#31** | `feature/10-my-tickets-api` | Paginated My Tickets API endpoint with search, filter, and sorting | Merged | Approved |
+| **#32** | `feature/11-my-tickets-ui` | My Tickets screen, search/filter controls, and mobile card view | Merged | Approved |
+| **#33** | `feature/12-ticket-detail` | Ticket Detail view, read-only layout, and ownership guard | Merged | Approved |
+| **#34** | `feature/13-attachment-lifecycle` | Attachment upload stream, magic bytes validation, soft removal & metadata list | Merged | Approved |
+| **#35** | `feature/14-qa-release` | QA, Initial Attachments, HTML5 Drag & Drop, State Screenshots, Section 14 Deliverable PDF Report | Open | Approved |
 
 ---
 
@@ -33,3 +42,22 @@
 - **Comment Given**: "Ticket Date / createdAt timestamp must be clearly displayed in Create Ticket preview, My Tickets list, and Ticket Detail header."
 - **Response & Action Taken**: "Added Ticket Date requirement across `specification.md`, `ui-spec.md`, `api-spec.md`, and `tests.md`."
 
+### Review Item 5: Idempotent Seed Script Strategy
+- **Comment Given**: "Ensure seed script runs cleanly without primary key or unique constraint violations when executed multiple times consecutively."
+- **Response & Action Taken**: "Implemented Prisma `upsert` queries for seed categories and requesters in `server/prisma/seed.ts`."
+
+### Review Item 6: Development Requester Switching & State Reset
+- **Comment Given**: "When switching active Requester in Development Requester Selector modal, any displayed ticket detail or creation form must immediately clear stale data."
+- **Response & Action Taken**: "Added React `useEffect` state reset logic dependent on `activeRequesterId` in `TicketDetailView` and `CreateTicketView`."
+
+### Review Item 7: Ticket Detail Requester Identification Sync
+- **Comment Given**: "Ensure explicit `requesterId` parameter synchronization between query parameters and HTTP header `X-Requester-Id` to prevent ambiguity."
+- **Response & Action Taken**: "Refactored `TicketDetailView` to pass explicit `requesterId` query parameter matching active Requester context and added conflict validation in backend middleware."
+
+### Review Item 8: File Magic Bytes & Concurrency Protection
+- **Comment Given**: "Inspect binary file magic bytes signatures to prevent uploading disguised malicious files, and implement atomic count checks with row-level locking for active attachments."
+- **Response & Action Taken**: "Implemented `validateFileBufferSignature` for JPEG, PNG, WEBP, and PDF files, and wrapped active attachment count verification in PostgreSQL `SELECT ... FOR UPDATE` transactions."
+
+### Review Item 9: Handout Section 14 Deliverable Structure, State Screenshots & Handout Section 12 Repository Structure (PR #35)
+- **Comment Given**: "Structure `docs/lab-02/final-deliverable.md` into exact Answer Part 1 to Answer Part 9 headings from Section 14 of the handout. Add working state screenshots (validation error, busy state, success ticket number from DB, backend failure retained data, soft remove modal prompt, soft-removed status badge). Rename `TicketDetail.test.tsx` to `RequesterTicketDetail.test.tsx` and organize screenshot subdirectories under `artifacts/lab-02/screenshots/` (`create-ticket/`, `my-tickets/`, `ticket-detail/`). Generate single deliverable PDF report."
+- **Response & Action Taken**: "Renamed client test file to `RequesterTicketDetail.test.tsx`, reorganized screenshot subdirectories into `create-ticket/`, `my-tickets/`, and `ticket-detail/`, captured all 15 working state & responsive layout screenshots, restructured `docs/lab-02/final-deliverable.md` into exact Answer Part 1..9 headings, and re-compiled `docs/lab-02/final-deliverable.pdf` via `scripts/generate-pdf.js`."

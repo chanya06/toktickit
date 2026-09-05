@@ -38,7 +38,10 @@ function HomeOverview() {
 
         {state === "success" && (
           <div className="mt-2">
-            <p className="fw-bold text-success mb-2">System Status: Online 🟢</p>
+            <p className="fw-bold text-success mb-2 d-flex align-items-center gap-1">
+              <span className="d-inline-block rounded-circle bg-success" style={{ width: "10px", height: "10px" }}></span>
+              <span>System Status: Online</span>
+            </p>
             {categories.length > 0 && (
               <div>
                 <p className="fw-semibold mb-1 small">Supported Categories:</p>
@@ -56,7 +59,10 @@ function HomeOverview() {
 
         {state === "error" && (
           <div className="mt-2 text-danger">
-            <p className="fw-bold mb-1">System Status: Offline 🔴</p>
+            <p className="fw-bold mb-1 d-flex align-items-center gap-1">
+              <span className="d-inline-block rounded-circle bg-danger" style={{ width: "10px", height: "10px" }}></span>
+              <span>System Status: Offline</span>
+            </p>
             <p className="small mb-0">{errorMessage}</p>
           </div>
         )}
