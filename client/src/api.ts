@@ -26,6 +26,7 @@ export interface CreateTicketPayload {
   requestedPriority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   summary: string;
   description: string;
+  files?: File[];
 }
 
 export interface TicketResponse {
@@ -75,11 +76,41 @@ export async function fetchActiveSystems(): Promise<RelatedSystem[]> {
 }
 
 export async function createTicket(payload: CreateTicketPayload): Promise<TicketResponse> {
-  const res = await fetch(`${API_URL}/api/tickets`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  }).catch(() => null);
+  let reqOptions: RequestInit;
+
+  if (payload.files && payload.files.length > 0) {
+    const formData = new FormData();
+    formData.append("requesterId", String(payload.requesterId));
+    formData.append("categoryId", String(payload.categoryId));
+    formData.append("relatedSystemId", String(payload.relatedSystemId));
+    formData.append("requestedPriority", payload.requestedPriority);
+    formData.append("summary", payload.summary);
+    formData.append("description", payload.description);
+
+    for (const file of payload.files) {
+      formData.append("files", file);
+    }
+
+    reqOptions = {
+      method: "POST",
+      body: formData,
+    };
+  } else {
+    reqOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requesterId: payload.requesterId,
+        categoryId: payload.categoryId,
+        relatedSystemId: payload.relatedSystemId,
+        requestedPriority: payload.requestedPriority,
+        summary: payload.summary,
+        description: payload.description,
+      }),
+    };
+  }
+
+  const res = await fetch(`${API_URL}/api/tickets`, reqOptions).catch(() => null);
 
   if (!res) {
     throw new Error("Network error: Unable to connect to server");

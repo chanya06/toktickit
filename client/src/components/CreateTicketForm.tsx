@@ -41,6 +41,70 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
   const [apiError, setApiError] = useState<string | null>(null);
   const [createdTicket, setCreatedTicket] = useState<TicketResponse | null>(null);
 
+  // Initial Attachments State
+  const [initialFiles, setInitialFiles] = useState<File[]>([]);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".pdf"];
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
+  const processFiles = (newFiles: File[]) => {
+    setAttachmentError(null);
+    if (newFiles.length === 0) return;
+
+    if (initialFiles.length + newFiles.length > 5) {
+      setAttachmentError("Maximum initial attachments limit (5 files) exceeded.");
+      return;
+    }
+
+    for (const f of newFiles) {
+      const ext = "." + f.name.split(".").pop()?.toLowerCase();
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        setAttachmentError(`File "${f.name}" format is not supported. Allowed formats: .jpg, .jpeg, .png, .webp, .pdf`);
+        return;
+      }
+      if (f.size > MAX_FILE_SIZE) {
+        setAttachmentError(`File "${f.name}" size exceeds maximum allowed limit of 5 MB.`);
+        return;
+      }
+    }
+
+    setInitialFiles((prev) => [...prev, ...newFiles]);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    processFiles(Array.from(e.target.files));
+    e.target.value = "";
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setInitialFiles((prev) => prev.filter((_, i) => i !== index));
+    setAttachmentError(null);
+  };
+
   // Fetch dropdown categories and related systems
   const loadDropdownData = useCallback(async () => {
     setIsLoadingDropdowns(true);
@@ -125,11 +189,11 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
         requestedPriority,
         summary: summary.trim(),
         description: description.trim(),
+        files: initialFiles.length > 0 ? initialFiles : undefined,
       });
 
       setCreatedTicket(ticket);
     } catch (err: any) {
-      // API error preserves entered form inputs!
       setApiError(err.message || "Failed to submit ticket. Please check your inputs.");
     } finally {
       setIsSubmitting(false);
@@ -140,6 +204,8 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
     setCreatedTicket(null);
     setSummary("");
     setDescription("");
+    setInitialFiles([]);
+    setAttachmentError(null);
     setFieldErrors({});
     setApiError(null);
     if (categories.length > 0) setCategoryId(String(categories[0].id));
@@ -432,9 +498,72 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
             )}
           </div>
 
-          {/* Notice for Attachment Scope */}
-          <div className="alert alert-secondary py-2 px-3 mb-4 small">
-            📎 <strong>File Attachments:</strong> File upload and drag-and-drop attachment management will be activated in <strong>Issue 13 (Attachment Lifecycle)</strong>.
+          {/* Initial File Attachments Section (FR-07, ui-spec.md) */}
+          <div
+            data-testid="initial-attachments-dropzone"
+            className={`card mb-4 ${isDragging ? "bg-light border-success shadow" : "bg-light border"}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            style={{
+              borderStyle: isDragging ? "dashed" : "solid",
+              borderWidth: isDragging ? "2px" : "1px",
+              borderColor: isDragging ? "var(--primary-green, #006B3C)" : "#dee2e6",
+            }}
+          >
+            <div className="card-body p-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <label htmlFor="initialFileInput" className="form-label fw-semibold mb-0">
+                  Initial Attachments <span className="small text-muted">(Optional — Drag & Drop or Browse, Max 5 files)</span>
+                </label>
+                <span className="small text-muted">{initialFiles.length} / 5 files</span>
+              </div>
+
+              <input
+                type="file"
+                id="initialFileInput"
+                data-testid="initial-file-input"
+                className="form-control form-control-sm mb-2"
+                multiple
+                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                onChange={handleFileSelect}
+                disabled={isSubmitting || initialFiles.length >= 5}
+              />
+
+              <div className="form-text small text-muted mb-2">
+                Allowed formats: <strong>.jpg, .jpeg, .png, .webp, .pdf</strong> (Max file size: <strong>5 MB per file</strong>).
+              </div>
+
+              {attachmentError && (
+                <div className="alert alert-danger py-1 px-2 mb-2 small" role="alert" data-testid="attachment-error">
+                  {attachmentError}
+                </div>
+              )}
+
+              {initialFiles.length > 0 && (
+                <div className="list-group list-group-flush border rounded bg-white mt-2">
+                  {initialFiles.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+                      <div className="d-flex align-items-center gap-2 overflow-hidden me-2">
+                        <span className="badge bg-secondary text-uppercase small">
+                          {file.name.split(".").pop() || "FILE"}
+                        </span>
+                        <span className="small fw-semibold text-truncate">{file.name}</span>
+                        <span className="small text-muted">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger py-0 px-2 small"
+                        onClick={() => handleRemoveFile(index)}
+                        disabled={isSubmitting}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Form Actions */}

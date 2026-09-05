@@ -205,4 +205,47 @@ describe("Create Ticket Form Component (Issue 9)", () => {
 
     expect(screen.getByRole("option", { name: "Account and Access" })).toBeInTheDocument();
   });
+
+  it("allows selecting initial file attachments, displaying draft list, and removing files before submission (FR-07)", async () => {
+    render(<App />);
+
+    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    fireEvent.click(createTabBtn);
+
+    const fileInput = (await screen.findByTestId("initial-file-input")) as HTMLInputElement;
+
+    const mockFile = new File(["test content"], "screenshot.png", { type: "image/png" });
+    fireEvent.change(fileInput, { target: { files: [mockFile] } });
+
+    expect(await screen.findByText("screenshot.png")).toBeInTheDocument();
+
+    const removeBtn = screen.getByRole("button", { name: /Remove/i });
+    fireEvent.click(removeBtn);
+
+    expect(screen.queryByText("screenshot.png")).not.toBeInTheDocument();
+  });
+
+  it("supports drag and drop file attachments onto initial attachments dropzone", async () => {
+    render(<App />);
+
+    const createTabBtn = await screen.findByRole("button", { name: /➕ Create Ticket/i });
+    fireEvent.click(createTabBtn);
+
+    const dropzone = await screen.findByTestId("initial-attachments-dropzone");
+
+    const mockFile = new File(["drag content"], "dragged-doc.pdf", { type: "application/pdf" });
+
+    // Drag over
+    fireEvent.dragOver(dropzone);
+    expect(dropzone).toHaveClass("border-success");
+
+    // Drop
+    fireEvent.drop(dropzone, {
+      dataTransfer: {
+        files: [mockFile],
+      },
+    });
+
+    expect(await screen.findByText("dragged-doc.pdf")).toBeInTheDocument();
+  });
 });

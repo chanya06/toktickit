@@ -10,7 +10,7 @@ import { RequestedPriority } from "@prisma/client";
 
 export const app = express();
 
-app.use(cors());
+app.use(cors({ exposedHeaders: ["Content-Disposition"] }));
 app.use(express.json());
 
 const uploadDir = path.join(process.cwd(), "uploads", "attachments");
@@ -438,7 +438,39 @@ app.get("/api/tickets/:id", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/api/tickets", async (req: Request, res: Response) => {
+app.post("/api/tickets", (req: Request, res: Response, next) => {
+  upload.array("files", 5)(req, res, (err) => {
+    if (err) {
+      const uploadedFiles = (req.files as Express.Multer.File[]) || [];
+      for (const f of uploadedFiles) {
+        if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
+      }
+      if (err instanceof multer.MulterError) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(413).json({ error: "File size exceeds maximum allowed limit of 5 MB" });
+        }
+        if (err.code === "LIMIT_UNEXPECTED_FILE" || err.code === "LIMIT_FILE_COUNT") {
+          return res.status(422).json({ error: "Maximum initial attachments limit (5) exceeded" });
+        }
+        return res.status(400).json({ error: err.message });
+      }
+      return res.status(400).json({ error: err.message || "File upload error" });
+    }
+    next();
+  });
+}, async (req: Request, res: Response) => {
+  const uploadedFiles = (req.files as Express.Multer.File[]) || [];
+
+  const cleanupFiles = () => {
+    for (const f of uploadedFiles) {
+      try {
+        if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
+      } catch {
+        // Ignore file unlinking errors
+      }
+    }
+  };
+
   try {
     const { requesterId, categoryId, relatedSystemId, requestedPriority, summary, description } = req.body;
 
@@ -451,6 +483,7 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
       summary === undefined ||
       description === undefined
     ) {
+      cleanupFiles();
       return res.status(400).json({ error: "Missing required ticket fields" });
     }
 
@@ -460,11 +493,13 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
       !isPositiveInteger(categoryId) ||
       !isPositiveInteger(relatedSystemId)
     ) {
+      cleanupFiles();
       return res.status(400).json({ error: "requesterId, categoryId, and relatedSystemId must be valid positive integers" });
     }
 
     // 2. Enum validation -> 400 Bad Request
     if (!VALID_PRIORITIES.includes(requestedPriority)) {
+      cleanupFiles();
       return res.status(400).json({ error: "Invalid requestedPriority value" });
     }
 
@@ -473,11 +508,49 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
 
     // 3. String length validation -> 422 Unprocessable Entity
     if (trimmedSummary.length < 5 || trimmedSummary.length > 120) {
+      cleanupFiles();
       return res.status(422).json({ error: "Ticket Summary must be between 5 and 120 characters" });
     }
 
     if (trimmedDescription.length < 10 || trimmedDescription.length > 2000) {
+      cleanupFiles();
       return res.status(422).json({ error: "Ticket Description must be between 10 and 2000 characters" });
+    }
+
+    if (uploadedFiles.length > 5) {
+      cleanupFiles();
+      return res.status(422).json({ error: "Maximum initial attachments limit (5) exceeded" });
+    }
+
+    // Validate each initial attachment file
+    const allowedMap: Record<string, string[]> = {
+      ".jpg": ["image/jpeg", "image/jpg"],
+      ".jpeg": ["image/jpeg", "image/jpg"],
+      ".png": ["image/png"],
+      ".webp": ["image/webp"],
+      ".pdf": ["application/pdf"],
+    };
+    const MAX_SIZE = 5 * 1024 * 1024;
+
+    for (const f of uploadedFiles) {
+      const ext = path.extname(f.originalname).toLowerCase();
+      const mime = (f.mimetype || "").toLowerCase();
+      const validMimes = allowedMap[ext];
+
+      if (!validMimes || !validMimes.includes(mime)) {
+        cleanupFiles();
+        return res.status(400).json({ error: "File type not supported. Allowed formats: .jpg, .jpeg, .png, .webp, .pdf with matching content type" });
+      }
+
+      if (f.size > MAX_SIZE) {
+        cleanupFiles();
+        return res.status(413).json({ error: "File size exceeds maximum allowed limit of 5 MB" });
+      }
+
+      if (!validateFileBufferSignature(f.path, ext)) {
+        cleanupFiles();
+        return res.status(400).json({ error: "File type not supported. Binary content signature does not match extension" });
+      }
     }
 
     const prisma = getPrisma();
@@ -487,6 +560,7 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
       where: { id: Number(requesterId), isActive: true },
     });
     if (!requester) {
+      cleanupFiles();
       return res.status(422).json({ error: "Active Development Requester not found" });
     }
 
@@ -494,6 +568,7 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
       where: { id: Number(categoryId), isActive: true },
     });
     if (!category) {
+      cleanupFiles();
       return res.status(422).json({ error: "Active Category not found" });
     }
 
@@ -501,11 +576,12 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
       where: { id: Number(relatedSystemId), isActive: true },
     });
     if (!relatedSystem) {
+      cleanupFiles();
       return res.status(422).json({ error: "Active Related System not found" });
     }
 
-    // 5. Generate Ticket Number & create Ticket atomically (handles concurrency & collisions via transaction retry)
-    const newTicket = await createTicketAtomically(prisma, {
+    // 5. Generate Ticket Number & create Ticket + Attachments atomically
+    const ticketData: any = {
       requesterId: Number(requesterId),
       categoryId: Number(categoryId),
       relatedSystemId: Number(relatedSystemId),
@@ -514,10 +590,25 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
       description: trimmedDescription,
       itPriority: "MEDIUM",
       status: "NEW",
-    });
+    };
 
+    if (uploadedFiles.length > 0) {
+      ticketData.attachments = {
+        create: uploadedFiles.map((f) => ({
+          filename: f.filename,
+          originalName: f.originalname,
+          mimeType: f.mimetype || "application/octet-stream",
+          sizeBytes: f.size,
+          filepath: f.path,
+          isRemoved: false,
+        })),
+      };
+    }
+
+    const newTicket = await createTicketAtomically(prisma, ticketData);
     return res.status(201).json(newTicket);
   } catch (error) {
+    cleanupFiles();
     console.error("Create ticket error:", error);
     return res.status(500).json({ error: "Failed to create ticket" });
   }
@@ -819,9 +910,7 @@ app.get("/api/attachments/:id/download", async (req: Request, res: Response) => 
       return res.status(404).json({ error: "Attachment binary file not found on disk" });
     }
 
-    res.setHeader("Content-Type", attachment.mimeType);
-    res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(attachment.originalName)}"`);
-    return res.sendFile(path.resolve(attachment.filepath));
+    return res.download(path.resolve(attachment.filepath), attachment.originalName);
   } catch (error) {
     console.error("Download attachment error:", error);
     return res.status(500).json({ error: "Failed to download attachment" });
