@@ -38,29 +38,20 @@ export const RequesterSelectorModal: React.FC = () => {
   return (
     <div className="modal-backdrop-custom" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className="modal-card p-4">
-        {/* Header */}
-        <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-          <h2 id="modal-title" className="h5 fw-bold mb-0 text-success" style={{ color: "var(--primary-green)" }}>
+        {/* Header Icon & Title matching Section 8.1 of Lab 2 Handout */}
+        <div className="text-center mb-3">
+          <div
+            className="d-inline-flex align-items-center justify-content-center rounded-circle mb-2"
+            style={{ width: "56px", height: "56px", backgroundColor: "var(--pale-green, #EAF6EF)", color: "var(--primary-green, #006B3C)" }}
+          >
+            <span className="fs-3">👤⚙️</span>
+          </div>
+          <h2 id="modal-title" className="h4 fw-bold mb-1 text-dark">
             Select Development Requester
           </h2>
-          {selectedRequester && (
-            <button
-              type="button"
-              className="btn-close"
-              aria-label="Close"
-              onClick={closeSelectorModal}
-            />
-          )}
-        </div>
-
-        {/* Explanatory Callout Notice */}
-        <div className="notice-box mb-4">
-          <div className="fw-semibold mb-1">
-            ℹ️ Testing Context Only
-          </div>
-          <div>
-            Select a Development Requester to test requester-specific ticket behavior. This is not a login screen. Authentication and role-based access will be introduced in Lab 3.
-          </div>
+          <p className="text-muted small mb-0 px-3">
+            Select a Development Requester to test requester-specific ticket behavior. Choose a development requester to simulate the current requester context for Lab 2. This is for testing only and is not a login screen.
+          </p>
         </div>
 
         {/* Loading State */}
@@ -75,7 +66,7 @@ export const RequesterSelectorModal: React.FC = () => {
 
         {/* Error State */}
         {!isLoading && error && (
-          <div className="alert alert-danger mb-4" role="alert">
+          <div className="alert alert-danger mb-3" role="alert">
             <p className="fw-bold mb-1">Failed to load requesters</p>
             <p className="mb-2 small">{error}</p>
             <button
@@ -90,7 +81,7 @@ export const RequesterSelectorModal: React.FC = () => {
 
         {/* Empty State */}
         {!isLoading && !error && requesters.length === 0 && (
-          <div className="alert alert-warning text-center mb-4" role="alert">
+          <div className="alert alert-warning text-center mb-3" role="alert">
             <p className="fw-bold mb-1">No Active Requesters Found</p>
             <p className="mb-0 small">No active Development Requesters are currently seeded in the database.</p>
           </div>
@@ -98,13 +89,13 @@ export const RequesterSelectorModal: React.FC = () => {
 
         {/* Form Selector State */}
         {!isLoading && !error && requesters.length > 0 && (
-          <div className="mb-4">
-            <label htmlFor="requesterSelect" className="form-label fw-semibold">
-              Development Requester <span className="text-danger">*</span>
+          <div className="mb-3">
+            <label htmlFor="requesterSelect" className="form-label fw-semibold text-dark mb-1">
+              Development Requester <span className="text-danger fw-bold">*</span>
             </label>
             <select
               id="requesterSelect"
-              className="form-select form-select-lg"
+              className="form-select form-select-lg mb-3"
               value={tempSelectedId}
               onChange={(e) => setTempSelectedId(Number(e.target.value))}
             >
@@ -114,15 +105,34 @@ export const RequesterSelectorModal: React.FC = () => {
                 </option>
               ))}
             </select>
+
+            {/* Info Callout Notice (Section 8.1 Handout) */}
+            <div className="alert alert-success py-2 px-3 mb-3 d-flex align-items-center gap-2 small">
+              <span>ℹ️</span>
+              <span>Only active development requesters are shown.</span>
+            </div>
+
+            {/* Lab 3 Lock Notice (Section 8.1 Handout) */}
+            <div className="card bg-light border mb-3">
+              <div className="card-body p-3 d-flex gap-3 align-items-start">
+                <span className="fs-5">🔒</span>
+                <div>
+                  <strong className="d-block small text-dark mb-1">Authentication coming in Lab 3</strong>
+                  <span className="small text-muted">
+                    In Lab 3, this selection will be replaced with secure authentication so you can access the system with your own account.
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Modal Actions */}
-        <div className="d-flex justify-content-end gap-2 pt-2 border-top">
+        {/* Modal Footer Actions */}
+        <div className="d-flex justify-content-end gap-2 pt-3 border-top">
           {selectedRequester && (
             <button
               type="button"
-              className="btn-zen-secondary"
+              className="btn btn-outline-secondary"
               onClick={closeSelectorModal}
             >
               Cancel
@@ -130,11 +140,12 @@ export const RequesterSelectorModal: React.FC = () => {
           )}
           <button
             type="button"
-            className="btn-zen-primary"
+            className="btn-zen-primary d-flex align-items-center gap-2"
             disabled={isLoading || requesters.length === 0 || tempSelectedId === ""}
             onClick={handleContinue}
           >
-            Continue →
+            <span>Continue</span>
+            <span>&rarr;</span>
           </button>
         </div>
       </div>

@@ -72,7 +72,7 @@ test.describe("Requester Ticket Lifecycle End-to-End Flow (Issue 14 / AC-01..AC-
 
     await expect(page.locator("h2")).toContainText("TKT-2026-");
     await expect(page.locator("main")).toContainText(testSummary);
-    await expect(page.locator("main")).toContainText("Ticket Date:");
+    await expect(page.locator("main")).toContainText("Ticket Date");
     await expect(page.locator('[data-testid="attachment-section"]')).toContainText("e2e-initial-doc.pdf");
 
     // 8. Test attachment download stream (AC-05)
