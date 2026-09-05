@@ -23,6 +23,7 @@
 | [#34](https://github.com/chanya06/toktickit/pull/34) | `feature/13-attachment-lifecycle` | Attachment upload stream, magic bytes validation, soft removal & metadata list | "Approved. Required magic bytes validation for JPEG/PNG/WEBP/PDF and row-level lock SELECT FOR UPDATE." | Merged | Approved |
 | [#35](https://github.com/chanya06/toktickit/pull/35) | `feature/14-qa-release` | QA, Initial Attachments, HTML5 Drag & Drop, State Screenshots, Section 14 Deliverable PDF Report | "Approved. Required Section 14 Answer Part 1..9 headings, 15 state screenshots, RequesterTicketDetail.test.tsx rename, screenshot subdirectories, and single PDF report." | Merged | Approved |
 | [#37](https://github.com/chanya06/toktickit/pull/37) | `feature/15-ui-refinement` | Refine Web UI layout alignment with instructor mockups (Figure 1, Section 8.1, Section 8.4) and remove emojis | "Approved. Required web UI alignment with instructor mockups (Figure 1, Section 8.1, Section 8.4) and removal of all raw emojis." | Merged | Approved |
+| [#39](https://github.com/chanya06/toktickit/pull/39) | `feature/16-reviewer-docs-sync` | Refine reviewer log with feedback column, add PR links, sync test metrics, re-compile PDF report | "Awaiting peer review. Add feedback column, clickable PR links, sync test metrics, and update PDF report." | Open | Pending |
 
 ---
 
@@ -78,4 +79,7 @@
 - **Response & Action Taken**: "Refactored `Header.tsx`, `RequesterSelectorModal.tsx`, `CreateTicketForm.tsx`, `MyTicketsView.tsx`, `TicketDetailView.tsx`, and `AttachmentSection.tsx` to use SVG vector icons, updated unit test assertions, re-captured Playwright screenshots, and compiled `final-deliverable.pdf`."
 - **Resolution Status**: Approved & Merged.
 
-
+### Review Item 11: Reviewer Log Feedback Column, PR Links & Test Metric Synchronization (PR [#39](https://github.com/chanya06/toktickit/pull/39))
+- **Comment Given**: "Add a Peer Reviewer Comment / Feedback column to the PR Log table, include clickable GitHub PR links for all PRs, sync automated test metrics in tests.md, and re-compile final-deliverable.pdf."
+- **Response & Action Taken**: "Updated reviewer.md table with reviewer comments and clickable PR links, synced test metrics in tests.md, and re-compiled final-deliverable.pdf."
+- **Resolution Status**: Pending Peer Review & Merge.
