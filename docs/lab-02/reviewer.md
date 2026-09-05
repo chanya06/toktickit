@@ -2,7 +2,7 @@
 
 ## Reviewer Information
 - **Reviewer Identity**: Peer Reviewer (`lmaybelgracel`)
-- **Review Date**: 2026-09-01 - 2026-09-05
+- **Review Date**: 2026-09-01 - 2026-09-06
 - **Target Branch**: `lab2-staging` -> `main`
 
 ---
@@ -20,6 +20,7 @@
 | **#32** | `feature/11-my-tickets-ui` | My Tickets screen, search/filter controls, and mobile card view | Merged | Approved |
 | **#33** | `feature/12-ticket-detail` | Ticket Detail view, read-only layout, and ownership guard | Merged | Approved |
 | **#34** | `feature/13-attachment-lifecycle` | Attachment upload stream, magic bytes validation, soft removal & metadata list | Merged | Approved |
+| **#35** | `feature/14-qa-release` | QA, Initial Attachments, HTML5 Drag & Drop, State Screenshots, Section 14 Deliverable PDF Report | Open | Approved |
 
 ---
 
@@ -56,3 +57,7 @@
 ### Review Item 8: File Magic Bytes & Concurrency Protection
 - **Comment Given**: "Inspect binary file magic bytes signatures to prevent uploading disguised malicious files, and implement atomic count checks with row-level locking for active attachments."
 - **Response & Action Taken**: "Implemented `validateFileBufferSignature` for JPEG, PNG, WEBP, and PDF files, and wrapped active attachment count verification in PostgreSQL `SELECT ... FOR UPDATE` transactions."
+
+### Review Item 9: Handout Section 14 Deliverable Structure, State Screenshots & Handout Section 12 Repository Structure (PR #35)
+- **Comment Given**: "Structure `docs/lab-02/final-deliverable.md` into exact Answer Part 1 to Answer Part 9 headings from Section 14 of the handout. Add working state screenshots (validation error, busy state, success ticket number from DB, backend failure retained data, soft remove modal prompt, soft-removed status badge). Rename `TicketDetail.test.tsx` to `RequesterTicketDetail.test.tsx` and organize screenshot subdirectories under `artifacts/lab-02/screenshots/` (`create-ticket/`, `my-tickets/`, `ticket-detail/`). Generate single deliverable PDF report."
+- **Response & Action Taken**: "Renamed client test file to `RequesterTicketDetail.test.tsx`, reorganized screenshot subdirectories into `create-ticket/`, `my-tickets/`, and `ticket-detail/`, captured all 15 working state & responsive layout screenshots, restructured `docs/lab-02/final-deliverable.md` into exact Answer Part 1..9 headings, and re-compiled `docs/lab-02/final-deliverable.pdf` via `scripts/generate-pdf.js`."

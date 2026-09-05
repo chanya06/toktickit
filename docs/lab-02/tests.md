@@ -33,7 +33,7 @@ The testing strategy validates the entire full-stack application across five dis
 | **UI-02** | UI | AC-01, FR-03 | Create Ticket form rendering & submission | Submits valid form, shows dropzone & busy state | `client/tests/lab-02/CreateTicket.test.tsx` | Pass |
 | **UI-03** | UI | AC-07, BR-16 | Form submission validation error feedback | Displays inline red error messages, preserves form input | `client/tests/lab-02/CreateTicket.test.tsx` | Pass |
 | **UI-04** | UI | AC-03, FR-14 | My Tickets table, search bar, & filter controls | Updates list upon typing search term or changing category | `client/tests/lab-02/MyTickets.test.tsx` | Pass |
-| **UI-05** | UI | AC-09, FR-05 | Ticket Detail read-only layout & Ticket Date | Displays immutable ticket info, Ticket Date, & attachment list | `client/tests/lab-02/TicketDetail.test.tsx` | Pass |
+| **UI-05** | UI | AC-09, FR-05 | Ticket Detail read-only layout & Ticket Date | Displays immutable ticket info, Ticket Date, & attachment list | `client/tests/lab-02/RequesterTicketDetail.test.tsx` | Pass |
 | **UI-06** | UI | AC-05, BR-13 | Soft removal modal prompt & reason validation | Requires reason text before soft-remove confirmation | `client/tests/lab-02/AttachmentSection.test.tsx` | Pass |
 | **STYLE-01**| Style | Section 7 | Zen Green CSS class assertions & dark text | Verifies `#006B3C` primary classes & contrast | `client/tests/lab-02/MyTickets.test.tsx` | Pass |
 | **E2E-01** | E2E | AC-01..10 | Full Requester journey Playwright test | Complete workflow: selector, creation, dropzone, soft removal, stream block | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pass |
