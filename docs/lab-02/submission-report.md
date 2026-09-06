@@ -60,8 +60,8 @@
 
 ### 1.5 README.md and .gitignore
 
-#### Content of `README.md`:
-```markdown
+#### Content of README.md:
+
 # TokTickIT - IT Service Desk Application
 
 TokTickIT is an IT service desk web application built with React, TypeScript, Vite, Bootstrap, Node.js, Express, Prisma ORM, and PostgreSQL.
@@ -1281,7 +1281,6 @@ npm test
 
 **ลิงก์:** https://github.com/chanya06/toktickit/blob/main/docs/lab-02/specification.md
 
-```markdown
 # Lab 2 Sprint Engineering Specification
 
 ## 1. Sprint Goal
@@ -1476,7 +1475,6 @@ enum TicketStatus {
 
 **ลิงก์:** https://github.com/chanya06/toktickit/blob/main/docs/lab-02/tests.md
 
-```markdown
 # Lab 2 Test Plan and Traceability Matrix
 
 ## 1. Test Strategy
@@ -1528,7 +1526,6 @@ The testing strategy validates the entire full-stack application across five dis
 | **AC-08** (Search term in My Tickets) | `API-04`, `UI-04`, `E2E-01` | Pass |
 | **AC-09** (Ticket Date displayed on screens) | `API-01`, `UI-02`, `UI-05` | Pass |
 | **AC-10** (Form values preserved on submission failure) | `UI-03` | Pass |
-```
 
 *(เรนเดอร์ Console Output ผลการรันเทส 107/107 passed ด้านบนเรียบร้อยแล้ว)*
 
@@ -1586,7 +1583,6 @@ The testing strategy validates the entire full-stack application across five dis
 
 ## Answer Part 4: AI Use with Reflection *(5 คะแนน)*
 
-```markdown
 # Lab 2 AI Use Documentation and Reflection
 
 ## 1. LLM / AI Coding Assistant Details
@@ -1624,7 +1620,6 @@ Using the AI coding assistant following the Spec-Driven Development (Spec DD) me
 1. **Clarity Before Coding**: Drafting specifications prior to code implementation eliminated ambiguity around edge cases.
 2. **Strict Test Traceability**: Mapping every Acceptance Criterion directly to automated test cases ensured 100% test coverage.
 3. **Productive Human-AI Pair Programming**: The AI handled boilerplate code while I maintained control over system architecture and code reviews.
-```
 
 ---
 
@@ -1724,7 +1719,6 @@ it("returns 403 Forbidden when downloading soft-removed attachment or cross-requ
 
 **ลิงก์:** https://github.com/chanya06/toktickit/blob/main/docs/lab-02/ui-spec.md
 
-```markdown
 # Lab 2 Zen Green UI Specification
 
 ## 1. Design System Tokens & Color Palette
@@ -1744,7 +1738,6 @@ it("returns 403 Forbidden when downloading soft-removed attachment or cross-requ
 | **Error Text / Border**| `#DC2626` | Field validation error text and input highlight border. |
 | **Warning Callout**| `#D97706` | Amber callouts or warning badges. |
 | **Success Banner** | `#16A34A` | Green confirmation banners with checkmark icons. |
-```
 
 ![Desktop Viewport](../../artifacts/lab-02/screenshots/create-ticket/desktop.png)
 
