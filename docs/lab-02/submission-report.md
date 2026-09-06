@@ -1,4 +1,4 @@
-# TokTickIT Lab 2 Submission Report
+# LAB 02 : TokTickIT Requester Ticketing MVP with UI Foundation
 **Student Name:** Chanya Poolketkij  
 **Student ID:** 67070501058  
 **Section:** CPE334  

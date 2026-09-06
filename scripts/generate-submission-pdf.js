@@ -34,7 +34,7 @@ async function main() {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TokTickIT Lab 2 Submission Report</title>
+  <title>LAB 02 : TokTickIT Requester Ticketing MVP with UI Foundation</title>
   <style>
     @page {
       margin: 12mm 15mm;
