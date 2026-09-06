@@ -61,9 +61,82 @@
 ### 1.5 README.md and .gitignore
 
 #### Content of README.md:
+
+# TokTickIT - IT Service Desk Application
+
+TokTickIT is an IT service desk web application built with React, TypeScript, Vite, Bootstrap, Node.js, Express, Prisma ORM, and PostgreSQL.
+
+## Tech Stack
+- **Frontend**: React + TypeScript + Vite + Bootstrap 5
+- **Backend**: Node.js + Express + TypeScript
+- **Database & ORM**: PostgreSQL 16 + Prisma ORM
+- **Testing**: Vitest + Supertest + React Testing Library
+
+---
+
+## Prerequisites
+- Node.js (v18+)
+- npm
+- Docker & Docker Compose (or local PostgreSQL)
+
+---
+
+## Setup Instructions
+
+### 1. Database Setup
+
+Start PostgreSQL using Docker Compose:
+
+```bash
+docker compose up -d db
+```
+
+### 2. Backend Setup (server/)
+
+```bash
+cd server
+npm install
+cp .env.example .env
+npm run prisma:migrate
+npm run prisma:seed
+npm run dev
+npm test
+```
+
+### 3. Frontend Setup (client/)
+
+```bash
+cd client
+npm install
+cp .env.example .env
+npm run dev
+npm test
+```
+
 ![Content of README.md](../../artifacts/lab-02/screenshots/readme.png)
 
 #### Content of .gitignore:
+
+```gitignore
+# dependencies
+node_modules/
+# env & secrets
+.env
+*.env
+!.env.example
+# build output
+dist/
+build/
+# test results & scratch
+test-results/
+scratch/
+# prisma
+server/prisma/*.db
+# uploads
+uploads/
+server/uploads/
+```
+
 ![Content of .gitignore](../../artifacts/lab-02/screenshots/gitignore.png)
 
 ### 1.6 Peer Review Evidence *(5 คะแนน)*
