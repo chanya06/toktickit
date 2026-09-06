@@ -22,7 +22,7 @@ export const RequesterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [requesters, setRequesters] = useState<DevelopmentRequester[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(() => !localStorage.getItem(LOCAL_STORAGE_KEY));
 
   const loadRequesters = async () => {
     setIsLoading(true);
