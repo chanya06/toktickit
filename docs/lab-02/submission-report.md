@@ -47,67 +47,6 @@
 
 ### 1.3 Git Commit History
 
-`ash
-$ git log --all --graph --oneline
-* 4235179 docs(lab-02): complete final submission report, deliverables, and screenshot evidence
-*   8da45f0 Merge pull request #43 from chanya06/lab2-staging
-|\\  
-| *   409ed19 Merge pull request #42 from chanya06/docs/lab2-reviewer-update
-| |\\  
-| | * d727ce5 docs(lab-02): update peer review record with verbatim GitHub review data
-| |/  
-|/|   
-* | 359129a Merge pull request #41 from chanya06/lab2-staging
-|\\| 
-| * e054e0e docs: update PR #39 status to Merged in reviewer log
-| *   47da49d Merge pull request #39 from chanya06/feature/16-reviewer-docs-sync
-| |\\  
-| | * 313911b docs: add PR #39 entry and Review Item 11 to reviewer.md
-| | * 544b49d docs: sync test metric numbers in tests.md and re-generate final deliverable PDF
-| | * 0280e91 docs: add peer reviewer feedback column to PR Log table in reviewer.md
-| | * 4f44f44 docs: add GitHub PR links and resolution status to reviewer.md
-| |/  
-| *   2c063e6 Merge pull request #37 from chanya06/feature/15-ui-refinement
-| |\\  
-| | * 647eabb docs: update reviewer log and deliverable PDF for Issue #36 UI refinement
-| |/  
-| *   f323c03 Merge branch 'lab2-staging' of https://github.com/chanya06/toktickit into lab2-staging
-| |\\  
-| | *   e674162 Merge pull request #35 from chanya06/feature/14-qa-release
-| | |\\  
-* | | \\   1b09d75 merge: integrate UI mockup alignment into lab2-staging
-| |\\ \\ \\  
-| | |/ /  
-| |/| |   
-| | * | 96a9375 style: align web UI with instructor mockups and remove emojis
-| | * | ef8e139 feat(ui): update web UI components to strictly match Lab 2 Handout mockups, including Ticket Details grid, breadcrumb navigation, and requester selector modal
-| | |/  
-| | * 00db82f feat(qa): align deliverable markdown with handout section 14, capture working state screenshots, organize screenshot subdirectories, and regenerate deliverable PDF
-| | * bea6eaf feat(qa): resolve peer review feedback, add deliverable PDF, update test plan, drag-and-drop dropzone, and atomic rollback tests
-| | * 208f7fb feat(qa): implement initial attachments, rollback compensation, expanded e2e test, and final deliverable report
-| | * 22b196b feat(qa): add Playwright E2E test suite, responsive screenshot suite, updated peer review audit log and AI use documentation
-| |/  
-| *   99c0f08 Merge pull request #34 from chanya06/feature/13-attachment-lifecycle
-| |\\  
-| | * 7b89dfc refactor(attachments): strictly enforce row lock without swallowing errors and test transaction failure rollback
-| | * ecaedad refactor(attachments): inspect binary file magic bytes, add row level locking for active limit transaction, and reset busy states on requester change
-| | * ad9a2dd refactor(attachments): add server MIME validation, atomic count transaction, and client stale request protection
-| | * 6c9d1e3 feat(attachments): implement attachment lifecycle API endpoints, ownership authorization, soft removal and AttachmentSection UI
-| |/  
-| *   57a3ce5 Merge pull request #33 from chanya06/feature/12-ticket-detail
-| |\\  
-| | * f271edb fix(ticket-detail): clear ticket state immediately on requester change and test in-flight request cancellation
-| | * f9ca27e refactor(ticket-detail): align requesterId identity strictly with query parameter contract and add requester switch unit tests
-| | * 12055f3 feat(ticket-detail): implement GET /api/tickets/:id endpoint with ownership guard and TicketDetailView UI
-| |/  
-| *   a3422f6 Merge pull request #32 from chanya06/feature/11-my-tickets-ui
-| |\\  
-| | * 1857ae9 fix(ui): implement true multi-select checkbox UI, restore pagination & empty state tests, verify category retry & responsive classes
-| | * c49c314 fix(ui): add search debounce, stale response protection, multi-select filters, and category error handling
-| | * 876e6e4 feat(ui): implement My Tickets screen with search, filters, pagination, and responsive components
-| |/  
-`
-
 ![Git Commit Graph History Part 1](../../artifacts/lab-02/screenshots/git-history-1.png)
 ![Git Commit Graph History Part 2](../../artifacts/lab-02/screenshots/git-history-2.png)
 ![Git Commit Graph History Part 3](../../artifacts/lab-02/screenshots/git-history-3.png)
