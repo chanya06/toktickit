@@ -45,8 +45,8 @@ async function main() {
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 10.5px;
-      line-height: 1.5;
+      font-size: 11.5px;
+      line-height: 1.55;
       color: #1e293b;
       background-color: #ffffff;
       padding: 0;
@@ -56,7 +56,7 @@ async function main() {
     }
     h1 {
       color: #006B3C;
-      font-size: 19px;
+      font-size: 21px;
       font-weight: 700;
       border-bottom: 3px solid #006B3C;
       padding-bottom: 6px;
@@ -65,7 +65,7 @@ async function main() {
     }
     h2 {
       color: #006B3C;
-      font-size: 14.5px;
+      font-size: 16px;
       font-weight: 700;
       border-bottom: 1.5px solid #0B7A46;
       padding-bottom: 4px;
@@ -82,7 +82,7 @@ async function main() {
     }
     h3 {
       color: #0f172a;
-      font-size: 12.5px;
+      font-size: 13.5px;
       font-weight: 600;
       margin-top: 16px;
       margin-bottom: 8px;
@@ -91,7 +91,7 @@ async function main() {
     }
     h4 {
       color: #334155;
-      font-size: 11.5px;
+      font-size: 12.5px;
       font-weight: 600;
       margin-top: 12px;
       margin-bottom: 6px;
@@ -149,7 +149,7 @@ async function main() {
       border-radius: 0 !important;
       color: #f8fafc !important;
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-      font-size: 9.5px;
+      font-size: 10.5px;
       line-height: 1.45;
       display: block;
     }
@@ -159,7 +159,7 @@ async function main() {
       color: #78350f;
       padding: 8px 12px;
       margin: 10px 0;
-      font-size: 10.5px;
+      font-size: 11.5px;
       border-radius: 0 4px 4px 0;
       page-break-inside: avoid;
       break-inside: avoid;
@@ -170,7 +170,7 @@ async function main() {
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 10px;
+      font-size: 10.5px;
       margin: 10px 0 14px 0;
       page-break-inside: avoid;
       break-inside: avoid;
@@ -196,7 +196,7 @@ async function main() {
     .badge {
       display: inline-block;
       padding: 1.5px 5.5px;
-      font-size: 9px;
+      font-size: 9.5px;
       font-weight: 600;
       border-radius: 4px;
       text-align: center;
@@ -221,7 +221,7 @@ async function main() {
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     .img-caption {
-      font-size: 9.5px;
+      font-size: 10px;
       color: #64748b;
       margin-top: 5px;
       margin-bottom: 0;
