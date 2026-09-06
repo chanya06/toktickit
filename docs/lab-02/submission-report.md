@@ -87,13 +87,13 @@ TokTickIT is an IT service desk web application built with React, TypeScript, Vi
 
 Start PostgreSQL using Docker Compose:
 
-`ash
+```bash
 docker compose up -d db
-`
+```
 
 ### 2. Backend Setup (server/)
 
-`ash
+```bash
 cd server
 npm install
 cp .env.example .env
@@ -101,17 +101,17 @@ npm run prisma:migrate
 npm run prisma:seed
 npm run dev
 npm test
-`
+```
 
 ### 3. Frontend Setup (client/)
 
-`ash
+```bash
 cd client
 npm install
 cp .env.example .env
 npm run dev
 npm test
-`
+```
 
 #### Content of .gitignore:
 ![Content of .gitignore](../../artifacts/lab-02/screenshots/gitignore.png)
