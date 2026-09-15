@@ -4,16 +4,19 @@ This document records peer review activities, comments, responses, and approvals
 
 ## Review Summary
 
-| PR # | Title | Author | Reviewer | Status | Date |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| TBD | Lab 3 Engineering Specification & Contract | TBD | TBD | Pending | 2026-09-15 |
+| Issue / Feature | PR # | Title | Author | Reviewer | Status | Date |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Issue 17** | [#44](https://github.com/chanya06/toktickit/pull/44) | docs(lab-03): Issue 17 - Sprint 3 engineering contract and specs | chanya06 | Pending | In Review | 2026-09-15 |
 
 ---
 
 ## Review Details
 
-### PR #TBD: Lab 3 Engineering Specification & Contract
-- **Reviewer**: TBD
-- **Status**: Pending Review
+### Issue 17 / PR #44: Sprint 3 Engineering Contract & Specification
+- **Issue**: [#45](https://github.com/chanya06/toktickit/issues/45) (`Issue 17: Sprint 3 Engineering Contract & Specification`)
+- **PR**: [#44](https://github.com/chanya06/toktickit/pull/44)
+- **Target Branch**: `lab3-staging`
+- **Feature Branch**: `feature/17-spec-and-tests`
+- **Status**: Pending Peer Review & Approval
 - **Comments & Approvals**:
-  - *No review comments yet.*
+  - *Pending reviewer verification of specification.md, ui-spec.md, api-spec.md, and tests.md.*
