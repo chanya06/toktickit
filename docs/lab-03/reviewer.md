@@ -6,7 +6,7 @@ This document records peer review activities, comments, responses, and approvals
 
 | Issue / Feature | PR # | Title | Author | Reviewer | Status | Date |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Issue 17** | [#44](https://github.com/chanya06/toktickit/pull/44) | docs(lab-03): Issue 17 - Sprint 3 engineering contract and specs | chanya06 | Pending | In Review | 2026-09-15 |
+| **Issue 17** | [#44](https://github.com/chanya06/toktickit/pull/44) | docs(lab-03): Sprint 3 engineering contract and specs | chanya06 | Pending | In Review | 2026-09-15 |
 
 ---
 
