@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterAll } from "vitest";
 import request from "supertest";
+import bcrypt from "bcryptjs";
 import { app } from "../../src/app.js";
+import { getPrisma } from "../../src/prisma.js";
 
 describe("Authentication API Endpoints (Issue 19 - Lab 3)", () => {
   const activeRequester = {
@@ -121,6 +123,18 @@ describe("Authentication API Endpoints (Issue 19 - Lab 3)", () => {
       email: "david.lee@example.com",
       password: "InitialPass123!",
     };
+
+    afterAll(async () => {
+      const salt = await bcrypt.genSalt(10);
+      const defaultHash = await bcrypt.hash(testUser.password, salt);
+      await getPrisma().user.update({
+        where: { email: testUser.email },
+        data: {
+          passwordHash: defaultHash,
+          mustChangePassword: true,
+        },
+      });
+    });
 
     it("rejects password change if unauthenticated", async () => {
       const res = await request(app)
