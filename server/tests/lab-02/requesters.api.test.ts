@@ -33,7 +33,7 @@ describe("GET /api/requesters", () => {
   it("returns 500 with safe error message when database query fails", async () => {
     const prisma = prismaModule.getPrisma();
     const findManySpy = vi
-      .spyOn(prisma.developmentRequester, "findMany")
+      .spyOn((prisma as any).user, "findMany")
       .mockRejectedValueOnce(new Error("Database connection failed"));
 
     const res = await request(app).get("/api/requesters");

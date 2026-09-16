@@ -88,13 +88,15 @@ app.get("/api/related-systems", async (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 app.get("/api/requesters", async (_req: Request, res: Response) => {
   try {
-    const requesters = await getPrisma().developmentRequester.findMany({
+    const requesters = await getPrisma().user.findMany({
       where: {
         isActive: true,
+        role: "REQUESTER",
       },
       select: {
         id: true,
         name: true,
+        fullName: true,
         email: true,
         department: true,
         isActive: true,
@@ -103,7 +105,11 @@ app.get("/api/requesters", async (_req: Request, res: Response) => {
         id: "asc",
       },
     });
-    res.status(200).json(requesters);
+    const mapped = requesters.map((r) => ({
+      ...r,
+      name: r.fullName || r.name || "",
+    }));
+    res.status(200).json(mapped);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch active development requesters" });
   }
@@ -556,8 +562,8 @@ app.post("/api/tickets", (req: Request, res: Response, next) => {
     const prisma = getPrisma();
 
     // 4. Active entities validation -> 422 Unprocessable Entity
-    const requester = await prisma.developmentRequester.findFirst({
-      where: { id: Number(requesterId), isActive: true },
+    const requester = await prisma.user.findFirst({
+      where: { id: Number(requesterId), isActive: true, role: "REQUESTER" },
     });
     if (!requester) {
       cleanupFiles();
