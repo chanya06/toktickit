@@ -27,8 +27,9 @@ export const RequesterSelectorModal: React.FC = () => {
   if (!isModalOpen) return null;
 
   const handleContinue = () => {
-    if (tempSelectedId !== "") {
-      const found = requesters.find((r) => r.id === Number(tempSelectedId));
+    const idToUse = tempSelectedId !== "" ? Number(tempSelectedId) : requesters[0]?.id;
+    if (idToUse !== undefined) {
+      const found = requesters.find((r) => r.id === idToUse);
       if (found) {
         selectRequester(found);
       }

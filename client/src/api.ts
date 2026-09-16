@@ -1,5 +1,53 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+export const TOKEN_STORAGE_KEY = "toktickit_auth_token";
+export const USER_STORAGE_KEY = "toktickit_auth_user";
+
+export function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredToken(token: string | null): void {
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore localStorage errors in non-browser environments
+  }
+}
+
+export function getAuthHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+  const token = getStoredToken();
+  const headers: Record<string, string> = { ...extraHeaders };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+export interface AuthUser {
+  id: number;
+  email: string;
+  fullName: string;
+  role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+  mustChangePassword: boolean;
+  department?: string | null;
+  isActive?: boolean;
+}
+
+export interface LoginResponse {
+  message?: string;
+  token?: string;
+  user: AuthUser;
+}
+
 export interface Category {
   id: number;
   name: string;
@@ -44,6 +92,9 @@ export interface TicketResponse {
   requester?: { id: number; name: string; email: string };
   category?: { id: number; name: string };
   relatedSystem?: { id: number; name: string };
+  ticketOwner?: string | null;
+  ownerId?: number | null;
+  owner?: { id: number; fullName: string; email: string } | null;
 }
 
 export interface SystemStatus {
@@ -385,3 +436,109 @@ export async function softRemoveAttachment(
 
   return data;
 }
+
+export async function login(email: string, password: string): Promise<LoginResponse> {
+  const res = await fetch(`${API_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email, password }),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Authentication failed");
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  if (data.token) {
+    setStoredToken(data.token);
+  }
+  if (data.user) {
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
+    } catch {
+      // Ignore localStorage error
+    }
+  }
+
+  return data;
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await fetch(`${API_URL}/api/auth/logout`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      credentials: "include",
+    }).catch(() => null);
+  } finally {
+    setStoredToken(null);
+    try {
+      localStorage.removeItem(USER_STORAGE_KEY);
+    } catch {
+      // Ignore localStorage error
+    }
+  }
+}
+
+export async function fetchCurrentUser(): Promise<AuthUser> {
+  const res = await fetch(`${API_URL}/api/auth/me`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch current user");
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  if (data.user) {
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
+    } catch {
+      // Ignore localStorage error
+    }
+  }
+
+  return data.user;
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ message: string; user: AuthUser }> {
+  const res = await fetch(`${API_URL}/api/auth/change-password`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to change password");
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  if (data.user) {
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
+    } catch {
+      // Ignore localStorage error
+    }
+  }
+
+  return data;
+}
+
