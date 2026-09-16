@@ -11,7 +11,7 @@
 | PR | Branch | Reviewer verdict |
 | :--- | :--- | :--- |
 | [PR #44](https://github.com/chanya06/toktickit/pull/44) | `feature/17-spec-and-tests` | Approved |
-| [PR #57](https://github.com/chanya06/toktickit/pull/57) | `feature/18-db-schema-and-seed` | In Review |
+| [PR #57](https://github.com/chanya06/toktickit/pull/57) | `feature/18-db-schema-and-seed` | Approved |
 
 ---
 
