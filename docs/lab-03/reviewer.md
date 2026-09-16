@@ -2,7 +2,7 @@
 
 **Author:** Chanya Poolketkij — GitHub: @chanya06  
 **Peer reviewer:** Peer Reviewer — GitHub: @lmaybelgracel  
-**Partner reviewed by author:** Phatthidawadi — GitHub: @phatthidawadi  
+**Partner reviewed by author:** [titayaaa](https://github.com/titayaaa)  
 
 ---
 
@@ -61,7 +61,7 @@
 
 ---
 
-## Pull Requests I reviewed for my partner (@phatthidawadi)
+## Pull Requests I reviewed for my partner ([titayaaa](https://github.com/titayaaa))
 
 | PR | Branch | Reviewer verdict |
 | :--- | :--- | :--- |
