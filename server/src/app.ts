@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
@@ -7,11 +8,17 @@ import multer from "multer";
 import { getPrisma } from "./prisma.js";
 import { createTicketAtomically } from "./utils/ticketNumber.js";
 import { RequestedPriority } from "@prisma/client";
+import { authenticate } from "./middleware/auth.js";
+import { authRouter } from "./routes/auth.js";
 
 export const app = express();
 
-app.use(cors({ exposedHeaders: ["Content-Disposition"] }));
+app.use(cors({ origin: true, credentials: true, exposedHeaders: ["Content-Disposition"] }));
 app.use(express.json());
+app.use(cookieParser());
+app.use(authenticate);
+
+app.use("/api/auth", authRouter);
 
 const uploadDir = path.join(process.cwd(), "uploads", "attachments");
 if (!fs.existsSync(uploadDir)) {
