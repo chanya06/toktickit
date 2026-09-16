@@ -18,7 +18,7 @@ All protected endpoints require an active authenticated session header/cookie. U
   ```json
   {
     "user": {
-      "id": "usr-uuid",
+      "id": 1,
       "email": "user@toktickit.com",
       "fullName": "Jane Doe",
       "role": "REQUESTER",
@@ -41,7 +41,7 @@ All protected endpoints require an active authenticated session header/cookie. U
   ```json
   {
     "user": {
-      "id": "usr-uuid",
+      "id": 1,
       "email": "user@toktickit.com",
       "fullName": "Jane Doe",
       "role": "REQUESTER",
@@ -73,10 +73,10 @@ All protected endpoints require an active authenticated session header/cookie. U
 - **Roles Allowed**: `IT_STAFF`, `ADMINISTRATOR`
 - **Query Parameters**:
   - `search` (string): Text filter on ticket number or summary
-  - `category` (string): Category ID filter
+  - `category` (number): Category ID filter
   - `status` (string): Status enum filter
   - `itPriority` (string): IT Priority enum filter
-  - `ownerId` (string): Owner user ID (`unassigned`, `me`, or specific user ID)
+  - `ownerId` (string | number): Owner user ID (`unassigned`, `me`, or integer user ID)
   - `page` (number, default 1), `limit` (number, default 10)
   - `sortBy` (`createdAt`, `itPriority`, `status`), `sortDir` (`asc`, `desc`)
 - **Response (200 OK)**:
@@ -84,15 +84,16 @@ All protected endpoints require an active authenticated session header/cookie. U
   {
     "data": [
       {
-        "id": "tkt-uuid",
+        "id": 1,
         "ticketNumber": "TKT-2026-000001",
         "summary": "Laptop battery drains quickly",
-        "category": { "id": "cat-1", "name": "Hardware" },
+        "category": { "id": 1, "name": "Hardware" },
         "requestedPriority": "MEDIUM",
         "itPriority": "MEDIUM",
         "currentStatus": "IN_PROGRESS",
-        "requester": { "id": "usr-1", "fullName": "Alice Smith" },
-        "owner": { "id": "usr-2", "fullName": "Bob IT" },
+        "isResolutionIndicated": false,
+        "requester": { "id": 1, "fullName": "Alice Smith" },
+        "owner": { "id": 2, "fullName": "Bob IT" },
         "createdAt": "2026-09-15T10:00:00.000Z"
       }
     ],
@@ -102,23 +103,51 @@ All protected endpoints require an active authenticated session header/cookie. U
 
 ### `PATCH /api/staff/tickets/:id/claim`
 - **Roles Allowed**: `IT_STAFF`, `ADMINISTRATOR`
-- **Response (200 OK)**: Sets `ownerId` to the current user's ID.
+- **Response (200 OK)**: Sets `ownerId` to the current user's integer ID.
 
 ### `PATCH /api/staff/tickets/:id/assign`
 - **Roles Allowed**: `IT_STAFF`, `ADMINISTRATOR`
-- **Request Body**: `{ "ownerId": "usr-staff-id" }`
+- **Request Body**: `{ "ownerId": 2 }`
 
 ### `PATCH /api/staff/tickets/:id/it-priority`
 - **Roles Allowed**: `IT_STAFF`, `ADMINISTRATOR`
 - **Request Body**: `{ "itPriority": "HIGH" }`
 
 ### `PATCH /api/staff/tickets/:id/status`
-- **Roles Allowed**: `IT_STAFF`, `ADMINISTRATOR`
+- **Roles Allowed**: `IT_STAFF`, `ADMINISTRATOR` (and `REQUESTER` for permitted transitions per matrix)
 - **Request Body**: `{ "status": "RESOLVED" }`
 
 ---
 
-## 3. Public Comments & Internal Notes APIs
+## 3. Requester Resolution Indication API
+
+### `POST /api/tickets/:id/resolve-indication`
+- **Roles Allowed**: `REQUESTER` (Must be owner of ticket with id `:id`)
+- **Preconditions**: Ticket must be in `OPEN` or `IN_PROGRESS` status.
+- **Request Body**:
+  ```json
+  {
+    "comment": "The issue seems to be fixed after restarting."
+  }
+  ```
+- **Behavior**: Sets `isResolutionIndicated: true` on the ticket and appends a system-logged Public Comment ("Requester indicated that the problem appears resolved: The issue seems to be fixed after restarting."). Does NOT directly mutate status to `RESOLVED` or `CLOSED`.
+- **Response (200 OK)**:
+  ```json
+  {
+    "message": "Resolution indication recorded successfully",
+    "ticket": {
+      "id": 1,
+      "ticketNumber": "TKT-2026-000001",
+      "status": "IN_PROGRESS",
+      "isResolutionIndicated": true
+    }
+  }
+  ```
+- **Errors**: `403 Forbidden` (If requester does not own ticket), `422 Unprocessable Entity` (If ticket is already cancelled/closed).
+
+---
+
+## 4. Public Comments & Internal Notes APIs
 
 ### `GET /api/tickets/:id/comments`
 - **Roles Allowed**: `REQUESTER` (if ticket owner), `IT_STAFF`, `ADMINISTRATOR`
@@ -138,7 +167,7 @@ All protected endpoints require an active authenticated session header/cookie. U
 
 ---
 
-## 4. Administrator User Management APIs (`/api/admin/users`)
+## 5. Administrator User Management APIs (`/api/admin/users`)
 
 ### `GET /api/admin/users`
 - **Roles Allowed**: `ADMINISTRATOR`

@@ -1,15 +1,15 @@
 # Lab 3 Sprint Engineering Specification
 
 ## 1. Sprint Goal
-Deliver an enterprise-grade role-based IT support ticketing and administration increment for TokTickIT. This sprint replaces the temporary Development Requester identity selector with secure authentication, mandatory first-login password changes, and 3 distinct operational roles (`Requester`, `IT Staff`, `Administrator`). The increment introduces a shared IT Staff Ticket Queue with ownership claiming/reassigning, IT Priority management, status workflow enforcement, Public Comments, private Internal Notes, and a minimalist Administrator User Management interface.
+Deliver an enterprise-grade role-based IT support ticketing and administration increment for TokTickIT. This sprint replaces the temporary Development Requester identity selector with secure authentication, mandatory first-login password changes, and 3 distinct operational roles (`Requester`, `IT Staff`, `Administrator`). The increment introduces a shared IT Staff Ticket Queue with ownership claiming/reassigning, IT Priority management, status workflow enforcement, Public Comments, private Internal Notes, Requester resolution indication, and a minimalist Administrator User Management interface.
 
 ---
 
 ## 2. Stakeholder Request Interpretation
 The IT department requires TokTickIT to transition from a development testing mode to a production-ready authentication and role-based operational platform. 
 1. **Authentication & Session**: Real email/password authentication replaces the temporary selector. Users marked with initial passwords must change their password before accessing the system.
-2. **Requester Workflow**: Requesters continue managing their own tickets, can view/post Public Comments, and can indicate when a reported issue appears resolved (without formally closing the ticket).
-3. **IT Staff Workflow**: IT Staff access a dedicated, searchable, filterable, sorted, and paginated Ticket Queue. They can view ticket details, claim or reassign ticket ownership, manage IT Priority, execute permitted status transitions, communicate publicly via Public Comments, and collaborate privately using Internal Notes.
+2. **Requester Workflow**: Requesters continue managing their own tickets, can view/post Public Comments, and can indicate when a reported issue appears resolved (`POST /api/tickets/:id/resolve-indication` setting `isResolutionIndicated: true`) without formally closing the ticket.
+3. **IT Staff Workflow**: IT Staff access a dedicated, searchable, filterable, sorted, and paginated Ticket Queue. They can view ticket details, claim or reassign ticket ownership, manage IT Priority, execute permitted status transitions according to role restrictions, communicate publicly via Public Comments, and collaborate privately using Internal Notes.
 4. **Administrator Workflow**: Administrators manage user accounts via a dedicated screen to list, search, filter by role, create users (assigning 1 role and an initial password), edit user details/activation states, and reset initial passwords. Safety constraints prevent self-deactivation and the deactivation/removal of the final active Administrator.
 5. **Security & Authorization**: All APIs and screens must enforce role-based access control and ownership checks server-side. Hiding buttons on the client is insufficient.
 
@@ -20,11 +20,11 @@ The IT department requires TokTickIT to transition from a development testing mo
 ### Included
 - **Authentication & Security**: Email/password authentication, logout, authenticated session retrieval (`GET /api/auth/me`), and mandatory first-login password change (`POST /api/auth/change-password`).
 - **Role-Based Navigation & Shell**: Header displaying authenticated user's full name, role badge, Logout button, and role-specific navigation links.
-- **Requester Continuation & Resolution Indication**: Requester ticket ownership preservation, Public Comments thread on Requester Ticket Detail, and "Problem Appears Resolved" action.
+- **Requester Continuation & Resolution Indication**: Requester ticket ownership preservation, Public Comments thread on Requester Ticket Detail, and "Problem Appears Resolved" endpoint (`POST /api/tickets/:id/resolve-indication`).
 - **IT Staff Ticket Queue**: Searchable, filterable (Category, Status, IT Priority, Owner), sortable, paginated queue for IT Staff and Administrator users.
-- **IT Staff Ticket Operations**: Claim ownership, reassign ownership, update IT Priority, execute permitted status transitions (New -> Open -> In Progress -> Waiting for Requester / Resolved / Cancelled), post Public Comments, and create/view private Internal Notes.
+- **IT Staff Ticket Operations**: Claim ownership, reassign ownership, update IT Priority, execute permitted status transitions (with explicit role permission matrix), post Public Comments, and create/view private Internal Notes.
 - **Administrator User Management**: Paginated/searchable user list, role filter, Create User modal with 1 permitted role and initial password, Edit User modal (name, email, role, active status), Reset Initial Password modal, and enforcement of Admin safety rules.
-- **Database & Data Model Migration**: Migration of Lab 2 Requesters to `User` records with hashed passwords, addition of `Role` enum, `PublicComment`, `InternalNote`, `ITPriority`, ticket owner relationship, and idempotent seed script.
+- **Database & Data Model Migration**: Evolution of `DevelopmentRequester` into `User` preserving integer primary keys, addition of `Role` enum, `PublicComment`, `InternalNote`, `ITPriority`, `isResolutionIndicated`, ticket owner relationship, and idempotent seed script.
 
 ### Excluded
 - Self-registration / public sign-up.
@@ -54,18 +54,18 @@ The IT department requires TokTickIT to transition from a development testing mo
 ### Requester Increment & Public Comments
 - **FR-07**: Requesters shall view and manage only tickets they own, verified strictly via backend session context.
 - **FR-08**: Requesters, IT Staff, and Administrators shall be able to post and view Public Comments on any ticket they are authorized to access.
-- **FR-09**: Requesters shall be able to mark an Open/In Progress ticket as "Problem Appears Resolved", adding a system-logged Public Comment and updating the resolution indication state.
+- **FR-09**: Requesters shall be able to mark an Open or In Progress ticket as "Problem Appears Resolved" via `POST /api/tickets/:id/resolve-indication`, setting `isResolutionIndicated: true` and posting a system-logged Public Comment.
 
 ### IT Staff Ticket Queue & Operations
 - **FR-10**: The system shall provide IT Staff with a Ticket Queue featuring text search (Ticket Number, Summary), multi-attribute filtering (Category, Status, IT Priority, Owner), column sorting, and pagination.
 - **FR-11**: IT Staff shall be able to claim unassigned tickets or reassign ticket ownership to another active IT Staff or Administrator user.
 - **FR-12**: IT Staff shall be able to update IT Priority independently of Requested Priority.
-- **FR-13**: IT Staff shall be able to update ticket status according to the permitted status transition matrix.
+- **FR-13**: IT Staff and Administrators shall be able to update ticket status according to the permitted status transition matrix and role restrictions.
 - **FR-14**: IT Staff and Administrators shall be able to create and view Internal Notes on tickets. Internal Notes MUST be hidden from Requester users.
 
 ### Administrator User Management
 - **FR-15**: Administrators shall be able to view a list of all user accounts with search by name/email and filtering by role.
-- **FR-16**: Administrators shall be able to create new user accounts specifying full name, email, exactly one role (`Requester`, `IT_STAFF`, or `ADMINISTRATOR`), initial password, and activation status.
+- **FR-16**: Administrators shall be able to create new user accounts specifying full name, email, exactly one role (`REQUESTER`, `IT_STAFF`, or `ADMINISTRATOR`), initial password, and activation status.
 - **FR-17**: Administrators shall be able to update an existing user's full name, email, role, and activation status.
 - **FR-18**: Administrators shall be able to set a new initial password for a user, automatically setting `mustChangePassword: true` for that user.
 - **FR-19**: The system shall reject attempt by an Administrator to deactivate their own account.
@@ -93,20 +93,30 @@ The IT department requires TokTickIT to transition from a development testing mo
 - **BR-11**: Requested Priority is submitted by the Requester and is immutable after creation. IT Priority defaults to Requested Priority on creation, but can later be modified only by IT Staff or Administrators.
 - **BR-12**: Permitted Ticket Status values: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`.
 - **BR-13**: Requesters cannot directly set status to `RESOLVED` or `CLOSED`. Only IT Staff or Administrators can execute formal resolution/closure.
-- **BR-14**: Status Transition Matrix:
-  - `NEW` -> `OPEN`, `CANCELLED`
-  - `OPEN` -> `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CANCELLED`
-  - `IN_PROGRESS` -> `WAITING_FOR_REQUESTER`, `RESOLVED`, `CANCELLED`
-  - `WAITING_FOR_REQUESTER` -> `IN_PROGRESS`, `RESOLVED`, `CANCELLED`
-  - `RESOLVED` -> `CLOSED`, `REOPENED`
-  - `CLOSED` -> `REOPENED`
-  - `CANCELLED` -> `OPEN`
+- **BR-14**: Status Transition Matrix with Permitted Roles:
+  - `NEW` -> `OPEN`: Permitted for `IT_STAFF`, `ADMINISTRATOR` (when claiming/opening ticket).
+  - `NEW` -> `CANCELLED`: Permitted for `REQUESTER` (owning ticket), `IT_STAFF`, `ADMINISTRATOR`.
+  - `OPEN` -> `IN_PROGRESS`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `OPEN` -> `WAITING_FOR_REQUESTER`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `OPEN` -> `RESOLVED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `OPEN` -> `CANCELLED`: Permitted for `REQUESTER` (owning ticket), `IT_STAFF`, `ADMINISTRATOR`.
+  - `IN_PROGRESS` -> `WAITING_FOR_REQUESTER`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `IN_PROGRESS` -> `RESOLVED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `IN_PROGRESS` -> `CANCELLED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `WAITING_FOR_REQUESTER` -> `IN_PROGRESS`: Permitted for `REQUESTER` (when posting comment), `IT_STAFF`, `ADMINISTRATOR`.
+  - `WAITING_FOR_REQUESTER` -> `RESOLVED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `WAITING_FOR_REQUESTER` -> `CANCELLED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `RESOLVED` -> `CLOSED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `RESOLVED` -> `REOPENED`: Permitted for `REQUESTER` (if issue recurs), `IT_STAFF`, `ADMINISTRATOR`.
+  - `CLOSED` -> `REOPENED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `CANCELLED` -> `OPEN`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
 
 ### Comments & Notes
 - **BR-15**: Public Comments are visible to all 3 roles (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`).
 - **BR-16**: Internal Notes are visible ONLY to `IT_STAFF` and `ADMINISTRATOR` roles. Requesters fetching or posting Internal Notes receive `403 Forbidden` without revealing note existence.
 - **BR-17**: Comments and Internal Notes are append-only. Editing and deleting entries are forbidden.
 - **BR-18**: Comment and Note content must be non-empty, trimmed, min 2 chars, max 2000 chars. Author ID and timestamp (`createdAt`) are recorded from the backend session.
+- **BR-19**: Requester Resolution Indication (`POST /api/tickets/:id/resolve-indication`) sets `isResolutionIndicated: true` and logs a Public Comment. It does not directly mutate `status` to `RESOLVED` or `CLOSED`.
 
 ---
 
@@ -115,7 +125,20 @@ See [ui-spec.md](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/u
 
 ---
 
-## 7. Data Changes (Prisma Schema)
+## 7. Data Changes & Migration Plan (Prisma Schema)
+
+### Data Type Alignment & Migration Strategy
+To strictly satisfy Section 5 requirement ("evolve without discarding existing Ticket or Attachment data"), the primary key data types are aligned as follows:
+- **`Ticket.id`**: Preserved as `Int` (Autoincrement).
+- **`PublicComment.ticketId`**: Defined as `Int` to match `Ticket.id`.
+- **`InternalNote.ticketId`**: Defined as `Int` to match `Ticket.id`.
+- **`User.id`**: Defined as `Int` @id @default(autoincrement()) evolving from `DevelopmentRequester.id`. This ensures that existing `Ticket.requesterId` (`Int`), `Ticket.ownerId` (`Int?`), `Attachment.removedByRequesterId` (`Int?`), `PublicComment.authorId` (`Int`), and `InternalNote.authorId` (`Int`) directly reference `User(id)` without any foreign key conversion breaks.
+
+### Data Migration Steps
+1. **Model Evolution**: Rename/migrate `DevelopmentRequester` table to `User` table in PostgreSQL.
+2. **Field Additions**: Add `passwordHash` (String), `role` (Enum: `REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`), `mustChangePassword` (Boolean, default `true`), `updatedAt` (DateTime).
+3. **Data Backfill**: Existing `DevelopmentRequester` records are backfilled with `role: REQUESTER`, `mustChangePassword: true`, and `passwordHash` initialized to bcrypt hash of `InitialPass123!`.
+4. **Ticket & Attachment Continuity**: All existing Lab 2 tickets remain attached to their original `requesterId` (integers 1, 2, 3, etc.).
 
 ### Prisma Models & Enums
 
@@ -134,7 +157,7 @@ enum ITPriority {
 }
 
 model User {
-  id                 String           @id @default(uuid())
+  id                 Int              @id @default(autoincrement())
   email              String           @unique
   passwordHash       String
   fullName           String
@@ -148,33 +171,67 @@ model User {
   assignedTickets    Ticket[]         @relation("AssignedITStaffTickets")
   publicComments     PublicComment[]
   internalNotes      InternalNote[]
+  removedAttachments Attachment[]     @relation("RemovedByUser")
 }
 
-// Updated Ticket Model:
-// - requesterId references User(id)
-// - ownerId optional references User(id)
-// - itPriority enum ITPriority
+model Ticket {
+  id                     Int               @id @default(autoincrement())
+  ticketNumber           String            @unique
+  requesterId            Int
+  ownerId                Int?
+  categoryId             Int
+  relatedSystemId        Int
+  summary                String
+  description            String
+  requestedPriority      RequestedPriority
+  itPriority             ITPriority        @default(MEDIUM)
+  status                 TicketStatus      @default(NEW)
+  isResolutionIndicated  Boolean           @default(false)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  requester              User              @relation("RequesterTickets", fields: [requesterId], references: [id])
+  owner                  User?             @relation("AssignedITStaffTickets", fields: [ownerId], references: [id])
+  category               Category          @relation(fields: [categoryId], references: [id])
+  relatedSystem          RelatedSystem     @relation(fields: [relatedSystemId], references: [id])
+  attachments            Attachment[]
+  publicComments         PublicComment[]
+  internalNotes          InternalNote[]
+
+  @@index([requesterId])
+  @@index([ownerId])
+  @@index([status])
+  @@index([itPriority])
+  @@index([categoryId])
+  @@index([createdAt])
+}
 
 model PublicComment {
-  id        String   @id @default(uuid())
-  ticketId  String
-  authorId  String
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  authorId  Int
   content   String
   createdAt DateTime @default(now())
 
   ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+  @@index([authorId])
 }
 
 model InternalNote {
-  id        String   @id @default(uuid())
-  ticketId  String
-  authorId  String
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  authorId  Int
   content   String
   createdAt DateTime @default(now())
 
   ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+  @@index([authorId])
 }
 ```
 
@@ -201,7 +258,7 @@ See [api-spec.md](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/
 - **AC-04**: Given a Requester account, when requesting an Internal Note endpoint, then the server returns `403 Forbidden` without exposing note content.
 - **AC-05**: Given an IT Staff user, when viewing the Ticket Queue, then tickets can be filtered by Category, Status, IT Priority, Owner, searched by query text, sorted, and paginated.
 - **AC-06**: Given an IT Staff user, when opening an unassigned ticket, then the user can claim ownership or assign ownership to an active IT Staff/Admin user.
-- **AC-07**: Given an IT Staff user, when changing a ticket status, then the transition must adhere to the permitted status transition matrix.
+- **AC-07**: Given an IT Staff user, when changing a ticket status, then the transition must adhere to the permitted status transition matrix and role permissions.
 - **AC-08**: Given an IT Staff user, when adding an Internal Note, then the note is saved with author metadata and rendered only for IT Staff and Administrator users.
 - **AC-09**: Given an Administrator user, when viewing User Management, then all users are displayed with search and role filter capabilities.
 - **AC-10**: Given an Administrator user, when creating a new user with initial password, then the user is created with `mustChangePassword: true`.
