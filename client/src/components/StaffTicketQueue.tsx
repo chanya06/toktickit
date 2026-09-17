@@ -357,7 +357,10 @@ export function StaffTicketQueue({ onSelectTicket }: StaffTicketQueueProps) {
                   id="queueSortBy"
                   className="form-select form-select-sm"
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => {
+                    setSortBy(e.target.value);
+                    setPage(1);
+                  }}
                   data-testid="queue-sort-by"
                 >
                   <option value="createdAt">Date Created</option>
@@ -368,7 +371,10 @@ export function StaffTicketQueue({ onSelectTicket }: StaffTicketQueueProps) {
                 <button
                   type="button"
                   className="btn btn-sm btn-outline-secondary px-2 d-flex align-items-center"
-                  onClick={() => setSortDir((prev) => (prev === "asc" ? "desc" : "asc"))}
+                  onClick={() => {
+                    setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+                    setPage(1);
+                  }}
                   title={sortDir === "asc" ? "Sort Ascending" : "Sort Descending"}
                   data-testid="queue-sort-dir"
                 >
@@ -448,20 +454,34 @@ export function StaffTicketQueue({ onSelectTicket }: StaffTicketQueueProps) {
       ) : (
         /* Queue Data Views */
         <>
+          {/* Scoped Zen Green Table Row Hover Style */}
+          <style>{`
+            .staff-queue-table tbody tr {
+              transition: background-color 0.15s ease-in-out;
+            }
+            .staff-queue-table tbody tr:hover,
+            .staff-queue-table tbody tr:hover > * {
+              background-color: #EAF6EF !important;
+              --bs-table-hover-bg: #EAF6EF !important;
+              --bs-table-bg-state: #EAF6EF !important;
+            }
+          `}</style>
+
           {/* Desktop Data Table (>= 768px) */}
           <div className="card shadow-sm border-0 d-none d-md-block mb-3" style={{ overflow: "hidden" }}>
             <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0" data-testid="queue-table">
+              <table className="table table-hover align-middle mb-0 staff-queue-table" data-testid="queue-table">
                 <thead className="table-light small">
                   <tr>
-                    <th style={{ width: "15%" }}>Ticket No</th>
-                    <th style={{ width: "13%" }}>Date</th>
-                    <th style={{ width: "25%" }}>Summary</th>
-                    <th style={{ width: "12%" }}>Category</th>
-                    <th style={{ width: "10%" }}>IT Priority</th>
-                    <th style={{ width: "12%" }}>Status</th>
-                    <th style={{ width: "13%" }}>Owner</th>
-                    <th style={{ width: "10%" }} className="text-end">Action</th>
+                    <th style={{ width: "13%" }}>Ticket No</th>
+                    <th style={{ width: "11%" }}>Date</th>
+                    <th style={{ width: "22%" }}>Summary</th>
+                    <th style={{ width: "11%" }}>Category</th>
+                    <th style={{ width: "9%" }}>Req. Priority</th>
+                    <th style={{ width: "9%" }}>IT Priority</th>
+                    <th style={{ width: "10%" }}>Status</th>
+                    <th style={{ width: "9%" }}>Owner</th>
+                    <th style={{ width: "6%" }} className="text-end">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -497,6 +517,11 @@ export function StaffTicketQueue({ onSelectTicket }: StaffTicketQueueProps) {
                         <span className="badge bg-light text-dark border small fw-normal">
                           {t.category?.name || "-"}
                         </span>
+                      </td>
+                      <td>
+                        <div data-testid={`queue-req-priority-badge-${t.id}`}>
+                          {renderPriorityBadge(t.requestedPriority)}
+                        </div>
                       </td>
                       <td>
                         <div data-testid={`queue-priority-badge-${t.id}`}>
@@ -557,11 +582,16 @@ export function StaffTicketQueue({ onSelectTicket }: StaffTicketQueueProps) {
 
                   <h4 className="h6 fw-semibold text-dark mb-2">{t.summary}</h4>
 
-                  <div className="d-flex flex-wrap gap-2 mb-3">
+                  <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
                     <span className="badge bg-light text-dark border small fw-normal">
                       {t.category?.name}
                     </span>
-                    <div data-testid={`queue-priority-badge-${t.id}`}>
+                    <div data-testid={`queue-req-priority-badge-mobile-${t.id}`} className="d-inline-flex align-items-center gap-1">
+                      <span className="text-muted" style={{ fontSize: "0.7rem" }}>Req:</span>
+                      {renderPriorityBadge(t.requestedPriority)}
+                    </div>
+                    <div data-testid={`queue-priority-badge-${t.id}`} className="d-inline-flex align-items-center gap-1">
+                      <span className="text-muted" style={{ fontSize: "0.7rem" }}>IT:</span>
                       {renderPriorityBadge(t.itPriority)}
                     </div>
                     {t.isResolutionIndicated && (

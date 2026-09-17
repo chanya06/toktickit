@@ -118,3 +118,11 @@ body {
   font-size: 0.875rem;
   color: var(--text-dark);
 }
+
+/* Zen Green Table Row Hover Highlight (Token #EAF6EF) */
+.table-hover tbody tr:hover,
+.table-hover tbody tr:hover > * {
+  --bs-table-hover-bg: #EAF6EF;
+  background-color: #EAF6EF !important;
+}
+

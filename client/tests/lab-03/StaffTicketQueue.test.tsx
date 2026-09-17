@@ -147,6 +147,11 @@ describe("StaffTicketQueue Component (Issue 23 / UI-03 / FR-10)", () => {
     expect(screen.getAllByText("Hardware").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Network").length).toBeGreaterThan(0);
 
+    // Check Requested Priority column and badges
+    expect(screen.getByRole("columnheader", { name: /Req\. Priority/i })).toBeInTheDocument();
+    expect(screen.getByTestId("queue-req-priority-badge-101")).toBeInTheDocument();
+    expect(screen.getByTestId("queue-req-priority-badge-mobile-101")).toBeInTheDocument();
+
     // Check status badges
     expect(screen.getAllByText("In Progress").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Open").length).toBeGreaterThan(0);
@@ -239,29 +244,65 @@ describe("StaffTicketQueue Component (Issue 23 / UI-03 / FR-10)", () => {
     });
   });
 
-  it("sorts tickets by priority and changes sort direction", async () => {
+  it("sorts tickets by priority and changes sort direction, resetting page to 1", async () => {
+    vi.mocked(api.fetchStaffTickets).mockResolvedValue({
+      data: mockTickets,
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 25,
+        totalPages: 3,
+        currentPage: 1,
+        pageSize: 10,
+        totalItems: 25,
+      },
+    });
+
     render(<StaffTicketQueue />);
 
     await waitFor(() => {
       expect(api.fetchStaffTickets).toHaveBeenCalled();
     });
 
+    // Go to page 2 first
+    const nextBtn = screen.getByTestId("queue-next-page");
+    fireEvent.click(nextBtn);
+
+    await waitFor(() => {
+      expect(api.fetchStaffTickets).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+        expect.any(AbortSignal)
+      );
+    });
+
+    // Change sort by -> should reset page to 1
     const sortBySelect = screen.getByTestId("queue-sort-by");
     fireEvent.change(sortBySelect, { target: { value: "itPriority" } });
 
     await waitFor(() => {
       expect(api.fetchStaffTickets).toHaveBeenCalledWith(
-        expect.objectContaining({ sortBy: "itPriority" }),
+        expect.objectContaining({ sortBy: "itPriority", page: 1 }),
         expect.any(AbortSignal)
       );
     });
 
+    // Go to page 2 again
+    fireEvent.click(nextBtn);
+
+    await waitFor(() => {
+      expect(api.fetchStaffTickets).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+        expect.any(AbortSignal)
+      );
+    });
+
+    // Toggle sort direction -> should reset page to 1
     const sortDirBtn = screen.getByTestId("queue-sort-dir");
     fireEvent.click(sortDirBtn);
 
     await waitFor(() => {
       expect(api.fetchStaffTickets).toHaveBeenCalledWith(
-        expect.objectContaining({ sortBy: "itPriority", sortDir: "asc" }),
+        expect.objectContaining({ sortBy: "itPriority", sortDir: "asc", page: 1 }),
         expect.any(AbortSignal)
       );
     });

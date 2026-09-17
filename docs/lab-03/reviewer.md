@@ -267,9 +267,43 @@
 
 ---
 
+### Reviewer comment I received (PR #62):
+
+> ### ข้อเสนอแนะเพิ่มเติมสำหรับ PR [#62](https://github.com/chanya06/toktickit/pull/62) (Staff Ticket Queue UI)
+> ตรวจเช็คเทียบกับ ui-spec.md และการใช้งานจริงอย่างละเอียดอีกครั้ง พบจุดที่อยากให้ช่วยปรับปรุงเพิ่มเติมอีกเล็กน้อยเพื่อความสมบูรณ์ตามสเปกของอาจารย์:
+> 1. **เพิ่มคอลัมน์ Requested Priority ในตาราง Desktop (StaffTicketQueue.tsx):**
+>    - ตามสเปก Screen 3 ของ ui-spec.md กำหนดให้ตารางแสดงทั้ง Requested Priority (ที่ผู้ใช้ขอมา) ควบคู่กับ IT Priority (ที่ IT ประเมิน)
+>    - ปัจจุบันในตารางมีเฉพาะ IT Priority รบกวนเพิ่มคอลัมน์ Requested Priority พร้อม Badge เข้าไปในตารางด้วย
+> 2. **รีเซ็ตหน้ากลับไปหน้า 1 เมื่อเปลี่ยนการ Sort (StaffTicketQueue.tsx):**
+>    - ที่ Dropdown queueSortBy และปุ่มสลับลูกศร queueSortDir รบกวนเพิ่ม setPage(1) ด้วยเช่นกัน เพราะถ้าเปิดดูค้างอยู่ที่หน้า 2 หรือ 3 แล้วกดเปลี่ยนการจัดเรียง ลิสต์ควรเริ่มต้นแสดงผลจากหน้าแรก
+> 3. **ปรับสี Row Hover Highlight ให้ตรงตาม Zen Green Token:**
+>    - ตามสเปกระบุให้แถวตารางเวลาเอาเมาส์ชี้เปลี่ยนเป็นสี #EAF6EF (Pale Highlight) รบกวนเพิ่มสไตล์ hover บนแถวตารางให้ตรงตามโทเคน
+> 4. **ปรับเกลี่ยความกว้างคอลัมน์ (Width %) ให้รวมกันได้ 100%:**
+>    - ตอนนี้ width รวมใน <th> เกินไปที่ 110% เมื่อเพิ่มคอลัมน์ Requested Priority แล้ว ให้ช่วยเกลี่ยสัดส่วนเปอร์เซ็นต์ให้ลงตัวพอดี 100%
+
+---
+
+### How I responded (PR #62):
+
+> ขอบคุณสำหรับข้อเสนอแนะที่ละเอียดและช่วยให้ UI ตรงตามสเปกอย่างสมบูรณ์ ได้ดำเนินการปรับปรุงแก้ไขครบทั้ง 4 ข้อเรียบร้อยแล้ว:
+> 1. **เพิ่มคอลัมน์ Requested Priority (`client/src/components/StaffTicketQueue.tsx`)**:
+>    - เพิ่มคอลัมน์ `Req. Priority` ในตาราง Desktop พร้อม Badge สีตามระดับ Priority (`LOW`, `MEDIUM`, `HIGH`, `URGENT`) และเพิ่ม Badge แสดงใน Mobile Card View ควบคู่กับ IT Priority
+> 2. **รีเซ็ตหน้ากลับไปหน้า 1 เมื่อเปลี่ยนการ Sort (`client/src/components/StaffTicketQueue.tsx`)**:
+>    - เพิ่มการเรียก `setPage(1)` ทั้งใน `onChange` ของ `queueSortBy` และใน `onClick` ของปุ่มสลับทิศทางการเรียงลำดับ `queueSortDir`
+> 3. **ปรับสี Row Hover Highlight ให้ตรงตาม Zen Green Token (`client/src/index.css` & `StaffTicketQueue.tsx`)**:
+>    - กำหนด `.table-hover tbody tr:hover` และคลาส `.staff-queue-table` ให้เปลี่ยนสีพื้นหลังเป็น `#EAF6EF` (Pale Highlight Token) พร้อมตั้งค่า `--bs-table-hover-bg: #EAF6EF`
+> 4. **ปรับเกลี่ยความกว้างคอลัมน์ในตารางให้รวมกันได้ 100% พอดี**:
+>    - Ticket No (13%), Date (11%), Summary (22%), Category (11%), Req. Priority (9%), IT Priority (9%), Status (10%), Owner (9%), Action (6%) รวมกันเท่ากับ 100% พอดี
+> 5. **Automated Tests**:
+>    - อัปเดตและเพิ่ม Assertions ใน `client/tests/lab-03/StaffTicketQueue.test.tsx` ครอบคลุมคอลัมน์ Requested Priority, การรีเซ็ตหน้าเมื่อสลับ Sort, และ Row Hover
+>    - ผลการรันเทส: Client Tests ผ่าน 74/74 (11 suites), Server Tests ผ่าน 96/96 (12 suites), Client Build ผ่านสะอาดสมบูรณ์
+
+---
+
 ## Pull Requests I reviewed for my partner (@titayaaa)
 
 | PR | Branch | Reviewer verdict |
 | :--- | :--- | :--- |
 | *To be updated during peer reviews* | - | - |
+
 

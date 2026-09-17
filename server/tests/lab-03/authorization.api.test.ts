@@ -110,7 +110,7 @@ describe("Requester Session Authorization & Data Isolation (API-04 / Issue 21)",
   describe("Session-based Requester data isolation (API-04 / AC-03 / FR-07)", () => {
     it("GET /api/tickets: returns only tickets owned by authenticated requester and ignores client-supplied requesterId", async () => {
       const res = await request(app)
-        .get(`/api/tickets?requesterId=${user2Id}`)
+        .get(`/api/tickets?requesterId=${user2Id}&pageSize=100`)
         .set("Authorization", `Bearer ${user1Token}`);
 
       expect(res.status).toBe(200);
