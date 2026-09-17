@@ -58,7 +58,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [statusCode, setStatusCode] = useState<number | null>(null);
   const [retryToken, setRetryToken] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<"attachments" | "comments" | "internalNotes" | "actions" | "log">("attachments");
+  const [activeTab, setActiveTab] = useState<"comments" | "internalNotes" | "attachments" | "actions" | "log">("comments");
   const [commentsCount, setCommentsCount] = useState<number>(0);
   const [notesCount, setNotesCount] = useState<number>(0);
 
@@ -785,7 +785,10 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
       </ul>
 
       {/* Tab Content: Public Comments (Issue 25) */}
-      {activeTab === "comments" && (
+      <div
+        style={{ display: activeTab === "comments" ? "block" : "none" }}
+        data-testid="tab-pane-comments"
+      >
         <CommentsSection
           ticketId={ticketId}
           onCommentsCountChange={setCommentsCount}
@@ -795,20 +798,28 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
             }
           }}
         />
-      )}
+      </div>
 
       {/* Tab Content: Internal Notes (Issue 25 - Restricted to Staff/Admin) */}
-      {activeTab === "internalNotes" && isStaffOrAdmin && (
-        <InternalNotesSection
-          ticketId={ticketId}
-          onNotesCountChange={setNotesCount}
-        />
+      {isStaffOrAdmin && (
+        <div
+          style={{ display: activeTab === "internalNotes" ? "block" : "none" }}
+          data-testid="tab-pane-internal-notes"
+        >
+          <InternalNotesSection
+            ticketId={ticketId}
+            onNotesCountChange={setNotesCount}
+          />
+        </div>
       )}
 
       {/* Tab Content: Active Attachment Lifecycle Section (Issue 13) */}
-      {activeTab === "attachments" && (
+      <div
+        style={{ display: activeTab === "attachments" ? "block" : "none" }}
+        data-testid="tab-pane-attachments"
+      >
         <AttachmentSection ticketId={ticketId} />
-      )}
+      </div>
 
       {/* Bottom Navigation Control */}
       <div className="d-flex justify-content-end mb-4">

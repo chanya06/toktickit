@@ -358,4 +358,71 @@ describe("Public Comments & Private Internal Notes (Issue 25 / UI-04)", () => {
       });
     });
   });
+
+  // ===========================================================================
+  // 3. TAB SYNCHRONIZATION, PREFETCH & DRAFT STATE PRESERVATION (UX ENHANCEMENTS)
+  // ===========================================================================
+  describe("Tab Synchronization, Prefetch & Draft State Preservation", () => {
+    it("initializes with Public Comments as default active tab and prefetches badge counts on mount", async () => {
+      renderDetailWithAuth(mockStaffUser);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("tab-comments")).toBeInTheDocument();
+      });
+
+      // Default active tab is comments
+      const commentsTab = screen.getByTestId("tab-comments");
+      expect(commentsTab).toHaveClass("active");
+
+      // Badge counts are prefetched on mount without clicking tabs
+      await waitFor(() => {
+        expect(screen.getByTestId("tab-comments-count")).toHaveTextContent("2");
+        expect(screen.getByTestId("tab-notes-count")).toHaveTextContent("1");
+      });
+    });
+
+    it("preserves comment and internal note textarea drafts when switching between tabs", async () => {
+      renderDetailWithAuth(mockStaffUser);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("comment-input")).toBeInTheDocument();
+      });
+
+      // Type draft in comment input
+      const commentInput = screen.getByTestId("comment-input") as HTMLTextAreaElement;
+      fireEvent.change(commentInput, { target: { value: "Draft comment that must not be lost." } });
+      expect(commentInput.value).toBe("Draft comment that must not be lost.");
+
+      // Switch to Attachments tab
+      fireEvent.click(screen.getByTestId("tab-attachments"));
+
+      // Switch back to Comments tab
+      fireEvent.click(screen.getByTestId("tab-comments"));
+
+      // Verify draft comment is preserved
+      expect(screen.getByTestId("comment-input")).toHaveValue("Draft comment that must not be lost.");
+
+      // Switch to Internal Notes tab
+      fireEvent.click(screen.getByTestId("tab-internal-notes"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("note-input")).toBeInTheDocument();
+      });
+
+      // Type draft in internal note input
+      const noteInput = screen.getByTestId("note-input") as HTMLTextAreaElement;
+      fireEvent.change(noteInput, { target: { value: "Draft confidential internal diagnostic note." } });
+      expect(noteInput.value).toBe("Draft confidential internal diagnostic note.");
+
+      // Switch to Attachments tab
+      fireEvent.click(screen.getByTestId("tab-attachments"));
+
+      // Switch back to Internal Notes tab
+      fireEvent.click(screen.getByTestId("tab-internal-notes"));
+
+      // Verify draft internal note is preserved
+      expect(screen.getByTestId("note-input")).toHaveValue("Draft confidential internal diagnostic note.");
+    });
+  });
 });
+

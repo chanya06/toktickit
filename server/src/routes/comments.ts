@@ -1,6 +1,11 @@
 import { Router, Request, Response } from "express";
 import { getPrisma } from "../prisma.js";
 import { Role, TicketStatus } from "@prisma/client";
+import {
+  requireAuth,
+  requirePasswordChanged,
+  requireRole,
+} from "../middleware/auth.js";
 
 export const commentsRouter = Router();
 
@@ -18,19 +23,13 @@ function isPositiveInteger(val: any): boolean {
 // ---------------------------------------------------------------------------
 // GET /api/tickets/:id/comments — Fetch Public Comments (BR-15)
 // ---------------------------------------------------------------------------
-commentsRouter.get("/:id/comments", async (req: Request, res: Response) => {
+commentsRouter.get(
+  "/:id/comments",
+  requireAuth,
+  requirePasswordChanged,
+  async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized: Authentication required" });
-    }
-
-    if (req.user.mustChangePassword) {
-      return res.status(403).json({
-        error: "Password change required before accessing the application",
-        code: "MUST_CHANGE_PASSWORD",
-      });
-    }
-
+    const user = req.user!;
     const { id } = req.params;
     if (!isPositiveInteger(id)) {
       return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
@@ -49,7 +48,7 @@ commentsRouter.get("/:id/comments", async (req: Request, res: Response) => {
     }
 
     // Role check: If caller is REQUESTER, must be owner of the ticket
-    if (req.user.role === Role.REQUESTER && ticket.requesterId !== req.user.id) {
+    if (user.role === Role.REQUESTER && ticket.requesterId !== user.id) {
       return res.status(403).json({
         error: "Forbidden: You can only view comments on your own tickets",
       });
@@ -80,19 +79,13 @@ commentsRouter.get("/:id/comments", async (req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // POST /api/tickets/:id/comments — Add Public Comment (BR-15, BR-18, BR-14)
 // ---------------------------------------------------------------------------
-commentsRouter.post("/:id/comments", async (req: Request, res: Response) => {
+commentsRouter.post(
+  "/:id/comments",
+  requireAuth,
+  requirePasswordChanged,
+  async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized: Authentication required" });
-    }
-
-    if (req.user.mustChangePassword) {
-      return res.status(403).json({
-        error: "Password change required before accessing the application",
-        code: "MUST_CHANGE_PASSWORD",
-      });
-    }
-
+    const user = req.user!;
     const { id } = req.params;
     if (!isPositiveInteger(id)) {
       return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
@@ -111,7 +104,7 @@ commentsRouter.post("/:id/comments", async (req: Request, res: Response) => {
     }
 
     // Role check: If caller is REQUESTER, must be owner of the ticket
-    if (req.user.role === Role.REQUESTER && ticket.requesterId !== req.user.id) {
+    if (user.role === Role.REQUESTER && ticket.requesterId !== user.id) {
       return res.status(403).json({
         error: "Forbidden: You can only comment on your own tickets",
       });
@@ -137,7 +130,7 @@ commentsRouter.post("/:id/comments", async (req: Request, res: Response) => {
         prisma.publicComment.create({
           data: {
             ticketId,
-            authorId: req.user.id,
+            authorId: user.id,
             content: trimmed,
           },
           include: {
@@ -166,7 +159,7 @@ commentsRouter.post("/:id/comments", async (req: Request, res: Response) => {
       const newComment = await prisma.publicComment.create({
         data: {
           ticketId,
-          authorId: req.user.id,
+          authorId: user.id,
           content: trimmed,
         },
         include: {
@@ -195,141 +188,118 @@ commentsRouter.post("/:id/comments", async (req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // GET /api/tickets/:id/notes — Fetch Internal Notes (BR-16, AC-04, FR-14)
 // ---------------------------------------------------------------------------
-commentsRouter.get("/:id/notes", async (req: Request, res: Response) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized: Authentication required" });
-    }
+commentsRouter.get(
+  "/:id/notes",
+  requireAuth,
+  requirePasswordChanged,
+  requireRole(Role.IT_STAFF, Role.ADMINISTRATOR),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      if (!isPositiveInteger(id)) {
+        return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
+      }
 
-    if (req.user.mustChangePassword) {
-      return res.status(403).json({
-        error: "Password change required before accessing the application",
-        code: "MUST_CHANGE_PASSWORD",
+      const ticketId = Number(id);
+      const prisma = getPrisma();
+
+      const ticket = await prisma.ticket.findUnique({
+        where: { id: ticketId },
+        select: { id: true },
       });
-    }
 
-    // Role check: Strictly forbidden for REQUESTER (BR-16, AC-04)
-    if (req.user.role === Role.REQUESTER) {
-      return res.status(403).json({
-        error: "Forbidden: Requesters are not permitted to view internal notes",
-      });
-    }
+      if (!ticket) {
+        return res.status(404).json({ error: "Ticket not found" });
+      }
 
-    const { id } = req.params;
-    if (!isPositiveInteger(id)) {
-      return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
-    }
-
-    const ticketId = Number(id);
-    const prisma = getPrisma();
-
-    const ticket = await prisma.ticket.findUnique({
-      where: { id: ticketId },
-      select: { id: true },
-    });
-
-    if (!ticket) {
-      return res.status(404).json({ error: "Ticket not found" });
-    }
-
-    const notes = await prisma.internalNote.findMany({
-      where: { ticketId },
-      include: {
-        author: {
-          select: {
-            id: true,
-            fullName: true,
-            role: true,
-            email: true,
+      const notes = await prisma.internalNote.findMany({
+        where: { ticketId },
+        include: {
+          author: {
+            select: {
+              id: true,
+              fullName: true,
+              role: true,
+              email: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "asc" },
-    });
+        orderBy: { createdAt: "asc" },
+      });
 
-    return res.status(200).json(notes);
-  } catch (error) {
-    console.error("Error fetching internal notes:", error);
-    return res.status(500).json({ error: "Failed to fetch internal notes" });
+      return res.status(200).json(notes);
+    } catch (error) {
+      console.error("Error fetching internal notes:", error);
+      return res.status(500).json({ error: "Failed to fetch internal notes" });
+    }
   }
-});
+);
 
 // ---------------------------------------------------------------------------
 // POST /api/tickets/:id/notes — Add Internal Note (BR-16, AC-08, FR-14)
 // ---------------------------------------------------------------------------
-commentsRouter.post("/:id/notes", async (req: Request, res: Response) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized: Authentication required" });
-    }
+commentsRouter.post(
+  "/:id/notes",
+  requireAuth,
+  requirePasswordChanged,
+  requireRole(Role.IT_STAFF, Role.ADMINISTRATOR),
+  async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const { id } = req.params;
+      if (!isPositiveInteger(id)) {
+        return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
+      }
 
-    if (req.user.mustChangePassword) {
-      return res.status(403).json({
-        error: "Password change required before accessing the application",
-        code: "MUST_CHANGE_PASSWORD",
+      const ticketId = Number(id);
+      const prisma = getPrisma();
+
+      const ticket = await prisma.ticket.findUnique({
+        where: { id: ticketId },
+        select: { id: true },
       });
-    }
 
-    // Role check: Strictly forbidden for REQUESTER (BR-16, AC-08)
-    if (req.user.role === Role.REQUESTER) {
-      return res.status(403).json({
-        error: "Forbidden: Requesters are not permitted to create internal notes",
-      });
-    }
+      if (!ticket) {
+        return res.status(404).json({ error: "Ticket not found" });
+      }
 
-    const { id } = req.params;
-    if (!isPositiveInteger(id)) {
-      return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
-    }
+      const { content } = req.body;
+      if (!content || typeof content !== "string") {
+        return res.status(400).json({ error: "Internal note content is required" });
+      }
 
-    const ticketId = Number(id);
-    const prisma = getPrisma();
+      const trimmed = content.trim();
+      if (trimmed.length < 2 || trimmed.length > 2000) {
+        return res.status(400).json({
+          error: "Internal note content must be between 2 and 2000 characters",
+        });
+      }
 
-    const ticket = await prisma.ticket.findUnique({
-      where: { id: ticketId },
-      select: { id: true },
-    });
-
-    if (!ticket) {
-      return res.status(404).json({ error: "Ticket not found" });
-    }
-
-    const { content } = req.body;
-    if (!content || typeof content !== "string") {
-      return res.status(400).json({ error: "Internal note content is required" });
-    }
-
-    const trimmed = content.trim();
-    if (trimmed.length < 2 || trimmed.length > 2000) {
-      return res.status(400).json({
-        error: "Internal note content must be between 2 and 2000 characters",
-      });
-    }
-
-    const newNote = await prisma.internalNote.create({
-      data: {
-        ticketId,
-        authorId: req.user.id,
-        content: trimmed,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            fullName: true,
-            role: true,
-            email: true,
+      const newNote = await prisma.internalNote.create({
+        data: {
+          ticketId,
+          authorId: user.id,
+          content: trimmed,
+        },
+        include: {
+          author: {
+            select: {
+              id: true,
+              fullName: true,
+              role: true,
+              email: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return res.status(201).json({
-      message: "Internal note added successfully",
-      note: newNote,
-    });
-  } catch (error) {
-    console.error("Error creating internal note:", error);
-    return res.status(500).json({ error: "Failed to create internal note" });
+      return res.status(201).json({
+        message: "Internal note added successfully",
+        note: newNote,
+      });
+    } catch (error) {
+      console.error("Error creating internal note:", error);
+      return res.status(500).json({ error: "Failed to create internal note" });
+    }
   }
-});
+);
