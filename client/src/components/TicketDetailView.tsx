@@ -40,7 +40,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     setResolutionError(null);
     try {
       const res = await indicateResolution(ticketId, resolutionComment.trim() || undefined);
-      setTicket(res.ticket);
+      setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
       setShowResolutionModal(false);
       setResolutionComment("");
     } catch (err: any) {

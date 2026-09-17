@@ -17,7 +17,7 @@
 | **API-11** | API | AC-10 / FR-16 | Admin User creation with initial password | User created with `mustChangePassword: true` | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
 | **API-12** | API | AC-11 / FR-19 | Admin self-deactivation attempt | Rejection (422 Unprocessable Entity) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
 | **API-13** | API | AC-12 / FR-20 | Last active Admin removal attempt | Rejection (422 Unprocessable Entity) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
-| **API-14** | API | FR-09 / BR-19 | Requester "Problem Appears Resolved" endpoint | Sets `isResolutionIndicated: true` & posts comment | `server/tests/lab-03/comments-notes.api.test.ts` | Pass |
+| **API-14** | API | FR-09 / BR-19 | Requester "Problem Appears Resolved" endpoint | Sets `isResolutionIndicated: true` & posts comment | `server/tests/lab-03/requester-resolution.api.test.ts`<br>`client/tests/lab-03/RequesterResolution.test.tsx` | Pass |
 | **UI-01** | UI | AC-01 / FR-01 | Login Form rendering and validation | Busy state, inline validation errors | `client/tests/lab-03/Login.test.tsx` | Pass |
 | **UI-02** | UI | AC-02 / FR-03 | Change Password screen requirements checklist | Checks uppercase, number, special char | `client/tests/lab-03/ChangePassword.test.tsx` | Pass |
 | **UI-03** | UI | AC-05 / FR-10 | IT Staff Ticket Queue controls & badges | Filters, sorting, role/status badges | `client/tests/lab-03/StaffTicketQueue.test.tsx` | Pass |
@@ -34,14 +34,16 @@
 ### Backend Integration & Security Tests (`server/tests/lab-03/`)
 - `auth.api.test.ts`: Login, logout, session retrieval, password change validation.
 - `authorization.api.test.ts`: Role-based route protection, session isolation.
+- `requester-resolution.api.test.ts`: Requester resolution indication endpoint, PublicComment logging, status validation, atomic transaction.
 - `staff-queue.api.test.ts`: Filtering by category/status/IT priority, search, sorting, pagination.
 - `staff-ticket-detail.api.test.ts`: Claiming, assigning, IT priority change, status transition matrix validation.
-- `comments-notes.api.test.ts`: Public Comments vs Internal Notes security visibility checks, Requester resolution indication.
+- `comments-notes.api.test.ts`: Public Comments vs Internal Notes security visibility checks.
 - `users-admin.api.test.ts`: Admin CRUD, safety validation (self-deactivation & last admin check).
 
 ### Frontend UI Component Tests (`client/tests/lab-03/`)
 - `Login.test.tsx`: Login form validation, error state rendering, busy state.
 - `ChangePassword.test.tsx`: Password criteria validation, submit handlers.
+- `RequesterResolution.test.tsx`: Resolution indication action button, confirmation modal with notes, status banner and badge.
 - `StaffTicketQueue.test.tsx`: Search input, filter drawer, column sorting, pagination interaction.
 - `StaffTicketDetail.test.tsx`: Public Comments vs Internal Notes tab rendering and forms.
 - `UserManagement.test.tsx`: User table, search, Create/Edit drawers, Reset Password modal.
