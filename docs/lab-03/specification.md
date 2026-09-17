@@ -109,6 +109,9 @@ The IT department requires TokTickIT to transition from a development testing mo
   - `RESOLVED` -> `CLOSED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
   - `RESOLVED` -> `REOPENED`: Permitted for `REQUESTER` (if issue recurs), `IT_STAFF`, `ADMINISTRATOR`.
   - `CLOSED` -> `REOPENED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `REOPENED` -> `IN_PROGRESS`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `REOPENED` -> `RESOLVED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `REOPENED` -> `CANCELLED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
   - `CANCELLED` -> `OPEN`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
 
 ### Comments & Notes

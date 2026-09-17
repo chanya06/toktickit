@@ -305,6 +305,11 @@ export const PERMITTED_STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> 
   ],
   [TicketStatus.RESOLVED]: [TicketStatus.CLOSED, TicketStatus.REOPENED],
   [TicketStatus.CLOSED]: [TicketStatus.REOPENED],
+  [TicketStatus.REOPENED]: [
+    TicketStatus.IN_PROGRESS,
+    TicketStatus.RESOLVED,
+    TicketStatus.CANCELLED,
+  ],
   [TicketStatus.CANCELLED]: [TicketStatus.OPEN],
 };
 

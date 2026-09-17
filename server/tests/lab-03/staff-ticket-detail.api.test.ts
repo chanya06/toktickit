@@ -396,6 +396,35 @@ describe("IT Staff Ticket Operations & Status Matrix (API-07, API-08 / Issue 24)
       expect(openRes.body.ticket.status).toBe("OPEN");
     });
 
+    it("permits transitions from REOPENED to IN_PROGRESS, RESOLVED, and CANCELLED", async () => {
+      // 1. REOPENED -> IN_PROGRESS
+      const ticket1 = await createTestTicket({ status: "REOPENED" });
+      const res1 = await request(app)
+        .patch(`/api/staff/tickets/${ticket1.id}/status`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({ status: "IN_PROGRESS" });
+      expect(res1.status).toBe(200);
+      expect(res1.body.ticket.status).toBe("IN_PROGRESS");
+
+      // 2. REOPENED -> RESOLVED
+      const ticket2 = await createTestTicket({ status: "REOPENED" });
+      const res2 = await request(app)
+        .patch(`/api/staff/tickets/${ticket2.id}/status`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({ status: "RESOLVED" });
+      expect(res2.status).toBe(200);
+      expect(res2.body.ticket.status).toBe("RESOLVED");
+
+      // 3. REOPENED -> CANCELLED
+      const ticket3 = await createTestTicket({ status: "REOPENED" });
+      const res3 = await request(app)
+        .patch(`/api/staff/tickets/${ticket3.id}/status`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({ status: "CANCELLED" });
+      expect(res3.status).toBe(200);
+      expect(res3.body.ticket.status).toBe("CANCELLED");
+    });
+
     it("rejects invalid status transitions with 422 Unprocessable Entity", async () => {
       // 1. NEW cannot jump directly to RESOLVED or CLOSED
       const newTicket = await createTestTicket({ status: "NEW" });

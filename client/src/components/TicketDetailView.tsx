@@ -21,6 +21,7 @@ const PERMITTED_NEXT_STATUSES: Record<string, string[]> = {
   WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
   RESOLVED: ["CLOSED", "REOPENED"],
   CLOSED: ["REOPENED"],
+  REOPENED: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
   CANCELLED: ["OPEN"],
 };
 
@@ -70,11 +71,22 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
   const [selectedNextStatus, setSelectedNextStatus] = useState<string>("");
 
   useEffect(() => {
-    if (isStaffOrAdmin) {
-      fetchStaffAssignees()
-        .then((data) => setAssignees(data))
-        .catch((err) => console.error("Failed to load staff assignees:", err));
-    }
+    if (!isStaffOrAdmin) return;
+    const controller = new AbortController();
+    fetchStaffAssignees(controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted) {
+          setAssignees(data);
+        }
+      })
+      .catch((err) => {
+        if (err?.name === "AbortError" || controller.signal.aborted) return;
+        console.error("Failed to load staff assignees:", err);
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, [isStaffOrAdmin]);
 
   const canIndicateResolution =
@@ -196,20 +208,49 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     };
   }, [ticketId, effectiveRequesterId, retryToken]);
 
+  function getStatusBadgeStyle(status: string): React.CSSProperties {
+    switch (status?.toUpperCase()) {
+      case "NEW":
+        return { backgroundColor: "#DBEAFE", color: "#1E40AF" };
+      case "OPEN":
+        return { backgroundColor: "#DCFCE7", color: "#15803D" };
+      case "IN_PROGRESS":
+        return { backgroundColor: "#FEF3C7", color: "#B45309" };
+      case "WAITING_FOR_REQUESTER":
+        return { backgroundColor: "#F3E8FF", color: "#6B21A8" };
+      case "RESOLVED":
+        return { backgroundColor: "#D1FAE5", color: "#065F46" };
+      case "CLOSED":
+        return { backgroundColor: "#E2E8F0", color: "#334155" };
+      case "REOPENED":
+        return { backgroundColor: "#FFEDD5", color: "#C2410C" };
+      case "CANCELLED":
+        return { backgroundColor: "#FEE2E2", color: "#B91C1C" };
+      default:
+        return {};
+    }
+  }
+
   function getStatusBadgeClass(ticketStatus: string) {
     switch (ticketStatus?.toUpperCase()) {
       case "NEW":
         return "badge bg-primary text-white";
       case "OPEN":
-        return "badge bg-warning text-dark";
-      case "IN_PROGRESS":
         return "badge bg-success text-white";
+      case "IN_PROGRESS":
+        return "badge bg-warning text-dark";
+      case "WAITING_FOR_REQUESTER":
+        return "badge bg-info text-dark";
       case "PENDING":
         return "badge bg-secondary text-white";
       case "RESOLVED":
         return "badge bg-success text-white";
       case "CLOSED":
         return "badge bg-dark text-white";
+      case "REOPENED":
+        return "badge bg-warning text-dark";
+      case "CANCELLED":
+        return "badge bg-danger text-white";
       default:
         return "badge bg-secondary text-white";
     }
@@ -475,7 +516,11 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
             <div className="col-12 col-sm-6 col-md-3">
               <label className="form-label fw-semibold text-muted small mb-1">Current Status</label>
               <div>
-                <span className={getStatusBadgeClass(ticket.status)} data-testid="detail-status-badge">
+                <span
+                  className={getStatusBadgeClass(ticket.status)}
+                  style={getStatusBadgeStyle(ticket.status)}
+                  data-testid="detail-status-badge"
+                >
                   Status: {ticket.status}
                 </span>
               </div>
@@ -726,7 +771,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
           onClick={onBack}
           data-testid="bottom-back-btn"
         >
-          &laquo; Back to My Tickets List
+          &laquo; {isStaffOrAdmin ? "Back to Ticket Queue" : "Back to My Tickets List"}
         </button>
       </div>
       {/* Requester Resolution Indication Modal */}

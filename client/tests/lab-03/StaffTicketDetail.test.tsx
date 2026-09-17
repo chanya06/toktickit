@@ -420,6 +420,67 @@ describe("IT Staff Ticket Operations & Status Matrix (Issue 24 / FR-11 & FR-13)"
       });
     });
 
+    it("enforces permitted next statuses for REOPENED status (IN_PROGRESS, RESOLVED, CANCELLED)", async () => {
+      const reopenedTicket = { ...mockOpenTicket, status: "REOPENED" };
+      renderDetailWithAuth(reopenedTicket, mockStaffUser);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("status-transition-selector")).toBeInTheDocument();
+      });
+
+      const statusSelect = screen.getByTestId("status-transition-selector") as HTMLSelectElement;
+      const optionValues = Array.from(statusSelect.options).map((o) => o.value);
+
+      expect(optionValues).toEqual(["", "IN_PROGRESS", "RESOLVED", "CANCELLED"]);
+    });
+
+    it("displays contextual bottom back button text based on role", async () => {
+      // 1. Staff user sees "Back to Ticket Queue"
+      const { unmount } = renderDetailWithAuth(mockOpenTicket, mockStaffUser);
+      await waitFor(() => {
+        expect(screen.getByTestId("bottom-back-btn")).toHaveTextContent("Back to Ticket Queue");
+      });
+      unmount();
+
+      // 2. Requester user sees "Back to My Tickets List"
+      renderDetailWithAuth(mockOpenTicket, mockRequesterUser);
+      await waitFor(() => {
+        expect(screen.getByTestId("bottom-back-btn")).toHaveTextContent("Back to My Tickets List");
+      });
+    });
+
+    it("renders correct status badge for all statuses including WAITING_FOR_REQUESTER, REOPENED, and CANCELLED", async () => {
+      // WAITING_FOR_REQUESTER
+      const { unmount: u1 } = renderDetailWithAuth(
+        { ...mockOpenTicket, status: "WAITING_FOR_REQUESTER" },
+        mockStaffUser
+      );
+      await waitFor(() => {
+        expect(screen.getByTestId("detail-status-badge")).toHaveTextContent("Status: WAITING_FOR_REQUESTER");
+      });
+      u1();
+
+      // REOPENED
+      const { unmount: u2 } = renderDetailWithAuth(
+        { ...mockOpenTicket, status: "REOPENED" },
+        mockStaffUser
+      );
+      await waitFor(() => {
+        expect(screen.getByTestId("detail-status-badge")).toHaveTextContent("Status: REOPENED");
+      });
+      u2();
+
+      // CANCELLED
+      const { unmount: u3 } = renderDetailWithAuth(
+        { ...mockOpenTicket, status: "CANCELLED" },
+        mockStaffUser
+      );
+      await waitFor(() => {
+        expect(screen.getByTestId("detail-status-badge")).toHaveTextContent("Status: CANCELLED");
+      });
+      u3();
+    });
+
     it("displays error feedback when status update fails", async () => {
       (api.updateTicketStatus as any).mockRejectedValue(new Error("Invalid status transition from OPEN to CLOSED"));
 
