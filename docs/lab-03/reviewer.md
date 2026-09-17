@@ -16,7 +16,8 @@
 | [PR #59](https://github.com/chanya06/toktickit/pull/59) | `feature/20-auth-ui` | Approved |
 | [PR #60](https://github.com/chanya06/toktickit/pull/60) | `feature/21-requester-session` | Approved |
 | [PR #61](https://github.com/chanya06/toktickit/pull/61) | `feature/22-staff-queue-api` | Approved |
-| [PR #62](https://github.com/chanya06/toktickit/pull/62) | `feature/23-staff-queue-ui` | In Review |
+| [PR #62](https://github.com/chanya06/toktickit/pull/62) | `feature/23-staff-queue-ui` | Approved |
+| [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | In Review |
 
 ---
 
@@ -297,6 +298,55 @@
 > 5. **Automated Tests**:
 >    - อัปเดตและเพิ่ม Assertions ใน `client/tests/lab-03/StaffTicketQueue.test.tsx` ครอบคลุมคอลัมน์ Requested Priority, การรีเซ็ตหน้าเมื่อสลับ Sort, และ Row Hover
 >    - ผลการรันเทส: Client Tests ผ่าน 74/74 (11 suites), Server Tests ผ่าน 96/96 (12 suites), Client Build ผ่านสะอาดสมบูรณ์
+
+---
+
+### Reviewer comment I received (PR #63):
+
+> ### Peer Review for PR [#63](https://github.com/chanya06/toktickit/pull/63): Changes Requested (IT Staff Ticket Operations & Status Matrix)
+> ได้ตรวจสอบการทำงานของ PR [#63](https://github.com/chanya06/toktickit/pull/63) (Issue [#52](https://github.com/chanya06/toktickit/issues/52) / Task 24) ทั้ง Backend API, Frontend Operations Panel และชุดทดสอบทั้งหมดอย่างละเอียดเทียบกับ Handout Section 4, specification.md (BR-10 ถึง BR-14), api-spec.md (Section 2) และ ui-spec.md (Screen 4)
+> การวางโครงสร้างระบบ Claim, Assign, IT Priority และ Status Transition ทำได้ดีมากและมีชุดทดสอบครอบคลุม แต่พบจุดบกพร่องที่ต้องปรับปรุงแก้ไข 4 จุดดังนี้:
+> 1. **เพิ่มสถานะ REOPENED ใน Status Transition Matrix (สำคัญมาก):**
+>    - ปัจจุบันใน `PERMITTED_STATUS_TRANSITIONS` (`server/src/routes/staff.ts`) และ `PERMITTED_NEXT_STATUSES` (`client/src/components/TicketDetailView.tsx`) ยังไม่มี Key `[TicketStatus.REOPENED]`
+>    - ส่งผลให้เมื่อตั๋วถูก Reopen แล้ว ตัวเลือกสถานะถัดไปจะว่างเปล่า Dropdown ถูก Disable และ API ปฏิเสธด้วย 422 กลายเป็น Dead-end status
+>    - รบกวนเพิ่ม Key REOPENED ทั้งฝั่ง Backend และ Frontend เช่น: `[TicketStatus.REOPENED]: [ TicketStatus.IN_PROGRESS, TicketStatus.RESOLVED, TicketStatus.CANCELLED, ]`
+> 2. **อัปเดต getStatusBadgeClass ใน TicketDetailView.tsx ให้ครบ 8 สถานะ:**
+>    - ปัจจุบันขาดสถานะ `WAITING_FOR_REQUESTER`, `REOPENED` และ `CANCELLED` ทำให้ตกไปเป็นสีเทา (`badge bg-secondary`) ทั้งหมด
+>    - รบกวนปรับปรุงให้ครอบคลุมครบถ้วนและใช้สีตาม Zen Design Tokens
+> 3. **ปรับข้อความปุ่ม Back ด้านล่าง (TicketDetailView.tsx บรรทัดที่ 729):**
+>    - ปุ่มด้านล่างสุดยัง Hardcoded เป็น `&laquo; Back to My Tickets List`
+>    - รบกวนปรับให้เปลี่ยนตาม Role เช่นเดียวกับปุ่มด้านบน: `&laquo; {isStaffOrAdmin ? "Back to Ticket Queue" : "Back to My Tickets List"}`
+> 4. **เพิ่ม AbortSignal ใน fetchStaffAssignees (TicketDetailView.tsx):**
+>    - รบกวนส่ง `AbortController.signal` เข้าไปใน `fetchStaffAssignees()` เพื่อป้องกันปัญหาตอน Component Unmount
+
+---
+
+### How I responded (PR #63):
+
+> ขอบคุณสำหรับข้อเสนอแนะที่ละเอียดและสำคัญมาก ได้ดำเนินการปรับปรุงแก้ไขครบทั้ง 4 จุดเรียบร้อยแล้ว:
+> 1. **เพิ่มสถานะ REOPENED ใน Status Transition Matrix (`server/src/routes/staff.ts` & `client/src/components/TicketDetailView.tsx`)**:
+>    - เพิ่ม Key `[TicketStatus.REOPENED]: [TicketStatus.IN_PROGRESS, TicketStatus.RESOLVED, TicketStatus.CANCELLED]` ใน `PERMITTED_STATUS_TRANSITIONS` ฝั่ง Server
+>    - เพิ่ม `REOPENED: ["IN_PROGRESS", "RESOLVED", "CANCELLED"]` ใน `PERMITTED_NEXT_STATUSES` ฝั่ง Client
+>    - อัปเดตข้อกำหนด BR-14 ใน `docs/lab-03/specification.md` ให้ครอบคลุมเส้นทาง Transition จาก `REOPENED` ชัดเจน
+>    - เพิ่มชุดทดสอบใน `server/tests/lab-03/staff-ticket-detail.api.test.ts` และ `client/tests/lab-03/StaffTicketDetail.test.tsx` ตรวจสอบการเปลี่ยนสถานะจาก `REOPENED` ทั้งหมด
+> 2. **อัปเดต Badge ครบ 8 สถานะตาม Zen Design Tokens (`client/src/components/TicketDetailView.tsx`)**:
+>    - อัปเดต `getStatusBadgeClass` และเพิ่ม `getStatusBadgeStyle` ครอบคลุมทั้ง 8 สถานะตาม `ui-spec.md`:
+>      - `NEW`: Blue (`#DBEAFE` / `#1E40AF`)
+>      - `OPEN`: Green (`#DCFCE7` / `#15803D`)
+>      - `IN_PROGRESS`: Amber (`#FEF3C7` / `#B45309`)
+>      - `WAITING_FOR_REQUESTER`: Purple (`#F3E8FF` / `#6B21A8`)
+>      - `RESOLVED`: Emerald (`#D1FAE5` / `#065F46`)
+>      - `CLOSED`: Dark Slate (`#E2E8F0` / `#334155`)
+>      - `REOPENED`: Orange (`#FFEDD5` / `#C2410C`)
+>      - `CANCELLED`: Red (`#FEE2E2` / `#B91C1C`)
+> 3. **ปรับปุ่ม Back ด้านล่างให้เป็น Role-Aware Contextual (`client/src/components/TicketDetailView.tsx`)**:
+>    - ปรับเป็น `&laquo; {isStaffOrAdmin ? "Back to Ticket Queue" : "Back to My Tickets List"}` ให้สอดคล้องกับปุ่มด้านบนและ Breadcrumbs
+> 4. **ส่ง AbortSignal ใน fetchStaffAssignees (`client/src/components/TicketDetailView.tsx`)**:
+>    - ใช้ `AbortController` ใน `useEffect` พร้อมส่ง `controller.signal` ไปยัง `fetchStaffAssignees(controller.signal)` และเรียก `controller.abort()` ใน cleanup function ป้องกันปัญหา Memory Leak / Unmounted Component
+> 5. **ผลการทดสอบ & Build**:
+>    - Server Tests: ผ่านครบ 116/116 tests (13 test files)
+>    - Client Tests: ผ่านครบ 90/90 tests (12 test files)
+>    - Client Production Build: ผ่านสะอาดสมบูรณ์ ไม่มี error
 
 ---
 

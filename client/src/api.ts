@@ -91,7 +91,7 @@ export interface TicketResponse {
   createdAt: string;
   updatedAt?: string;
   isResolutionIndicated?: boolean;
-  requester?: { id: number; name: string; email: string };
+  requester?: { id: number; name?: string; fullName?: string; email: string; department?: string | null };
   category?: { id: number; name: string };
   relatedSystem?: { id: number; name: string };
   ticketOwner?: string | null;
@@ -717,6 +717,111 @@ export async function fetchStaffTickets(
     throw err;
   }
 
+  return data;
+}
+
+export interface StaffAssignee {
+  id: number;
+  fullName: string;
+  email: string;
+  role: string;
+}
+
+export async function fetchStaffAssignees(signal?: AbortSignal): Promise<StaffAssignee[]> {
+  const res = await fetch(`${API_URL}/api/staff/assignees`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch staff assignees");
+  }
+  return data;
+}
+
+export async function claimTicket(ticketId: number): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/claim`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to claim ticket");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function assignTicket(
+  ticketId: number,
+  ownerId: number | null
+): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/assign`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ ownerId }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to assign ticket");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function updateTicketITPriority(
+  ticketId: number,
+  itPriority: string
+): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/it-priority`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ itPriority }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to update IT priority");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function updateTicketStatus(
+  ticketId: number,
+  status: string
+): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/status`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ status }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to update ticket status");
+    (err as any).status = res.status;
+    throw err;
+  }
   return data;
 }
 
