@@ -10,6 +10,7 @@ import { createTicketAtomically } from "./utils/ticketNumber.js";
 import { RequestedPriority } from "@prisma/client";
 import { authenticate } from "./middleware/auth.js";
 import { authRouter } from "./routes/auth.js";
+import { staffRouter } from "./routes/staff.js";
 
 export const app = express();
 
@@ -19,6 +20,7 @@ app.use(cookieParser());
 app.use(authenticate);
 
 app.use("/api/auth", authRouter);
+app.use("/api/staff", staffRouter);
 
 const uploadDir = path.join(process.cwd(), "uploads", "attachments");
 if (!fs.existsSync(uploadDir)) {
