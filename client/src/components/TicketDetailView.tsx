@@ -13,6 +13,8 @@ import {
   StaffAssignee,
 } from "../api.js";
 import { AttachmentSection } from "./AttachmentSection.js";
+import { CommentsSection } from "./CommentsSection.js";
+import { InternalNotesSection } from "./InternalNotesSection.js";
 
 const PERMITTED_NEXT_STATUSES: Record<string, string[]> = {
   NEW: ["OPEN", "CANCELLED"],
@@ -56,7 +58,9 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [statusCode, setStatusCode] = useState<number | null>(null);
   const [retryToken, setRetryToken] = useState<number>(0);
-  const [activeTab, setActiveTab] = useState<"attachments" | "comments" | "actions" | "log">("attachments");
+  const [activeTab, setActiveTab] = useState<"comments" | "internalNotes" | "attachments" | "actions" | "log">("comments");
+  const [commentsCount, setCommentsCount] = useState<number>(0);
+  const [notesCount, setNotesCount] = useState<number>(0);
 
   // Requester resolution indication state
   const [showResolutionModal, setShowResolutionModal] = useState<boolean>(false);
@@ -707,21 +711,43 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
         <li className="nav-item">
           <button
             type="button"
-            className={`nav-link small d-flex align-items-center gap-1 ${activeTab === "comments" ? "active text-success fw-bold" : "text-muted disabled"}`}
+            className={`nav-link small d-flex align-items-center gap-1 ${activeTab === "comments" ? "active text-success fw-bold border-top border-3 border-success" : "text-muted"}`}
             onClick={() => setActiveTab("comments")}
+            data-testid="tab-comments"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             <span>Public Comments</span>
-            <span className="badge bg-secondary rounded-pill ms-1">3</span>
+            <span className="badge bg-secondary rounded-pill ms-1" data-testid="tab-comments-count">
+              {commentsCount}
+            </span>
           </button>
         </li>
+        {isStaffOrAdmin && (
+          <li className="nav-item">
+            <button
+              type="button"
+              className={`nav-link small d-flex align-items-center gap-1 ${activeTab === "internalNotes" ? "active text-warning fw-bold border-top border-3 border-warning" : "text-muted"}`}
+              onClick={() => setActiveTab("internalNotes")}
+              data-testid="tab-internal-notes"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Internal Notes</span>
+              <span className="badge bg-warning text-dark rounded-pill ms-1" data-testid="tab-notes-count">
+                {notesCount}
+              </span>
+            </button>
+          </li>
+        )}
         <li className="nav-item">
           <button
             type="button"
             className={`nav-link small d-flex align-items-center gap-1 ${activeTab === "attachments" ? "active text-success fw-bold border-top border-3 border-success" : "text-muted"}`}
             onClick={() => setActiveTab("attachments")}
+            data-testid="tab-attachments"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
@@ -758,10 +784,42 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
         </li>
       </ul>
 
-      {/* Tab Content: Active Attachment Lifecycle Section (Issue 13) */}
-      {activeTab === "attachments" && (
-        <AttachmentSection ticketId={ticketId} />
+      {/* Tab Content: Public Comments (Issue 25) */}
+      <div
+        style={{ display: activeTab === "comments" ? "block" : "none" }}
+        data-testid="tab-pane-comments"
+      >
+        <CommentsSection
+          ticketId={ticketId}
+          onCommentsCountChange={setCommentsCount}
+          onCommentAdded={(updatedTicket) => {
+            if (updatedTicket) {
+              setTicket((prev) => (prev ? { ...prev, ...updatedTicket } : updatedTicket));
+            }
+          }}
+        />
+      </div>
+
+      {/* Tab Content: Internal Notes (Issue 25 - Restricted to Staff/Admin) */}
+      {isStaffOrAdmin && (
+        <div
+          style={{ display: activeTab === "internalNotes" ? "block" : "none" }}
+          data-testid="tab-pane-internal-notes"
+        >
+          <InternalNotesSection
+            ticketId={ticketId}
+            onNotesCountChange={setNotesCount}
+          />
+        </div>
       )}
+
+      {/* Tab Content: Active Attachment Lifecycle Section (Issue 13) */}
+      <div
+        style={{ display: activeTab === "attachments" ? "block" : "none" }}
+        data-testid="tab-pane-attachments"
+      >
+        <AttachmentSection ticketId={ticketId} />
+      </div>
 
       {/* Bottom Navigation Control */}
       <div className="d-flex justify-content-end mb-4">

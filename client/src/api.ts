@@ -825,3 +825,119 @@ export async function updateTicketStatus(
   return data;
 }
 
+export interface PublicCommentResponse {
+  id: number;
+  ticketId: number;
+  authorId: number;
+  content: string;
+  createdAt: string;
+  author: {
+    id: number;
+    fullName: string;
+    role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+    email?: string;
+  };
+}
+
+export interface InternalNoteResponse {
+  id: number;
+  ticketId: number;
+  authorId: number;
+  content: string;
+  createdAt: string;
+  author: {
+    id: number;
+    fullName: string;
+    role: "IT_STAFF" | "ADMINISTRATOR";
+    email?: string;
+  };
+}
+
+export async function fetchTicketComments(
+  ticketId: number,
+  signal?: AbortSignal
+): Promise<PublicCommentResponse[]> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/comments`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch comments");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function createTicketComment(
+  ticketId: number,
+  content: string
+): Promise<{ message: string; comment: PublicCommentResponse; ticket?: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/comments`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ content }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to add comment");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function fetchTicketNotes(
+  ticketId: number,
+  signal?: AbortSignal
+): Promise<InternalNoteResponse[]> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/notes`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch internal notes");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function createTicketNote(
+  ticketId: number,
+  content: string
+): Promise<{ message: string; note: InternalNoteResponse }> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/notes`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ content }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to add internal note");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+

@@ -17,7 +17,8 @@
 | [PR #60](https://github.com/chanya06/toktickit/pull/60) | `feature/21-requester-session` | Approved |
 | [PR #61](https://github.com/chanya06/toktickit/pull/61) | `feature/22-staff-queue-api` | Approved |
 | [PR #62](https://github.com/chanya06/toktickit/pull/62) | `feature/23-staff-queue-ui` | Approved |
-| [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | In Review |
+| [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | Approved |
+| [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | In Review |
 
 ---
 
@@ -350,7 +351,50 @@
 
 ---
 
+### Reviewer comment I received (PR #64):
+
+> ### ผลการตรวจสอบ PR [#64](https://github.com/chanya06/toktickit/pull/64): REQUEST CHANGES / RECOMMEND IMPROVEMENTS
+> ภาพรวมของฟังก์ชันหลัก ระบบความปลอดภัย การจำกัดสิทธิ์ตามบทบาท (RBAC) และ Business Rules ทำงานได้ถูกต้องครบถ้วนตามข้อกำหนด Lab-03 แต่พบจุดบกพร่องด้าน UX และ State ในหน้าบ้านที่ควรพิจารณาแก้ไขก่อนทำการ Merge:
+> ประเด็นที่ควรปรับปรุง (Issues to Address):
+> 1. **ตัวเลข Badge บนแท็บแสดงเป็น (0) เสมอตอนเข้าหน้ารายละเอียดตั๋ว:**
+>    - เนื่องจากแท็บเปิดมาที่ Attachments เป็นค่าเริ่มต้น และใช้ Conditional Rendering ทำให้แท็บ Public Comments และ Internal Notes ยังไม่ถูก Mount ตัวนับ Badge จึงค้างอยู่ที่ 0 ตลอดเวลาจนกว่าผู้ใช้จะคลิกเข้าไป
+>    - ข้อเสีย: ทำให้ผู้ใช้หรือ Staff เข้าใจผิดว่าไม่มีข้อความหรือบันทึกภายในอยู่เลย
+>    - แนะนำ: ทำ Prefetch ข้อมูลนับจำนวนตั้งแต่ Mount หน้ารายละเอียด หรือย้ายการเรียก API ไปไว้ใน Hook ระดับบน
+> 2. **ข้อความที่กำลังพิมพ์หลุดหายเมื่อสลับแท็บ (Draft State Loss):**
+>    - การสลับแท็บไปดูรูปภาพแนบหรือดูข้อมูลอื่นจะทำให้ CommentsSection / InternalNotesSection ถูก Unmount ส่งผลให้ข้อความที่กำลังพิมพ์อยู่ใน Textarea หายไปทันที
+>    - แนะนำ: ใช้การซ่อนแสดงด้วย `style={{ display: activeTab === '...' ? 'block' : 'none' }}` หรือยก State ของข้อความขึ้นมาเก็บที่ Parent
+> 3. **ลำดับแท็บกับแท็บเริ่มต้นไม่สอดคล้องกัน:**
+>    - แท็บแรกคือ Public Comments แต่ระบบตั้งค่าเริ่มต้นให้เปิดที่ Attachments (แท็บที่ 3) ควรพิจารณาตั้งค่าเริ่มต้นให้เปิดที่แท็บแรก หรือจัดลำดับให้สอดคล้องกัน
+> 4. **การนำ Middleware กลับมาใช้ซ้ำใน Backend (`server/src/routes/comments.ts`):**
+>    - ปัจจุบันมีการเขียน `if (!req.user)` และ `if (req.user.mustChangePassword)` เองในทุก Endpoint ควรเปลี่ยนมาใช้ `requireAuth` และ `requirePasswordChanged` จาก `auth.ts` เพื่อความกระชับและเป็นมาตรฐานเดียวกัน
+
+---
+
+### How I responded (PR #64):
+
+> ขอบคุณสำหรับข้อเสนอแนะที่ละเอียดและช่วยยกระดับทั้ง UX และ Code Quality ได้ดำเนินการปรับปรุงแก้ไขครบทั้ง 4 ประเด็นใน commit `071dbbc`:
+> 1. **Prefetch ข้อมูลตัวนับ Badge ตั้งแต่ Mount หน้ารายละเอียด (`client/src/components/TicketDetailView.tsx`)**:
+>    - ปรับการเรนเดอร์แท็บเนื้อหา (`CommentsSection`, `InternalNotesSection`, `AttachmentSection`) ให้อยู่ใน DOM ตลอดเวลาและควบคุมการแสดงผลผ่าน `style={{ display: activeTab === '...' ? 'block' : 'none' }}`
+>    - ส่งผลให้ `useEffect` ภายใน Components ดึงข้อมูลคอมเมนต์และบันทึกภายในทันทีที่โหลดหน้ารายละเอียดตั๋ว ตัวเลข Badge จึงแสดงจำนวนจริงทันทีโดยไม่ต้องรอคลิกแท็บ
+>    - คงความปลอดภัยระดับ RBAC อย่างเข้มงวด: `InternalNotesSection` จะถูกเรนเดอร์ลง DOM เฉพาะเมื่อ `isStaffOrAdmin === true` เท่านั้น Requester จะไม่มี Component หรือ API call ของ Notes หลุดออกไปเด็ดขาด
+> 2. **ป้องกันข้อความร่างหลุดหายเมื่อสลับแท็บ (Draft State Preservation) (`client/src/components/TicketDetailView.tsx`)**:
+>    - ด้วยการใช้ CSS `display: none` แทน Conditional Rendering ทำให้ State ของ Textarea (`newCommentText` และ `newNoteText`) ไม่ถูก Unmount ข้อความที่กำลังพิมพ์อยู่จึงคงอยู่ครบถ้วนเมื่อผู้ใช้สลับไปดู Attachments แล้วสลับกลับมา
+> 3. **จัดระเบียบแท็บเริ่มต้นให้สอดคล้องกับแท็บแรก (`client/src/components/TicketDetailView.tsx`)**:
+>    - ปรับค่าเริ่มต้นของ `activeTab` จาก `"attachments"` เป็น `"comments"` ให้ตรงกับแท็บแรกในแถบนำทาง
+> 4. **นำ Middleware ใน Backend กลับมาใช้ซ้ำอย่างเป็นมาตรฐาน (`server/src/routes/comments.ts`)**:
+>    - นำเข้าและใช้งาน `requireAuth`, `requirePasswordChanged`, และ `requireRole(Role.IT_STAFF, Role.ADMINISTRATOR)` จาก `../middleware/auth.js` ในทุก Endpoint ของ Comments และ Internal Notes
+>    - กำจัดโค้ดตรวจสอบ `if (!req.user)` และ `if (req.user.mustChangePassword)` ที่ซ้ำซ้อนออกทั้งหมด โดยไม่ส่งผลกระทบต่อ Base Ticket Endpoints
+> 5. **ชุดทดสอบและการตรวจสอบความถูกต้อง**:
+>    - เพิ่มชุดทดสอบใน `client/tests/lab-03/CommentsNotes.test.tsx` ตรวจสอบการ Prefetch ตัวนับ Badge ตอน Mount, การเปิดที่แท็บ Public Comments เป็นค่าเริ่มต้น, และการรักษาข้อความร่าง Textarea ขณะสลับแท็บ
+>    - ผลการรันเทส:
+>      - Server Tests: ผ่านทั้งหมด 129/129 tests (14 test files)
+>      - Client Tests: ผ่านทั้งหมด 99/99 tests (13 test files)
+>      - Client Production Build (`tsc && vite build`): ผ่านสะอาดสมบูรณ์ ปราศจาก error
+
+---
+
 ## Pull Requests I reviewed for my partner (@titayaaa)
+
 
 | PR | Branch | Reviewer verdict |
 | :--- | :--- | :--- |
