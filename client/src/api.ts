@@ -941,3 +941,149 @@ export async function createTicketNote(
   return data;
 }
 
+// ---------------------------------------------------------------------------
+// Administrator User Management (Issue 26 & 27 / FR-15..20 / API-10..13)
+// ---------------------------------------------------------------------------
+
+export interface AdminUserResponse {
+  id: number;
+  email: string;
+  fullName: string;
+  role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+  isActive: boolean;
+  mustChangePassword: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUsersListResponse {
+  data: AdminUserResponse[];
+  pagination: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+  };
+}
+
+export interface CreateAdminUserPayload {
+  fullName: string;
+  email: string;
+  role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+  initialPassword: string;
+  isActive?: boolean;
+}
+
+export interface UpdateAdminUserPayload {
+  fullName?: string;
+  email?: string;
+  role?: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+  isActive?: boolean;
+}
+
+export async function fetchAdminUsers(
+  params: {
+    search?: string;
+    role?: string;
+    page?: number;
+    limit?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  } = {},
+  signal?: AbortSignal
+): Promise<AdminUsersListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params.search) searchParams.append("search", params.search);
+  if (params.role) searchParams.append("role", params.role);
+  if (params.page) searchParams.append("page", String(params.page));
+  if (params.limit) searchParams.append("limit", String(params.limit));
+  if (params.pageSize) searchParams.append("pageSize", String(params.pageSize));
+  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+  if (params.sortOrder) searchParams.append("sortOrder", params.sortOrder);
+
+  const qs = searchParams.toString();
+  const url = `${API_URL}/api/admin/users${qs ? `?${qs}` : ""}`;
+
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch users");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function createAdminUser(
+  payload: CreateAdminUserPayload
+): Promise<{ message: string; user: AdminUserResponse }> {
+  const res = await fetch(`${API_URL}/api/admin/users`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to create user");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function updateAdminUser(
+  id: number,
+  payload: UpdateAdminUserPayload
+): Promise<{ message: string; user: AdminUserResponse }> {
+  const res = await fetch(`${API_URL}/api/admin/users/${id}`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to update user");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function resetAdminUserPassword(
+  id: number,
+  initialPassword: string
+): Promise<{ message: string; user: AdminUserResponse }> {
+  const res = await fetch(`${API_URL}/api/admin/users/${id}/reset-password`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ initialPassword }),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to reset password");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+
