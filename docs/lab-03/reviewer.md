@@ -13,7 +13,8 @@
 | [PR #44](https://github.com/chanya06/toktickit/pull/44) | `feature/17-spec-and-tests` | Approved |
 | [PR #57](https://github.com/chanya06/toktickit/pull/57) | `feature/18-db-schema-and-seed` | Approved |
 | [PR #58](https://github.com/chanya06/toktickit/pull/58) | `feature/19-auth-api` | Approved |
-| [PR #59](https://github.com/chanya06/toktickit/pull/59) | `feature/20-auth-ui` | In Review |
+| [PR #59](https://github.com/chanya06/toktickit/pull/59) | `feature/20-auth-ui` | Approved |
+| [PR #60](https://github.com/chanya06/toktickit/pull/60) | `feature/21-requester-session` | In Review |
 
 ---
 

@@ -89,6 +89,8 @@ export interface TicketResponse {
   summary: string;
   description: string;
   createdAt: string;
+  updatedAt?: string;
+  isResolutionIndicated?: boolean;
   requester?: { id: number; name: string; email: string };
   category?: { id: number; name: string };
   relatedSystem?: { id: number; name: string };
@@ -144,12 +146,13 @@ export async function createTicket(payload: CreateTicketPayload): Promise<Ticket
 
     reqOptions = {
       method: "POST",
+      headers: getAuthHeaders(),
       body: formData,
     };
   } else {
     reqOptions = {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         requesterId: payload.requesterId,
         categoryId: payload.categoryId,
@@ -176,7 +179,7 @@ export async function createTicket(payload: CreateTicketPayload): Promise<Ticket
 }
 
 export interface FetchTicketsParams {
-  requesterId: number;
+  requesterId?: number;
   search?: string;
   categoryId?: number | number[];
   relatedSystemId?: number | number[];
@@ -205,7 +208,9 @@ export async function fetchTickets(
   signal?: AbortSignal
 ): Promise<PaginatedTicketsResponse> {
   const query = new URLSearchParams();
-  query.set("requesterId", String(params.requesterId));
+  if (params.requesterId !== undefined && params.requesterId !== null) {
+    query.set("requesterId", String(params.requesterId));
+  }
 
   if (params.search && params.search.trim() !== "") {
     query.set("search", params.search.trim());
@@ -247,7 +252,10 @@ export async function fetchTickets(
     query.set("pageSize", String(params.pageSize));
   }
 
-  const res = await fetch(`${API_URL}/api/tickets?${query.toString()}`, { signal }).catch((err) => {
+  const res = await fetch(`${API_URL}/api/tickets?${query.toString()}`, {
+    headers: getAuthHeaders(),
+    signal,
+  }).catch((err) => {
     if (err?.name === "AbortError" || signal?.aborted) {
       throw err;
     }
@@ -268,10 +276,15 @@ export async function fetchTickets(
 
 export async function fetchTicketDetail(
   ticketId: number,
-  requesterId: number,
+  requesterId?: number,
   signal?: AbortSignal
 ): Promise<TicketResponse> {
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}?requesterId=${requesterId}`, {
+  const url = requesterId !== undefined && requesterId !== null
+    ? `${API_URL}/api/tickets/${ticketId}?requesterId=${requesterId}`
+    : `${API_URL}/api/tickets/${ticketId}`;
+
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
     signal,
   }).catch((err) => {
     if (err?.name === "AbortError" || signal?.aborted) {
@@ -288,6 +301,26 @@ export async function fetchTicketDetail(
   if (!res.ok) {
     const errorMsg = data.error || (res.status === 403 ? "Forbidden: You do not have access to this ticket" : "Failed to fetch ticket detail");
     const err = new Error(errorMsg);
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  return data;
+}
+
+export async function indicateResolution(
+  ticketId: number,
+  comment?: string
+): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/resolve-indication`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ comment }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to record resolution indication");
     (err as any).status = res.status;
     throw err;
   }
@@ -329,10 +362,17 @@ export interface AttachmentMetadata {
 
 export async function fetchTicketAttachments(
   ticketId: number,
-  requesterId: number,
+  requesterId?: number,
   signal?: AbortSignal
 ): Promise<AttachmentMetadata[]> {
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments?requesterId=${requesterId}`, { signal }).catch((err) => {
+  const url = requesterId !== undefined && requesterId !== null
+    ? `${API_URL}/api/tickets/${ticketId}/attachments?requesterId=${requesterId}`
+    : `${API_URL}/api/tickets/${ticketId}/attachments`;
+
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
+    signal,
+  }).catch((err) => {
     if (err?.name === "AbortError" || signal?.aborted) throw err;
     return null;
   });
@@ -351,16 +391,21 @@ export async function fetchTicketAttachments(
 
 export async function uploadTicketAttachment(
   ticketId: number,
-  requesterId: number,
-  file: File,
+  requesterId?: number,
+  file?: File,
   signal?: AbortSignal
 ): Promise<AttachmentMetadata> {
   const formData = new FormData();
-  formData.append("requesterId", String(requesterId));
-  formData.append("file", file);
+  if (requesterId !== undefined && requesterId !== null) {
+    formData.append("requesterId", String(requesterId));
+  }
+  if (file) {
+    formData.append("file", file);
+  }
 
   const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments`, {
     method: "POST",
+    headers: getAuthHeaders(),
     body: formData,
     signal,
   }).catch((err) => {
@@ -380,8 +425,14 @@ export async function uploadTicketAttachment(
   return data;
 }
 
-export async function downloadAttachment(attachmentId: number, requesterId: number): Promise<void> {
-  const res = await fetch(`${API_URL}/api/attachments/${attachmentId}/download?requesterId=${requesterId}`).catch(() => null);
+export async function downloadAttachment(attachmentId: number, requesterId?: number): Promise<void> {
+  const url = requesterId !== undefined && requesterId !== null
+    ? `${API_URL}/api/attachments/${attachmentId}/download?requesterId=${requesterId}`
+    : `${API_URL}/api/attachments/${attachmentId}/download`;
+
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
+  }).catch(() => null);
 
   if (!res) throw new Error("Network error: Unable to connect to server");
 
@@ -393,7 +444,7 @@ export async function downloadAttachment(attachmentId: number, requesterId: numb
   }
 
   const blob = await res.blob();
-  const url = window.URL.createObjectURL(blob);
+  const blobUrl = window.URL.createObjectURL(blob);
   const contentDisposition = res.headers.get("Content-Disposition");
   let filename = "attachment";
   if (contentDisposition && contentDisposition.includes("filename=")) {
@@ -404,24 +455,24 @@ export async function downloadAttachment(attachmentId: number, requesterId: numb
   }
 
   const a = document.createElement("a");
-  a.href = url;
+  a.href = blobUrl;
   a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  window.URL.revokeObjectURL(url);
+  window.URL.revokeObjectURL(blobUrl);
 }
 
 export async function softRemoveAttachment(
   attachmentId: number,
-  requesterId: number,
-  removalReason: string
+  requesterId?: number,
+  removalReason?: string
 ): Promise<AttachmentMetadata> {
   const res = await fetch(`${API_URL}/api/attachments/${attachmentId}/soft-remove`, {
     method: "DELETE",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify({ requesterId, removalReason }),
   }).catch(() => null);
 

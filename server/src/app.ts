@@ -170,16 +170,35 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
       limit,
     } = req.query;
 
-    // 1. Mandatory requesterId parameter validation -> 400 Bad Request
-    if (requesterId === undefined || requesterId === null || requesterId === "") {
-      return res.status(400).json({ error: "requesterId parameter is required" });
+    if (req.user && req.user.mustChangePassword) {
+      return res.status(403).json({
+        error: "Password change required before accessing the application",
+        code: "MUST_CHANGE_PASSWORD",
+      });
     }
 
-    if (!isPositiveInteger(requesterId)) {
-      return res.status(400).json({ error: "requesterId must be a valid positive integer" });
-    }
+    let numericRequesterId: number | undefined;
+    if (req.user) {
+      if (req.user.role === "REQUESTER") {
+        numericRequesterId = req.user.id;
+      } else if (requesterId !== undefined && requesterId !== null && requesterId !== "") {
+        if (!isPositiveInteger(requesterId)) {
+          return res.status(400).json({ error: "requesterId must be a valid positive integer" });
+        }
+        numericRequesterId = Number(requesterId);
+      }
+    } else {
+      // 1. Mandatory requesterId parameter validation -> 400 Bad Request (Lab 2 mode)
+      if (requesterId === undefined || requesterId === null || requesterId === "") {
+        return res.status(400).json({ error: "requesterId parameter is required" });
+      }
 
-    const numericRequesterId = Number(requesterId);
+      if (!isPositiveInteger(requesterId)) {
+        return res.status(400).json({ error: "requesterId must be a valid positive integer" });
+      }
+
+      numericRequesterId = Number(requesterId);
+    }
 
     // 2. Pagination parameter validation -> 400 Bad Request
     let currentPage = 1;
@@ -217,9 +236,10 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
     }
 
     // Build filter criteria
-    const where: any = {
-      requesterId: numericRequesterId,
-    };
+    const where: any = {};
+    if (numericRequesterId !== undefined) {
+      where.requesterId = numericRequesterId;
+    }
 
     // Category filter (supports multi-select comma-separated or array)
     if (categoryId !== undefined && categoryId !== null && categoryId !== "") {
@@ -297,6 +317,8 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
           itPriority: true,
           status: true,
           ticketOwner: true,
+          ownerId: true,
+          isResolutionIndicated: true,
           createdAt: true,
           updatedAt: true,
           requester: {
@@ -361,6 +383,13 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 app.get("/api/tickets/:id", async (req: Request, res: Response) => {
   try {
+    if (req.user && req.user.mustChangePassword) {
+      return res.status(403).json({
+        error: "Password change required before accessing the application",
+        code: "MUST_CHANGE_PASSWORD",
+      });
+    }
+
     const { id } = req.params;
     const queryRequesterId = req.query.requesterId;
     const headerRequesterId = req.headers["x-requester-id"];
@@ -370,30 +399,32 @@ app.get("/api/tickets/:id", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
     }
 
-    // 2. Requester ID query parameter mandatory validation -> 400 Bad Request
-    if (queryRequesterId === undefined || queryRequesterId === null || queryRequesterId === "") {
-      return res.status(400).json({ error: "requesterId query parameter is required" });
-    }
+    let numericRequesterId: number | undefined;
 
-    if (!isPositiveInteger(queryRequesterId)) {
-      return res.status(400).json({ error: "requesterId must be a valid positive integer" });
-    }
+    // 2. If unauthenticated, enforce query parameter validation (Lab 2 mode)
+    if (!req.user) {
+      if (queryRequesterId === undefined || queryRequesterId === null || queryRequesterId === "") {
+        return res.status(400).json({ error: "requesterId query parameter is required" });
+      }
 
-    // 3. Conflict check: if header is also supplied, ensure it matches query parameter
-    if (
-      headerRequesterId !== undefined &&
-      headerRequesterId !== null &&
-      headerRequesterId !== "" &&
-      String(headerRequesterId) !== String(queryRequesterId)
-    ) {
-      return res.status(400).json({ error: "Conflicting requester identity between query parameter and header" });
-    }
+      if (!isPositiveInteger(queryRequesterId)) {
+        return res.status(400).json({ error: "requesterId must be a valid positive integer" });
+      }
 
-    const rawRequesterId = queryRequesterId;
+      // Conflict check: if header is also supplied, ensure it matches query parameter
+      if (
+        headerRequesterId !== undefined &&
+        headerRequesterId !== null &&
+        headerRequesterId !== "" &&
+        String(headerRequesterId) !== String(queryRequesterId)
+      ) {
+        return res.status(400).json({ error: "Conflicting requester identity between query parameter and header" });
+      }
+
+      numericRequesterId = Number(queryRequesterId);
+    }
 
     const ticketId = Number(id);
-    const numericRequesterId = Number(rawRequesterId);
-
     const prisma = getPrisma();
 
     // 3. Find target ticket
@@ -411,6 +442,8 @@ app.get("/api/tickets/:id", async (req: Request, res: Response) => {
         itPriority: true,
         status: true,
         ticketOwner: true,
+        ownerId: true,
+        isResolutionIndicated: true,
         createdAt: true,
         updatedAt: true,
         requester: {
@@ -432,6 +465,13 @@ app.get("/api/tickets/:id", async (req: Request, res: Response) => {
             name: true,
           },
         },
+        owner: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -440,7 +480,11 @@ app.get("/api/tickets/:id", async (req: Request, res: Response) => {
     }
 
     // 4. Enforce strict requester ownership check -> 403 Forbidden
-    if (ticket.requesterId !== numericRequesterId) {
+    if (req.user) {
+      if (req.user.role === "REQUESTER" && ticket.requesterId !== req.user.id) {
+        return res.status(403).json({ error: "Forbidden: You do not have access to this ticket" });
+      }
+    } else if (numericRequesterId !== undefined && ticket.requesterId !== numericRequesterId) {
       return res.status(403).json({ error: "Forbidden: You do not have access to this ticket" });
     }
 
@@ -448,6 +492,97 @@ app.get("/api/tickets/:id", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Get ticket detail error:", error);
     return res.status(500).json({ error: "Failed to fetch ticket detail" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Requester Resolution Indication endpoint (Issue 21 / FR-09 / BR-19)
+// ---------------------------------------------------------------------------
+app.post("/api/tickets/:id/resolve-indication", async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized: Authentication required" });
+    }
+
+    if (req.user.mustChangePassword) {
+      return res.status(403).json({
+        error: "Password change required before accessing the application",
+        code: "MUST_CHANGE_PASSWORD",
+      });
+    }
+
+    const { id } = req.params;
+    if (!isPositiveInteger(id)) {
+      return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
+    }
+
+    const ticketId = Number(id);
+    const prisma = getPrisma();
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      select: {
+        id: true,
+        ticketNumber: true,
+        status: true,
+        requesterId: true,
+        isResolutionIndicated: true,
+      },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // Role check: Only the owning requester is permitted (FR-09, BR-19, Section 3)
+    if (req.user.role !== "REQUESTER" || ticket.requesterId !== req.user.id) {
+      return res.status(403).json({
+        error: "Forbidden: You can only indicate resolution on your own tickets",
+      });
+    }
+
+    // Precondition: Ticket status must be OPEN or IN_PROGRESS
+    if (ticket.status !== "OPEN" && ticket.status !== "IN_PROGRESS") {
+      return res.status(422).json({
+        error: `Cannot indicate resolution on a ticket with status ${ticket.status}. Must be in OPEN or IN_PROGRESS status.`,
+      });
+    }
+
+    const userComment = typeof req.body?.comment === "string" ? req.body.comment.trim() : "";
+    const commentContent = userComment
+      ? `Requester indicated that the problem appears resolved: ${userComment}`
+      : "Requester indicated that the problem appears resolved.";
+
+    // Update ticket and create PublicComment in a transaction
+    const [updatedTicket] = await prisma.$transaction([
+      prisma.ticket.update({
+        where: { id: ticketId },
+        data: {
+          isResolutionIndicated: true,
+        },
+        select: {
+          id: true,
+          ticketNumber: true,
+          status: true,
+          isResolutionIndicated: true,
+        },
+      }),
+      prisma.publicComment.create({
+        data: {
+          ticketId,
+          authorId: req.user.id,
+          content: commentContent,
+        },
+      }),
+    ]);
+
+    return res.status(200).json({
+      message: "Resolution indication recorded successfully",
+      ticket: updatedTicket,
+    });
+  } catch (error) {
+    console.error("Resolve indication error:", error);
+    return res.status(500).json({ error: "Failed to record resolution indication" });
   }
 });
 
@@ -485,11 +620,37 @@ app.post("/api/tickets", (req: Request, res: Response, next) => {
   };
 
   try {
+    if (req.user && req.user.mustChangePassword) {
+      cleanupFiles();
+      return res.status(403).json({
+        error: "Password change required before accessing the application",
+        code: "MUST_CHANGE_PASSWORD",
+      });
+    }
+
     const { requesterId, categoryId, relatedSystemId, requestedPriority, summary, description } = req.body;
+
+    let effectiveRequesterId: number;
+    if (req.user) {
+      if (req.user.role === "REQUESTER") {
+        effectiveRequesterId = req.user.id;
+      } else {
+        effectiveRequesterId = isPositiveInteger(requesterId) ? Number(requesterId) : req.user.id;
+      }
+    } else {
+      if (requesterId === undefined || requesterId === null || requesterId === "") {
+        cleanupFiles();
+        return res.status(400).json({ error: "Missing required ticket fields" });
+      }
+      if (!isPositiveInteger(requesterId)) {
+        cleanupFiles();
+        return res.status(400).json({ error: "requesterId, categoryId, and relatedSystemId must be valid positive integers" });
+      }
+      effectiveRequesterId = Number(requesterId);
+    }
 
     // 1. Missing fields validation -> 400 Bad Request
     if (
-      requesterId === undefined ||
       categoryId === undefined ||
       relatedSystemId === undefined ||
       !requestedPriority ||
@@ -502,7 +663,6 @@ app.post("/api/tickets", (req: Request, res: Response, next) => {
 
     // 2. ID format validation -> 400 Bad Request
     if (
-      !isPositiveInteger(requesterId) ||
       !isPositiveInteger(categoryId) ||
       !isPositiveInteger(relatedSystemId)
     ) {
@@ -570,7 +730,7 @@ app.post("/api/tickets", (req: Request, res: Response, next) => {
 
     // 4. Active entities validation -> 422 Unprocessable Entity
     const requester = await prisma.user.findFirst({
-      where: { id: Number(requesterId), isActive: true, role: "REQUESTER" },
+      where: { id: effectiveRequesterId, isActive: true, role: "REQUESTER" },
     });
     if (!requester) {
       cleanupFiles();
@@ -595,7 +755,7 @@ app.post("/api/tickets", (req: Request, res: Response, next) => {
 
     // 5. Generate Ticket Number & create Ticket + Attachments atomically
     const ticketData: any = {
-      requesterId: Number(requesterId),
+      requesterId: effectiveRequesterId,
       categoryId: Number(categoryId),
       relatedSystemId: Number(relatedSystemId),
       requestedPriority: requestedPriority as RequestedPriority,
@@ -671,6 +831,13 @@ function validateFileBufferSignature(filePath: string, ext: string): boolean {
 // 1. List Ticket Attachment Metadata
 app.get("/api/tickets/:id/attachments", async (req: Request, res: Response) => {
   try {
+    if (req.user && req.user.mustChangePassword) {
+      return res.status(403).json({
+        error: "Password change required before accessing the application",
+        code: "MUST_CHANGE_PASSWORD",
+      });
+    }
+
     const { id } = req.params;
     const queryRequesterId = req.query.requesterId;
     const headerRequesterId = req.headers["x-requester-id"];
@@ -679,26 +846,29 @@ app.get("/api/tickets/:id/attachments", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
     }
 
-    if (queryRequesterId === undefined || queryRequesterId === null || queryRequesterId === "") {
-      return res.status(400).json({ error: "requesterId query parameter is required" });
-    }
+    let numericRequesterId: number | undefined;
+    if (!req.user) {
+      if (queryRequesterId === undefined || queryRequesterId === null || queryRequesterId === "") {
+        return res.status(400).json({ error: "requesterId query parameter is required" });
+      }
 
-    if (!isPositiveInteger(queryRequesterId)) {
-      return res.status(400).json({ error: "requesterId must be a valid positive integer" });
-    }
+      if (!isPositiveInteger(queryRequesterId)) {
+        return res.status(400).json({ error: "requesterId must be a valid positive integer" });
+      }
 
-    if (
-      headerRequesterId !== undefined &&
-      headerRequesterId !== null &&
-      headerRequesterId !== "" &&
-      String(headerRequesterId) !== String(queryRequesterId)
-    ) {
-      return res.status(400).json({ error: "Conflicting requester identity between query parameter and header" });
+      if (
+        headerRequesterId !== undefined &&
+        headerRequesterId !== null &&
+        headerRequesterId !== "" &&
+        String(headerRequesterId) !== String(queryRequesterId)
+      ) {
+        return res.status(400).json({ error: "Conflicting requester identity between query parameter and header" });
+      }
+
+      numericRequesterId = Number(queryRequesterId);
     }
 
     const ticketId = Number(id);
-    const numericRequesterId = Number(queryRequesterId);
-
     const prisma = getPrisma();
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
@@ -709,7 +879,11 @@ app.get("/api/tickets/:id/attachments", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Ticket not found" });
     }
 
-    if (ticket.requesterId !== numericRequesterId) {
+    if (req.user) {
+      if (req.user.role === "REQUESTER" && ticket.requesterId !== req.user.id) {
+        return res.status(403).json({ error: "Forbidden: You do not have access to this ticket's attachments" });
+      }
+    } else if (numericRequesterId !== undefined && ticket.requesterId !== numericRequesterId) {
       return res.status(403).json({ error: "Forbidden: You do not have access to this ticket's attachments" });
     }
 
@@ -752,6 +926,14 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next) => 
   });
 }, async (req: Request, res: Response) => {
   try {
+    if (req.user && req.user.mustChangePassword) {
+      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(403).json({
+        error: "Password change required before accessing the application",
+        code: "MUST_CHANGE_PASSWORD",
+      });
+    }
+
     const { id } = req.params;
     const bodyRequesterId = req.body?.requesterId || req.query?.requesterId;
 
@@ -760,14 +942,18 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next) => 
       return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
     }
 
-    if (!bodyRequesterId || !isPositiveInteger(bodyRequesterId)) {
-      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ error: "requesterId parameter is required" });
+    let numericRequesterId: number;
+    if (req.user) {
+      numericRequesterId = req.user.id;
+    } else {
+      if (!bodyRequesterId || !isPositiveInteger(bodyRequesterId)) {
+        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ error: "requesterId parameter is required" });
+      }
+      numericRequesterId = Number(bodyRequesterId);
     }
 
     const ticketId = Number(id);
-    const numericRequesterId = Number(bodyRequesterId);
-
     const prisma = getPrisma();
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
@@ -779,7 +965,12 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next) => 
       return res.status(404).json({ error: "Ticket not found" });
     }
 
-    if (ticket.requesterId !== numericRequesterId) {
+    if (req.user) {
+      if (req.user.role === "REQUESTER" && ticket.requesterId !== req.user.id) {
+        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        return res.status(403).json({ error: "Forbidden: You do not have access to upload attachments to this ticket" });
+      }
+    } else if (ticket.requesterId !== numericRequesterId) {
       if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
       return res.status(403).json({ error: "Forbidden: You do not have access to upload attachments to this ticket" });
     }
@@ -877,6 +1068,13 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next) => 
 // 3. Download Attachment Stream
 app.get("/api/attachments/:id/download", async (req: Request, res: Response) => {
   try {
+    if (req.user && req.user.mustChangePassword) {
+      return res.status(403).json({
+        error: "Password change required before accessing the application",
+        code: "MUST_CHANGE_PASSWORD",
+      });
+    }
+
     const { id } = req.params;
     const queryRequesterId = req.query.requesterId;
 
@@ -884,17 +1082,20 @@ app.get("/api/attachments/:id/download", async (req: Request, res: Response) => 
       return res.status(400).json({ error: "Attachment id must be a valid positive integer" });
     }
 
-    if (queryRequesterId === undefined || queryRequesterId === null || queryRequesterId === "") {
-      return res.status(400).json({ error: "requesterId query parameter is required" });
-    }
+    let numericRequesterId: number | undefined;
+    if (!req.user) {
+      if (queryRequesterId === undefined || queryRequesterId === null || queryRequesterId === "") {
+        return res.status(400).json({ error: "requesterId query parameter is required" });
+      }
 
-    if (!isPositiveInteger(queryRequesterId)) {
-      return res.status(400).json({ error: "requesterId must be a valid positive integer" });
+      if (!isPositiveInteger(queryRequesterId)) {
+        return res.status(400).json({ error: "requesterId must be a valid positive integer" });
+      }
+
+      numericRequesterId = Number(queryRequesterId);
     }
 
     const attachmentId = Number(id);
-    const numericRequesterId = Number(queryRequesterId);
-
     const prisma = getPrisma();
     const attachment = await prisma.attachment.findUnique({
       where: { id: attachmentId },
@@ -911,7 +1112,11 @@ app.get("/api/attachments/:id/download", async (req: Request, res: Response) => 
       return res.status(404).json({ error: "Attachment not found" });
     }
 
-    if (attachment.ticket.requesterId !== numericRequesterId) {
+    if (req.user) {
+      if (req.user.role === "REQUESTER" && attachment.ticket.requesterId !== req.user.id) {
+        return res.status(403).json({ error: "Forbidden: You do not have access to download this attachment" });
+      }
+    } else if (numericRequesterId !== undefined && attachment.ticket.requesterId !== numericRequesterId) {
       return res.status(403).json({ error: "Forbidden: You do not have access to download this attachment" });
     }
 
@@ -933,16 +1138,29 @@ app.get("/api/attachments/:id/download", async (req: Request, res: Response) => 
 // 4. Soft-remove Attachment
 const handleSoftRemove = async (req: Request, res: Response) => {
   try {
+    if (req.user && req.user.mustChangePassword) {
+      return res.status(403).json({
+        error: "Password change required before accessing the application",
+        code: "MUST_CHANGE_PASSWORD",
+      });
+    }
+
     const { id } = req.params;
-    const rawRequesterId = req.body?.requesterId || req.query?.requesterId;
     const rawRemovalReason = req.body?.removalReason || req.query?.removalReason;
 
     if (!isPositiveInteger(id)) {
       return res.status(400).json({ error: "Attachment id must be a valid positive integer" });
     }
 
-    if (!rawRequesterId || !isPositiveInteger(rawRequesterId)) {
-      return res.status(400).json({ error: "requesterId parameter is required" });
+    let numericRequesterId: number;
+    if (req.user) {
+      numericRequesterId = req.user.id;
+    } else {
+      const rawRequesterId = req.body?.requesterId || req.query?.requesterId;
+      if (!rawRequesterId || !isPositiveInteger(rawRequesterId)) {
+        return res.status(400).json({ error: "requesterId parameter is required" });
+      }
+      numericRequesterId = Number(rawRequesterId);
     }
 
     if (!rawRemovalReason || typeof rawRemovalReason !== "string") {
@@ -955,8 +1173,6 @@ const handleSoftRemove = async (req: Request, res: Response) => {
     }
 
     const attachmentId = Number(id);
-    const numericRequesterId = Number(rawRequesterId);
-
     const prisma = getPrisma();
     const attachment = await prisma.attachment.findUnique({
       where: { id: attachmentId },
@@ -973,7 +1189,11 @@ const handleSoftRemove = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Attachment not found" });
     }
 
-    if (attachment.ticket.requesterId !== numericRequesterId) {
+    if (req.user) {
+      if (req.user.role === "REQUESTER" && attachment.ticket.requesterId !== req.user.id) {
+        return res.status(403).json({ error: "Forbidden: You do not have access to remove this attachment" });
+      }
+    } else if (attachment.ticket.requesterId !== numericRequesterId) {
       return res.status(403).json({ error: "Forbidden: You do not have access to remove this attachment" });
     }
 
