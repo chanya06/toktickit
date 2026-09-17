@@ -1,8 +1,39 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext.js";
 import { useRequester } from "../context/RequesterContext.js";
-import { fetchTicketDetail, indicateResolution, TicketResponse } from "../api.js";
+import {
+  fetchTicketDetail,
+  indicateResolution,
+  claimTicket,
+  assignTicket,
+  updateTicketITPriority,
+  updateTicketStatus,
+  fetchStaffAssignees,
+  TicketResponse,
+  StaffAssignee,
+} from "../api.js";
 import { AttachmentSection } from "./AttachmentSection.js";
+
+const PERMITTED_NEXT_STATUSES: Record<string, string[]> = {
+  NEW: ["OPEN", "CANCELLED"],
+  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  RESOLVED: ["CLOSED", "REOPENED"],
+  CLOSED: ["REOPENED"],
+  CANCELLED: ["OPEN"],
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  NEW: "New",
+  OPEN: "Open",
+  IN_PROGRESS: "In Progress",
+  WAITING_FOR_REQUESTER: "Waiting for Requester",
+  RESOLVED: "Resolved",
+  CLOSED: "Closed",
+  REOPENED: "Reopened",
+  CANCELLED: "Cancelled",
+};
 
 interface TicketDetailViewProps {
   ticketId: number;
@@ -13,6 +44,8 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
   const auth = useContext(AuthContext);
   const user = auth?.user;
   const { selectedRequester } = useRequester();
+
+  const isStaffOrAdmin = user?.role === "IT_STAFF" || user?.role === "ADMINISTRATOR";
 
   const effectiveRequesterId = user ? user.id : selectedRequester?.id;
   const effectiveRequesterName = user ? user.fullName : selectedRequester?.name;
@@ -29,6 +62,20 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
   const [resolutionComment, setResolutionComment] = useState<string>("");
   const [isSubmittingResolution, setIsSubmittingResolution] = useState<boolean>(false);
   const [resolutionError, setResolutionError] = useState<string | null>(null);
+
+  // IT Staff & Admin operational state (Issue 24)
+  const [assignees, setAssignees] = useState<StaffAssignee[]>([]);
+  const [isOperating, setIsOperating] = useState<boolean>(false);
+  const [operationMessage, setOperationMessage] = useState<{ type: "success" | "danger"; text: string } | null>(null);
+  const [selectedNextStatus, setSelectedNextStatus] = useState<string>("");
+
+  useEffect(() => {
+    if (isStaffOrAdmin) {
+      fetchStaffAssignees()
+        .then((data) => setAssignees(data))
+        .catch((err) => console.error("Failed to load staff assignees:", err));
+    }
+  }, [isStaffOrAdmin]);
 
   const canIndicateResolution =
     (!user || user.role === "REQUESTER") &&
@@ -47,6 +94,70 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
       setResolutionError(err.message || "Failed to submit resolution indication");
     } finally {
       setIsSubmittingResolution(false);
+    }
+  };
+
+  const handleClaim = async () => {
+    setIsOperating(true);
+    setOperationMessage(null);
+    try {
+      const res = await claimTicket(ticketId);
+      setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
+      setOperationMessage({ type: "success", text: "You have successfully claimed this ticket." });
+    } catch (err: any) {
+      setOperationMessage({ type: "danger", text: err.message || "Failed to claim ticket" });
+    } finally {
+      setIsOperating(false);
+    }
+  };
+
+  const handleAssign = async (targetOwnerId: number | null) => {
+    setIsOperating(true);
+    setOperationMessage(null);
+    try {
+      const res = await assignTicket(ticketId, targetOwnerId);
+      setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
+      setOperationMessage({
+        type: "success",
+        text: targetOwnerId ? "Ticket assigned successfully." : "Ticket unassigned successfully.",
+      });
+    } catch (err: any) {
+      setOperationMessage({ type: "danger", text: err.message || "Failed to assign ticket" });
+    } finally {
+      setIsOperating(false);
+    }
+  };
+
+  const handleITPriorityChange = async (newPriority: string) => {
+    setIsOperating(true);
+    setOperationMessage(null);
+    try {
+      const res = await updateTicketITPriority(ticketId, newPriority);
+      setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
+      setOperationMessage({ type: "success", text: `IT Priority updated to ${newPriority}.` });
+    } catch (err: any) {
+      setOperationMessage({ type: "danger", text: err.message || "Failed to update IT Priority" });
+    } finally {
+      setIsOperating(false);
+    }
+  };
+
+  const handleExecuteStatusTransition = async () => {
+    if (!selectedNextStatus) return;
+    setIsOperating(true);
+    setOperationMessage(null);
+    try {
+      const res = await updateTicketStatus(ticketId, selectedNextStatus);
+      setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
+      setSelectedNextStatus("");
+      setOperationMessage({
+        type: "success",
+        text: `Ticket status successfully changed to ${STATUS_LABELS[res.ticket.status] || res.ticket.status}.`,
+      });
+    } catch (err: any) {
+      setOperationMessage({ type: "danger", text: err.message || "Failed to update ticket status" });
+    } finally {
+      setIsOperating(false);
     }
   };
 
@@ -179,7 +290,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
             onClick={onBack}
             data-testid="forbidden-back-btn"
           >
-            &laquo; Back to My Tickets
+            &laquo; {isStaffOrAdmin ? "Back to Ticket Queue" : "Back to My Tickets"}
           </button>
         </div>
       </div>
@@ -207,7 +318,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
             onClick={onBack}
             data-testid="notfound-back-btn"
           >
-            &laquo; Back to My Tickets
+            &laquo; {isStaffOrAdmin ? "Back to Ticket Queue" : "Back to My Tickets"}
           </button>
         </div>
       </div>
@@ -250,7 +361,9 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
         <div>
           <nav aria-label="breadcrumb">
             <ol className="breadcrumb mb-0 small">
-              <li className="breadcrumb-item text-muted">My Tickets</li>
+              <li className="breadcrumb-item text-muted">
+                {isStaffOrAdmin ? "Ticket Queue" : "My Tickets"}
+              </li>
               <li className="breadcrumb-item active fw-semibold text-dark" aria-current="page">
                 Ticket Details
               </li>
@@ -286,7 +399,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
             onClick={onBack}
             data-testid="back-to-tickets-btn"
           >
-            <span>&larr;</span> Back to My Tickets
+            <span>&larr;</span> {isStaffOrAdmin ? "Back to Ticket Queue" : "Back to My Tickets"}
           </button>
         </div>
       </div>
@@ -339,8 +452,8 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
           <div className="row g-3 mb-3">
             <div className="col-12 col-sm-6 col-md-3">
               <label className="form-label fw-semibold text-muted small mb-1">Requester</label>
-              <div className="form-control form-control-sm bg-light text-dark">
-                {ticket.requester?.name || effectiveRequesterName}
+              <div className="form-control form-control-sm bg-light text-dark" data-testid="detail-requester-name">
+                {ticket.requester?.fullName || ticket.requester?.name || effectiveRequesterName}
               </div>
             </div>
             <div className="col-12 col-sm-6 col-md-3">
@@ -354,7 +467,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
             <div className="col-12 col-sm-6 col-md-3">
               <label className="form-label fw-semibold text-muted small mb-1">IT Priority</label>
               <div>
-                <span className={getPriorityBadgeClass(ticket.itPriority || ticket.requestedPriority)}>
+                <span className={getPriorityBadgeClass(ticket.itPriority || ticket.requestedPriority)} data-testid="detail-it-priority-badge">
                   Priority: {ticket.itPriority || ticket.requestedPriority}
                 </span>
               </div>
@@ -373,8 +486,8 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
           <div className="row g-3 mb-3">
             <div className="col-12 col-md-3">
               <label className="form-label fw-semibold text-muted small mb-1">Ticket Owner</label>
-              <div className="form-control form-control-sm bg-light text-muted">
-                {ticket.ticketOwner || "Unassigned"}
+              <div className="form-control form-control-sm bg-light text-muted" data-testid="detail-ticket-owner">
+                {ticket.ticketOwner || ticket.owner?.fullName || "Unassigned"}
               </div>
             </div>
             <div className="col-12 col-md-9">
@@ -409,6 +522,140 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
           </div>
         </div>
       </div>
+
+      {/* IT Staff & Administrator Operations Panel (Issue 24) */}
+      {isStaffOrAdmin && (
+        <div className="card shadow-sm mb-4 border-success border-opacity-25" data-testid="staff-operations-panel">
+          <div className="card-header bg-success bg-opacity-10 py-2 px-3 d-flex justify-content-between align-items-center">
+            <span className="fw-bold text-success small d-flex align-items-center gap-1">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+              </svg>
+              IT Staff Ticket Operations
+            </span>
+            <span className="badge bg-success text-white small">Staff Control</span>
+          </div>
+          <div className="card-body p-3">
+            {operationMessage && (
+              <div
+                className={`alert alert-${operationMessage.type} alert-dismissible py-2 px-3 mb-3 small d-flex justify-content-between align-items-center`}
+                role="alert"
+                data-testid="operation-feedback"
+              >
+                <span>{operationMessage.text}</span>
+                <button
+                  type="button"
+                  className="btn-close py-2"
+                  aria-label="Close"
+                  onClick={() => setOperationMessage(null)}
+                />
+              </div>
+            )}
+
+            <div className="row g-3 align-items-end">
+              {/* Claim Action */}
+              <div className="col-12 col-md-3">
+                <label className="form-label fw-semibold text-muted small mb-1">Quick Claim</label>
+                <div>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-success w-100 d-flex align-items-center justify-content-center gap-1"
+                    disabled={isOperating || ticket.ownerId === user?.id}
+                    onClick={handleClaim}
+                    data-testid="claim-ticket-btn"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span>{ticket.ownerId === user?.id ? "Claimed by You" : "Claim Ticket"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Owner Assignment Selector */}
+              <div className="col-12 col-md-3">
+                <label htmlFor="staff-owner-select" className="form-label fw-semibold text-muted small mb-1">
+                  Assign Owner
+                </label>
+                <select
+                  id="staff-owner-select"
+                  className="form-select form-select-sm"
+                  disabled={isOperating}
+                  value={ticket.ownerId ? String(ticket.ownerId) : ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    handleAssign(val ? Number(val) : null);
+                  }}
+                  data-testid="owner-selector"
+                >
+                  <option value="">Unassigned</option>
+                  {assignees.map((assignee) => (
+                    <option key={assignee.id} value={assignee.id}>
+                      {assignee.fullName} ({assignee.role === "ADMINISTRATOR" ? "Admin" : "Staff"})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* IT Priority Selector */}
+              <div className="col-12 col-md-3">
+                <label htmlFor="staff-it-priority-select" className="form-label fw-semibold text-muted small mb-1">
+                  IT Priority
+                </label>
+                <select
+                  id="staff-it-priority-select"
+                  className="form-select form-select-sm"
+                  disabled={isOperating}
+                  value={ticket.itPriority || ticket.requestedPriority}
+                  onChange={(e) => handleITPriorityChange(e.target.value)}
+                  data-testid="it-priority-selector"
+                >
+                  <option value="LOW">LOW</option>
+                  <option value="MEDIUM">MEDIUM</option>
+                  <option value="HIGH">HIGH</option>
+                  <option value="URGENT">URGENT</option>
+                </select>
+              </div>
+
+              {/* Status Transition Control */}
+              <div className="col-12 col-md-3">
+                <label htmlFor="staff-status-select" className="form-label fw-semibold text-muted small mb-1">
+                  Change Status
+                </label>
+                <div className="input-group input-group-sm">
+                  <select
+                    id="staff-status-select"
+                    className="form-select form-select-sm"
+                    disabled={isOperating || (PERMITTED_NEXT_STATUSES[ticket.status] || []).length === 0}
+                    value={selectedNextStatus}
+                    onChange={(e) => setSelectedNextStatus(e.target.value)}
+                    data-testid="status-transition-selector"
+                  >
+                    <option value="">Select Next Status...</option>
+                    {(PERMITTED_NEXT_STATUSES[ticket.status] || []).map((st) => (
+                      <option key={st} value={st}>
+                        {STATUS_LABELS[st] || st}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="btn btn-zen-primary btn-sm"
+                    disabled={isOperating || !selectedNextStatus}
+                    onClick={handleExecuteStatusTransition}
+                    data-testid="apply-status-btn"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Feature Tabs Navigation Bar (Matching Figure 1 of Handout) */}
       <ul className="nav nav-tabs mb-3 border-bottom">

@@ -21,7 +21,7 @@
 | **UI-01** | UI | AC-01 / FR-01 | Login Form rendering and validation | Busy state, inline validation errors | `client/tests/lab-03/Login.test.tsx` | Pass |
 | **UI-02** | UI | AC-02 / FR-03 | Change Password screen requirements checklist | Checks uppercase, number, special char | `client/tests/lab-03/ChangePassword.test.tsx` | Pass |
 | **UI-03** | UI | AC-05 / FR-10 | IT Staff Ticket Queue controls & badges | Filters, sorting, role/status badges | `client/tests/lab-03/StaffTicketQueue.test.tsx` | Pass |
-| **UI-04** | UI | AC-08 / FR-14 | IT Staff Detail Public Comments vs Internal Notes | Distinct yellow/amber callout for Internal Notes | `client/tests/lab-03/StaffTicketDetail.test.tsx` | Pass |
+| **UI-04** | UI | AC-06..08 / FR-11..14 | IT Staff Operations & Detail controls | Quick claim, owner/priority/status controls, distinct comments vs internal notes | `client/tests/lab-03/StaffTicketDetail.test.tsx` | Pass |
 | **UI-05** | UI | AC-09 / FR-15 | Admin User Management table & Create User modal | User list, modal validations | `client/tests/lab-03/UserManagement.test.tsx` | Pass |
 | **E2E-01** | E2E | AC-01 / AC-02 | Login to Mandatory Password Change E2E flow | Normal app opens only after password change | `e2e/lab-03/authentication.spec.ts` | Pass |
 | **E2E-02** | E2E | AC-05 / AC-06 | IT Staff Ticket Queue & Ownership Claim E2E | IT Staff logs in, claims ticket, updates status | `e2e/lab-03/staff-ticket-flow.spec.ts` | Pass |
@@ -45,7 +45,7 @@
 - `ChangePassword.test.tsx`: Password criteria validation, submit handlers.
 - `RequesterResolution.test.tsx`: Resolution indication action button, confirmation modal with notes, status banner and badge.
 - `StaffTicketQueue.test.tsx`: Search input, filter drawer, column sorting, pagination interaction.
-- `StaffTicketDetail.test.tsx`: Public Comments vs Internal Notes tab rendering and forms.
+- `StaffTicketDetail.test.tsx`: Ticket claim, owner reassignment, IT Priority update, BR-14 status matrix enforcement, Public Comments vs Internal Notes.
 - `UserManagement.test.tsx`: User table, search, Create/Edit drawers, Reset Password modal.
 
 ### End-to-End Tests (`e2e/lab-03/`)

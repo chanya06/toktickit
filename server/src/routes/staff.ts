@@ -281,3 +281,373 @@ staffRouter.get("/tickets", async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Failed to fetch staff tickets queue" });
   }
 });
+
+// ---------------------------------------------------------------------------
+// Permitted Status Transition Matrix (BR-14, FR-13, AC-07)
+// ---------------------------------------------------------------------------
+export const PERMITTED_STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
+  [TicketStatus.NEW]: [TicketStatus.OPEN, TicketStatus.CANCELLED],
+  [TicketStatus.OPEN]: [
+    TicketStatus.IN_PROGRESS,
+    TicketStatus.WAITING_FOR_REQUESTER,
+    TicketStatus.RESOLVED,
+    TicketStatus.CANCELLED,
+  ],
+  [TicketStatus.IN_PROGRESS]: [
+    TicketStatus.WAITING_FOR_REQUESTER,
+    TicketStatus.RESOLVED,
+    TicketStatus.CANCELLED,
+  ],
+  [TicketStatus.WAITING_FOR_REQUESTER]: [
+    TicketStatus.IN_PROGRESS,
+    TicketStatus.RESOLVED,
+    TicketStatus.CANCELLED,
+  ],
+  [TicketStatus.RESOLVED]: [TicketStatus.CLOSED, TicketStatus.REOPENED],
+  [TicketStatus.CLOSED]: [TicketStatus.REOPENED],
+  [TicketStatus.CANCELLED]: [TicketStatus.OPEN],
+};
+
+const defaultTicketDetailSelect = {
+  id: true,
+  ticketNumber: true,
+  requesterId: true,
+  categoryId: true,
+  relatedSystemId: true,
+  summary: true,
+  description: true,
+  requestedPriority: true,
+  itPriority: true,
+  status: true,
+  ticketOwner: true,
+  ownerId: true,
+  isResolutionIndicated: true,
+  createdAt: true,
+  updatedAt: true,
+  requester: {
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+    },
+  },
+  owner: {
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      role: true,
+    },
+  },
+  category: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  relatedSystem: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+};
+
+function formatDetailResponse(t: any) {
+  return {
+    ...t,
+    createdAt: t.createdAt.toISOString ? t.createdAt.toISOString() : t.createdAt,
+    updatedAt: t.updatedAt.toISOString ? t.updatedAt.toISOString() : t.updatedAt,
+    requester: t.requester
+      ? {
+          ...t.requester,
+          name: t.requester.fullName,
+        }
+      : null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/staff/assignees — Active Staff & Admins for Ticket Assignment
+// ---------------------------------------------------------------------------
+staffRouter.get("/assignees", async (_req: Request, res: Response) => {
+  try {
+    const prisma = getPrisma();
+    const users = await prisma.user.findMany({
+      where: {
+        isActive: true,
+        role: { in: [Role.IT_STAFF, Role.ADMINISTRATOR] },
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+      },
+      orderBy: { fullName: "asc" },
+    });
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching staff assignees:", error);
+    return res.status(500).json({ error: "Failed to fetch staff assignees" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /api/staff/tickets/:id/claim — Claim Ticket Ownership (FR-11, AC-06, API-07)
+// ---------------------------------------------------------------------------
+staffRouter.patch("/tickets/:id/claim", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!isPositiveInteger(id)) {
+      return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
+    }
+
+    const ticketId = Number(id);
+    const prisma = getPrisma();
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    const currentUserId = req.user!.id;
+    const currentUser = await prisma.user.findUnique({
+      where: { id: currentUserId },
+    });
+
+    // Auto-transition NEW -> OPEN upon claim (BR-14)
+    const newStatus = ticket.status === TicketStatus.NEW ? TicketStatus.OPEN : ticket.status;
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+        ownerId: currentUserId,
+        ticketOwner: currentUser?.fullName || req.user!.email,
+        status: newStatus,
+      },
+      select: defaultTicketDetailSelect,
+    });
+
+    return res.status(200).json({
+      message: "Ticket claimed successfully",
+      ticket: formatDetailResponse(updated),
+    });
+  } catch (error) {
+    console.error("Error claiming ticket:", error);
+    return res.status(500).json({ error: "Failed to claim ticket" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /api/staff/tickets/:id/assign — Assign Ticket Ownership (FR-11, AC-06, API-07)
+// ---------------------------------------------------------------------------
+staffRouter.patch("/tickets/:id/assign", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!isPositiveInteger(id)) {
+      return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
+    }
+
+    const ticketId = Number(id);
+    const { ownerId } = req.body;
+    const prisma = getPrisma();
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // Support unassigning
+    if (ownerId === null || ownerId === undefined || ownerId === "unassigned" || ownerId === "") {
+      const updated = await prisma.ticket.update({
+        where: { id: ticketId },
+        data: {
+          ownerId: null,
+          ticketOwner: null,
+        },
+        select: defaultTicketDetailSelect,
+      });
+
+      return res.status(200).json({
+        message: "Ticket unassigned successfully",
+        ticket: formatDetailResponse(updated),
+      });
+    }
+
+    if (!isPositiveInteger(ownerId)) {
+      return res.status(400).json({ error: "ownerId must be a valid positive integer or null" });
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { id: Number(ownerId) },
+    });
+
+    if (!targetUser) {
+      return res.status(422).json({ error: "Target assignee user not found" });
+    }
+
+    if (!targetUser.isActive) {
+      return res.status(422).json({ error: "Cannot assign ticket to an inactive user" });
+    }
+
+    if (targetUser.role !== Role.IT_STAFF && targetUser.role !== Role.ADMINISTRATOR) {
+      return res.status(422).json({ error: "Ticket owner must have IT_STAFF or ADMINISTRATOR role" });
+    }
+
+    // Auto-transition NEW -> OPEN upon assignment (BR-14)
+    const newStatus = ticket.status === TicketStatus.NEW ? TicketStatus.OPEN : ticket.status;
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+        ownerId: targetUser.id,
+        ticketOwner: targetUser.fullName,
+        status: newStatus,
+      },
+      select: defaultTicketDetailSelect,
+    });
+
+    return res.status(200).json({
+      message: "Ticket assigned successfully",
+      ticket: formatDetailResponse(updated),
+    });
+  } catch (error) {
+    console.error("Error assigning ticket:", error);
+    return res.status(500).json({ error: "Failed to assign ticket" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /api/staff/tickets/:id/it-priority — Update IT Priority (FR-12, AC-05)
+// ---------------------------------------------------------------------------
+staffRouter.patch("/tickets/:id/it-priority", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!isPositiveInteger(id)) {
+      return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
+    }
+
+    const ticketId = Number(id);
+    const { itPriority } = req.body;
+
+    if (
+      !itPriority ||
+      typeof itPriority !== "string" ||
+      !Object.values(ITPriority).includes(itPriority.toUpperCase() as ITPriority)
+    ) {
+      return res.status(400).json({
+        error: "Invalid itPriority parameter. Permitted values: LOW, MEDIUM, HIGH, URGENT",
+      });
+    }
+
+    const prisma = getPrisma();
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+        itPriority: itPriority.toUpperCase() as ITPriority,
+      },
+      select: defaultTicketDetailSelect,
+    });
+
+    return res.status(200).json({
+      message: "Ticket IT Priority updated successfully",
+      ticket: formatDetailResponse(updated),
+    });
+  } catch (error) {
+    console.error("Error updating IT priority:", error);
+    return res.status(500).json({ error: "Failed to update IT priority" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /api/staff/tickets/:id/status — Status Transition Matrix Enforcement (FR-13, BR-14, AC-07, API-08)
+// ---------------------------------------------------------------------------
+staffRouter.patch("/tickets/:id/status", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!isPositiveInteger(id)) {
+      return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
+    }
+
+    const ticketId = Number(id);
+    const { status } = req.body;
+
+    if (
+      !status ||
+      typeof status !== "string" ||
+      !Object.values(TicketStatus).includes(status.toUpperCase() as TicketStatus)
+    ) {
+      return res.status(400).json({
+        error: "Invalid status parameter. Must be a valid TicketStatus value",
+      });
+    }
+
+    const targetStatus = status.toUpperCase() as TicketStatus;
+    const prisma = getPrisma();
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    const currentStatus = ticket.status;
+
+    // If status is identical, return current ticket state
+    if (currentStatus === targetStatus) {
+      const formatted = await prisma.ticket.findUnique({
+        where: { id: ticketId },
+        select: defaultTicketDetailSelect,
+      });
+      return res.status(200).json({
+        message: "Ticket status unchanged",
+        ticket: formatDetailResponse(formatted!),
+      });
+    }
+
+    // Validate transition against BR-14 status matrix
+    const permittedNext = PERMITTED_STATUS_TRANSITIONS[currentStatus] || [];
+    if (!permittedNext.includes(targetStatus)) {
+      return res.status(422).json({
+        error: `Invalid status transition: Cannot transition from ${currentStatus} to ${targetStatus}`,
+        currentStatus,
+        targetStatus,
+        permittedStatuses: permittedNext,
+      });
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+        status: targetStatus,
+      },
+      select: defaultTicketDetailSelect,
+    });
+
+    return res.status(200).json({
+      message: "Ticket status updated successfully",
+      ticket: formatDetailResponse(updated),
+    });
+  } catch (error) {
+    console.error("Error updating ticket status:", error);
+    return res.status(500).json({ error: "Failed to update ticket status" });
+  }
+});
+
