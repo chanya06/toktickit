@@ -140,11 +140,10 @@ function MainApp() {
     );
   }
 
-  // 2. Backward compatibility for Lab 2 test suites
-  // (when toktickit_dev_requester_id is in localStorage or in test mode without token)
+  // 2. Backward compatibility for Lab 2 test suites (only in test environment)
   const isDevRequesterFlow =
-    Boolean(localStorage.getItem("toktickit_dev_requester_id")) ||
-    (import.meta.env.MODE === "test" && isModalOpen);
+    import.meta.env.MODE === "test" &&
+    (Boolean(localStorage.getItem("toktickit_dev_requester_id")) || isModalOpen);
 
   if (isDevRequesterFlow) {
     return (
