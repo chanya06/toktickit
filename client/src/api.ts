@@ -596,3 +596,127 @@ export async function changePassword(
   return data;
 }
 
+export interface StaffTicketResponse {
+  id: number;
+  ticketNumber: string;
+  summary: string;
+  description?: string;
+  category: { id: number; name: string };
+  relatedSystem?: { id: number; name: string };
+  requestedPriority: string;
+  itPriority: string;
+  status: string;
+  currentStatus?: string;
+  isResolutionIndicated: boolean;
+  requesterId?: number;
+  requester?: {
+    id: number;
+    fullName: string;
+    email: string;
+    department?: string | null;
+  } | null;
+  ownerId?: number | null;
+  owner?: {
+    id: number;
+    fullName: string;
+    email: string;
+    role: string;
+  } | null;
+  ticketOwner?: string;
+  attachmentCount?: number;
+  publicCommentCount?: number;
+  internalNoteCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FetchStaffTicketsParams {
+  search?: string;
+  category?: number | number[] | string;
+  categoryId?: number | number[] | string;
+  status?: string | string[];
+  itPriority?: string | string[];
+  priority?: string | string[];
+  ownerId?: string | number;
+  page?: number;
+  limit?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
+  sortOrder?: "asc" | "desc";
+}
+
+export interface PaginatedStaffTicketsResponse {
+  data: StaffTicketResponse[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+    totalItems: number;
+  };
+}
+
+export async function fetchStaffTickets(
+  params?: FetchStaffTicketsParams,
+  signal?: AbortSignal
+): Promise<PaginatedStaffTicketsResponse> {
+  const query = new URLSearchParams();
+  if (params?.search && params.search.trim()) {
+    query.set("search", params.search.trim());
+  }
+  const cat = params?.category ?? params?.categoryId;
+  if (cat !== undefined && cat !== null) {
+    const catStr = Array.isArray(cat) ? cat.join(",") : String(cat);
+    if (catStr) query.set("category", catStr);
+  }
+  if (params?.status) {
+    const stStr = Array.isArray(params.status) ? params.status.join(",") : String(params.status);
+    if (stStr) query.set("status", stStr);
+  }
+  const pri = params?.itPriority ?? params?.priority;
+  if (pri) {
+    const priStr = Array.isArray(pri) ? pri.join(",") : String(pri);
+    if (priStr) query.set("itPriority", priStr);
+  }
+  if (params?.ownerId !== undefined && params.ownerId !== null && String(params.ownerId).trim()) {
+    query.set("ownerId", String(params.ownerId).trim());
+  }
+  if (params?.page !== undefined) {
+    query.set("page", String(params.page));
+  }
+  const lim = params?.limit ?? params?.pageSize;
+  if (lim !== undefined) {
+    query.set("limit", String(lim));
+  }
+  if (params?.sortBy) {
+    query.set("sortBy", params.sortBy);
+  }
+  const dir = params?.sortDir ?? params?.sortOrder;
+  if (dir) {
+    query.set("sortDir", dir);
+  }
+
+  const res = await fetch(`${API_URL}/api/staff/tickets?${query.toString()}`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch staff tickets queue");
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  return data;
+}
+
