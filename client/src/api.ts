@@ -514,7 +514,7 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
 export async function changePassword(
   currentPassword: string,
   newPassword: string
-): Promise<{ message: string; user: AuthUser }> {
+): Promise<{ message: string; user: AuthUser; token?: string }> {
   const res = await fetch(`${API_URL}/api/auth/change-password`, {
     method: "POST",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
@@ -531,6 +531,9 @@ export async function changePassword(
     throw err;
   }
 
+  if (data.token) {
+    setStoredToken(data.token);
+  }
   if (data.user) {
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));

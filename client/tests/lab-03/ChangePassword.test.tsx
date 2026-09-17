@@ -141,4 +141,25 @@ describe("ChangePasswordView Component (Issue 20 - UI-02)", () => {
       expect(onSuccessMock).toHaveBeenCalled();
     });
   });
+
+  it("persists new token to storage when api.changePassword returns a new token", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        message: "Password changed successfully",
+        user: {
+          id: 1,
+          email: "david.lee@example.com",
+          fullName: "David Lee",
+          role: "REQUESTER",
+          mustChangePassword: false,
+        },
+        token: "brand-new-jwt-token-777",
+      }),
+    } as any);
+
+    const result = await api.changePassword("Current123!", "NewPass123!");
+    expect(result.token).toBe("brand-new-jwt-token-777");
+    expect(api.getStoredToken()).toBe("brand-new-jwt-token-777");
+  });
 });

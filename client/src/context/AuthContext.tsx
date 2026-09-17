@@ -81,6 +81,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     const res = await apiChangePassword(currentPassword, newPassword);
     setUser(res.user);
+    if (res.token) {
+      setToken(res.token);
+    }
   };
 
   const refreshUser = async () => {

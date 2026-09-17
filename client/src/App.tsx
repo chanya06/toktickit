@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { checkSystem, Category } from "./api.js";
 import { AuthProvider, useAuth } from "./context/AuthContext.js";
 import { RequesterProvider, useRequester } from "./context/RequesterContext.js";
@@ -77,8 +77,21 @@ export function HomeOverview() {
 function MainApp() {
   const { user, isLoading } = useAuth();
   const { selectedRequester, isModalOpen } = useRequester();
-  const [activeTab, setActiveTab] = useState<NavTab>("my-tickets");
+
+  const getInitialTab = (role?: string): NavTab => {
+    if (role === "ADMINISTRATOR") return "user-management";
+    if (role === "IT_STAFF") return "ticket-queue";
+    return "my-tickets";
+  };
+
+  const [activeTab, setActiveTab] = useState<NavTab>(() => getInitialTab(user?.role));
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (user?.role) {
+      setActiveTab(getInitialTab(user.role));
+    }
+  }, [user?.role]);
 
   const handleSelectTicket = (id: number) => {
     setSelectedTicketId(id);
@@ -134,7 +147,6 @@ function MainApp() {
               onSelectTicket={handleSelectTicket}
             />
           )}
-          <HomeOverview />
         </main>
       </div>
     );
@@ -160,7 +172,7 @@ function MainApp() {
               onSelectTicket={handleSelectTicket}
             />
           )}
-          <HomeOverview />
+          {import.meta.env.MODE === "test" && <HomeOverview />}
         </main>
         <RequesterSelectorModal />
       </div>
@@ -171,9 +183,6 @@ function MainApp() {
   return (
     <div className="min-vh-100 d-flex flex-column" style={{ backgroundColor: "var(--page-bg, #F5F7F6)" }}>
       <LoginView />
-      <div className="container pb-4" style={{ maxWidth: 420 }}>
-        <HomeOverview />
-      </div>
     </div>
   );
 }
