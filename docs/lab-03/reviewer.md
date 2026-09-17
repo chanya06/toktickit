@@ -17,7 +17,8 @@
 | [PR #60](https://github.com/chanya06/toktickit/pull/60) | `feature/21-requester-session` | Approved |
 | [PR #61](https://github.com/chanya06/toktickit/pull/61) | `feature/22-staff-queue-api` | Approved |
 | [PR #62](https://github.com/chanya06/toktickit/pull/62) | `feature/23-staff-queue-ui` | Approved |
-| [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | In Review |
+| [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | Approved |
+| [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | In Review |
 
 ---
 
