@@ -9,6 +9,7 @@ import { RequesterSelectorModal } from "./components/RequesterSelectorModal.js";
 import { CreateTicketForm } from "./components/CreateTicketForm.js";
 import { MyTicketsView } from "./components/MyTicketsView.js";
 import { TicketDetailView } from "./components/TicketDetailView.js";
+import { StaffTicketQueue } from "./components/StaffTicketQueue.js";
 import "./index.css";
 
 type UiState = "idle" | "loading" | "success" | "error";
@@ -85,16 +86,20 @@ function MainApp() {
   };
 
   const [activeTab, setActiveTab] = useState<NavTab>(() => getInitialTab(user?.role));
+  const [returnTab, setReturnTab] = useState<NavTab>(() => getInitialTab(user?.role));
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
 
   useEffect(() => {
     if (user?.role) {
-      setActiveTab(getInitialTab(user.role));
+      const initial = getInitialTab(user.role);
+      setActiveTab(initial);
+      setReturnTab(initial);
     }
   }, [user?.role]);
 
   const handleSelectTicket = (id: number) => {
     setSelectedTicketId(id);
+    setReturnTab(activeTab);
     setActiveTab("ticket-detail");
   };
 
@@ -121,15 +126,10 @@ function MainApp() {
 
     return (
       <div className="min-vh-100 d-flex flex-column" style={{ backgroundColor: "var(--page-bg, #F5F7F6)" }}>
-        <Header activeTab={activeTab === "ticket-detail" ? "my-tickets" : activeTab} onSelectTab={setActiveTab} />
+        <Header activeTab={activeTab === "ticket-detail" ? returnTab : activeTab} onSelectTab={setActiveTab} />
         <main className="container py-4" style={{ maxWidth: 1040 }}>
           {activeTab === "ticket-queue" ? (
-            <div className="card shadow-sm p-4 text-center">
-              <h2 className="h5 fw-bold text-dark mb-2">IT Staff Ticket Queue</h2>
-              <p className="text-muted small mb-0">
-                Ticket queue management engine will be integrated in Sprint 3 increment (Issue 23).
-              </p>
-            </div>
+            <StaffTicketQueue onSelectTicket={handleSelectTicket} />
           ) : activeTab === "user-management" ? (
             <div className="card shadow-sm p-4 text-center">
               <h2 className="h5 fw-bold text-dark mb-2">Administrator User Management</h2>
@@ -140,7 +140,7 @@ function MainApp() {
           ) : activeTab === "create-ticket" ? (
             <CreateTicketForm onSuccessNavigate={() => setActiveTab("my-tickets")} />
           ) : activeTab === "ticket-detail" && selectedTicketId !== null ? (
-            <TicketDetailView ticketId={selectedTicketId} onBack={() => setActiveTab("my-tickets")} />
+            <TicketDetailView ticketId={selectedTicketId} onBack={() => setActiveTab(returnTab)} />
           ) : (
             <MyTicketsView
               onNavigateCreate={() => setActiveTab("create-ticket")}

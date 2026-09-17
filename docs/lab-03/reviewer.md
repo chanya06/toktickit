@@ -15,7 +15,8 @@
 | [PR #58](https://github.com/chanya06/toktickit/pull/58) | `feature/19-auth-api` | Approved |
 | [PR #59](https://github.com/chanya06/toktickit/pull/59) | `feature/20-auth-ui` | Approved |
 | [PR #60](https://github.com/chanya06/toktickit/pull/60) | `feature/21-requester-session` | Approved |
-| [PR #61](https://github.com/chanya06/toktickit/pull/61) | `feature/22-staff-queue-api` | In Review |
+| [PR #61](https://github.com/chanya06/toktickit/pull/61) | `feature/22-staff-queue-api` | Approved |
+| [PR #62](https://github.com/chanya06/toktickit/pull/62) | `feature/23-staff-queue-ui` | In Review |
 
 ---
 
