@@ -18,7 +18,8 @@
 | [PR #61](https://github.com/chanya06/toktickit/pull/61) | `feature/22-staff-queue-api` | Approved |
 | [PR #62](https://github.com/chanya06/toktickit/pull/62) | `feature/23-staff-queue-ui` | Approved |
 | [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | Approved |
-| [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | In Review |
+| [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | Approved |
+| [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | In Review |
 
 ---
 
@@ -388,6 +389,47 @@
 >    - เพิ่มชุดทดสอบใน `client/tests/lab-03/CommentsNotes.test.tsx` ตรวจสอบการ Prefetch ตัวนับ Badge ตอน Mount, การเปิดที่แท็บ Public Comments เป็นค่าเริ่มต้น, และการรักษาข้อความร่าง Textarea ขณะสลับแท็บ
 >    - ผลการรันเทส:
 >      - Server Tests: ผ่านทั้งหมด 129/129 tests (14 test files)
+>      - Client Tests: ผ่านทั้งหมด 99/99 tests (13 test files)
+>      - Client Production Build (`tsc && vite build`): ผ่านสะอาดสมบูรณ์ ปราศจาก error
+
+---
+
+### Reviewer comment I received (PR #65):
+
+> ### ผลการรีวิว PR [#65](https://github.com/chanya06/toktickit/pull/65): REQUEST CHANGES / RECOMMEND IMPROVEMENTS
+> ระบบความปลอดภัย การควบคุมสิทธิ์ Router-level RBAC และ Safety Rules (BR-07, BR-08, BR-09) ทำงานได้ถูกต้องและรัดกุมมาก แต่จากการตรวจสอบความเข้ากันได้ของข้อมูลอย่างละเอียด พบจุดที่ควรปรับปรุงแก้ไขก่อนทำการ Merge ดังนี้:
+> **ประเด็นที่ต้องปรับปรุงแก้ไข:**
+> 1. **ความไม่สอดคล้องของฟิลด์ชื่อในโมเดล User (name vs fullName):**
+>    - ใน Prisma schema มีทั้ง `fullName String` และ `name String?` (เพื่อความเข้ากันได้ย้อนหลังกับโค้ด Lab 2)
+>    - ปัจจุบันใน `POST /api/admin/users` และ `PATCH /api/admin/users/:id` มีการบันทึกเฉพาะ `fullName` แต่ปล่อยให้ `name` เป็น `null`
+>    - **แนะนำ:** ให้กำหนด `name: trimmedName` ควบคู่กับ `fullName: trimmedName` ทั้งในคำสั่ง `prisma.user.create` และ `prisma.user.update` เพื่อให้ข้อมูลชื่อครบถ้วนทั้งสองฟิลด์เหมือนใน `seed.ts`
+> 2. **การรองรับฟิลด์แผนก (department):**
+>    - ในโมเดล User มีฟิลด์ `department String?` และหน้าบ้านมีการแสดงผลแผนกของผู้ใช้
+>    - ปัจจุบันใน `SAFE_USER_SELECT` และ Endpoint การสร้าง/แก้ไขผู้ใช้ยังไม่ได้อ่านค่าหรือส่งคืนฟิลด์ `department`
+>    - **แนะนำ:** เพิ่มฟิลด์ `department?: string | null` ใน `CreateAdminUserPayload`, `UpdateAdminUserPayload`, `AdminUserResponse` และใน `SAFE_USER_SELECT` พร้อมทั้งบันทึกลงฐานข้อมูล
+> 3. **เอกสารสารบัญไฟล์ทดสอบ (docs/lab-03/tests.md):**
+>    - ในตารางที่ 1 มีการแมป API-10..13 ไปที่ `users-admin.api.test.ts` แล้ว แต่ในหัวข้อที่ 2 Test Suite File Map ยังขาดรายการของ `users-admin.api.test.ts`
+>    - **แนะนำ:** เพิ่มบรรทัดอธิบายไฟล์ `users-admin.api.test.ts` ใต้หัวข้อ `### Backend Integration & Security Tests`
+
+---
+
+### How I responded (PR #65):
+
+> ขอบคุณสำหรับคำแนะนำและข้อเสนอแนะที่ละเอียดและช่วยเพิ่มความสมบูรณ์ของระบบจัดการผู้ใช้ ได้ดำเนินการปรับปรุงแก้ไขครบทั้ง 3 ประเด็นเรียบร้อยแล้ว:
+> 1. **ซิงโครไนซ์ฟิลด์ `name` ควบคู่กับ `fullName` (`server/src/routes/users.ts`)**:
+>    - เพิ่มการกำหนด `name: trimmedName` ควบคู่กับ `fullName: trimmedName` ทั้งใน `prisma.user.create` (`POST /api/admin/users`) และ `prisma.user.update` (`PATCH /api/admin/users/:id`) เพื่อความเข้ากันได้แบบย้อนหลัง (Backwards Compatibility) 100% กับสคีมาและโค้ดของ Lab 2
+>    - บรรจุ `name: true` ลงใน `SAFE_USER_SELECT` และเพิ่มใน `ALLOWED_SORT_FIELDS`
+> 2. **รองรับฟิลด์แผนก `department` ครบวงจร (`server/src/routes/users.ts`, `client/src/api.ts`)**:
+>    - เพิ่ม `department: true` ใน `SAFE_USER_SELECT` และ `ALLOWED_SORT_FIELDS`
+>    - ปรับปรุง `POST /api/admin/users` ให้อ่านและตรวจสอบ `department` (optional string) แล้วบันทึกลงฐานข้อมูล
+>    - ปรับปรุง `PATCH /api/admin/users/:id` ให้รองรับการอัปเดตหรือล้างค่า `department` (string หรือ `null`)
+>    - ปรับปรุง TypeScript Interface ใน `client/src/api.ts`: เพิ่ม `department?: string | null` ใน `CreateAdminUserPayload`, `UpdateAdminUserPayload`, และ `AdminUserResponse`
+> 3. **อัปเดตสารบัญไฟล์ทดสอบ (`docs/lab-03/tests.md`)**:
+>    - เพิ่มรายการ `users-admin.api.test.ts` ในหัวข้อ `### Backend Integration & Security Tests` ใน Section 2 พร้อมระบุขอบเขตการทดสอบครอบคลุม API-10..13, name/fullName sync, department support, password reset และ safety rules
+> 4. **ชุดทดสอบและการตรวจสอบความถูกต้อง**:
+>    - อัปเดตชุดทดสอบใน `server/tests/lab-03/users-admin.api.test.ts` ทั้งในส่วนสร้างผู้ใช้ (POST) และแก้ไขผู้ใช้ (PATCH) ตรวจสอบการส่งคืนและจัดเก็บลง DB จริงของทั้ง `name`, `fullName`, และ `department`
+>    - ผลการรันเทส:
+>      - Server Tests: ผ่านทั้งหมด 149/149 tests (15 test files)
 >      - Client Tests: ผ่านทั้งหมด 99/99 tests (13 test files)
 >      - Client Production Build (`tsc && vite build`): ผ่านสะอาดสมบูรณ์ ปราศจาก error
 

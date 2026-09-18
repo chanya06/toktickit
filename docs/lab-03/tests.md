@@ -38,7 +38,7 @@
 - `staff-queue.api.test.ts`: Filtering by category/status/IT priority, search, sorting, pagination.
 - `staff-ticket-detail.api.test.ts`: Claiming, assigning, IT priority change, status transition matrix validation.
 - `comments-notes.api.test.ts`: Public Comments vs Internal Notes security visibility checks.
-- `users-admin.api.test.ts`: Admin CRUD, safety validation (self-deactivation & last admin check).
+- `users-admin.api.test.ts`: Admin CRUD operations (API-10..13), fullName/name sync, department support, password reset, and safety validation (self-deactivation & last admin check).
 
 ### Frontend UI Component Tests (`client/tests/lab-03/`)
 - `Login.test.tsx`: Login form validation, error state rendering, busy state.
