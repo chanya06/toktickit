@@ -949,6 +949,8 @@ export interface AdminUserResponse {
   id: number;
   email: string;
   fullName: string;
+  name?: string | null;
+  department?: string | null;
   role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
   isActive: boolean;
   mustChangePassword: boolean;
@@ -971,6 +973,7 @@ export interface CreateAdminUserPayload {
   email: string;
   role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
   initialPassword: string;
+  department?: string | null;
   isActive?: boolean;
 }
 
@@ -978,6 +981,7 @@ export interface UpdateAdminUserPayload {
   fullName?: string;
   email?: string;
   role?: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+  department?: string | null;
   isActive?: boolean;
 }
 

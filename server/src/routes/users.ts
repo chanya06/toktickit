@@ -20,6 +20,8 @@ const SAFE_USER_SELECT = {
   id: true,
   email: true,
   fullName: true,
+  name: true,
+  department: true,
   role: true,
   isActive: true,
   mustChangePassword: true,
@@ -42,7 +44,7 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-const ALLOWED_SORT_FIELDS = ["id", "fullName", "email", "role", "isActive", "createdAt", "updatedAt"];
+const ALLOWED_SORT_FIELDS = ["id", "fullName", "name", "email", "department", "role", "isActive", "createdAt", "updatedAt"];
 
 // ---------------------------------------------------------------------------
 // GET /api/admin/users — List Users with Search, Role Filter & Pagination (API-10 / FR-15 / AC-09)
@@ -151,7 +153,7 @@ usersRouter.get("/", async (req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 usersRouter.post("/", async (req: Request, res: Response) => {
   try {
-    const { fullName, email, role, initialPassword, isActive } = req.body;
+    const { fullName, email, role, initialPassword, isActive, department } = req.body;
 
     // Full name validation
     if (!fullName || typeof fullName !== "string") {
@@ -191,6 +193,16 @@ usersRouter.post("/", async (req: Request, res: Response) => {
       return res.status(400).json({ error: passwordCheck.message });
     }
 
+    // Department validation (optional)
+    let trimmedDepartment: string | null = null;
+    if (department !== undefined && department !== null) {
+      if (typeof department !== "string") {
+        return res.status(400).json({ error: "Department must be a string" });
+      }
+      const td = department.trim();
+      trimmedDepartment = td.length > 0 ? td : null;
+    }
+
     // Active status validation (defaults to true)
     let activeStatus = true;
     if (isActive !== undefined) {
@@ -214,9 +226,12 @@ usersRouter.post("/", async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(initialPassword, 10);
 
     // Create user record with mustChangePassword = true (AC-10 / FR-16)
+    // Synchronize both fullName and name for backwards compatibility
     const newUser = await prisma.user.create({
       data: {
         fullName: trimmedName,
+        name: trimmedName,
+        department: trimmedDepartment,
         email: trimmedEmail,
         role: roleUpper as Role,
         passwordHash,
@@ -259,20 +274,21 @@ usersRouter.patch("/:id", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const { fullName, email, role, isActive } = req.body;
+    const { fullName, email, role, isActive, department } = req.body;
 
     if (
       fullName === undefined &&
       email === undefined &&
       role === undefined &&
-      isActive === undefined
+      isActive === undefined &&
+      department === undefined
     ) {
       return res.status(400).json({ error: "At least one field to update is required" });
     }
 
     const updateData: any = {};
 
-    // Validate full name
+    // Validate full name and sync name for backwards compatibility
     if (fullName !== undefined) {
       if (typeof fullName !== "string") {
         return res.status(400).json({ error: "Full name must be a string" });
@@ -282,6 +298,19 @@ usersRouter.patch("/:id", async (req: Request, res: Response) => {
         return res.status(400).json({ error: "Full name must be between 2 and 100 characters" });
       }
       updateData.fullName = trimmedName;
+      updateData.name = trimmedName;
+    }
+
+    // Validate department (supports string or null)
+    if (department !== undefined) {
+      if (department === null) {
+        updateData.department = null;
+      } else if (typeof department !== "string") {
+        return res.status(400).json({ error: "Department must be a string or null" });
+      } else {
+        const td = department.trim();
+        updateData.department = td.length > 0 ? td : null;
+      }
     }
 
     // Validate email

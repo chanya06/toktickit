@@ -166,6 +166,7 @@ describe("Administrator User Management & Safety Validations (Issue 26 / API-10.
           fullName: "New Staff Member",
           email: testEmail,
           role: "IT_STAFF",
+          department: "Infrastructure Support",
           initialPassword: initialPass,
           isActive: true,
         });
@@ -175,12 +176,20 @@ describe("Administrator User Management & Safety Validations (Issue 26 / API-10.
       expect(res.body.user).toBeDefined();
       expect(res.body.user.email).toBe(testEmail);
       expect(res.body.user.fullName).toBe("New Staff Member");
+      expect(res.body.user.name).toBe("New Staff Member");
+      expect(res.body.user.department).toBe("Infrastructure Support");
       expect(res.body.user.role).toBe(Role.IT_STAFF);
       expect(res.body.user.isActive).toBe(true);
       expect(res.body.user.mustChangePassword).toBe(true);
       expect(res.body.user.passwordHash).toBeUndefined();
 
       createdUserIds.push(res.body.user.id);
+
+      // Verify in DB that both name and department are populated
+      const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: res.body.user.id } });
+      expect(dbUser.name).toBe("New Staff Member");
+      expect(dbUser.fullName).toBe("New Staff Member");
+      expect(dbUser.department).toBe("Infrastructure Support");
 
       // Verify the new user can log in with initial password
       const loginRes = await request(app)
@@ -340,23 +349,33 @@ describe("Administrator User Management & Safety Validations (Issue 26 / API-10.
           fullName: "Updatable User",
           email: `updatable.${Date.now()}@toktickit.com`,
           role: "REQUESTER",
+          department: "Helpdesk",
           initialPassword: "InitialPass123!",
         });
       const uid = createRes.body.user.id;
       createdUserIds.push(uid);
 
-      // Update to IT_STAFF and new name
+      // Update to IT_STAFF, new name, and new department
       const patchRes = await request(app)
         .patch(`/api/admin/users/${uid}`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send({
           fullName: "Promoted Staff User",
           role: "IT_STAFF",
+          department: "IT Operations",
         });
 
       expect(patchRes.status).toBe(200);
       expect(patchRes.body.user.fullName).toBe("Promoted Staff User");
+      expect(patchRes.body.user.name).toBe("Promoted Staff User");
+      expect(patchRes.body.user.department).toBe("IT Operations");
       expect(patchRes.body.user.role).toBe(Role.IT_STAFF);
+
+      // Verify in DB
+      const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: uid } });
+      expect(dbUser.fullName).toBe("Promoted Staff User");
+      expect(dbUser.name).toBe("Promoted Staff User");
+      expect(dbUser.department).toBe("IT Operations");
     });
 
     it("returns 404 Not Found when updating a non-existent user", async () => {
