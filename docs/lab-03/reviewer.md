@@ -19,7 +19,8 @@
 | [PR #62](https://github.com/chanya06/toktickit/pull/62) | `feature/23-staff-queue-ui` | Approved |
 | [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | Approved |
 | [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | Approved |
-| [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | In Review |
+| [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | Approved |
+| [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | In Review |
 
 ---
 

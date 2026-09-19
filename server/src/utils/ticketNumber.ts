@@ -42,7 +42,7 @@ export async function generateNextTicketNumber(prismaClient: any): Promise<strin
  * Creates a ticket atomically inside a Prisma transaction with automatic retry
  * on unique constraint collision (P2002) to guarantee concurrency safety.
  */
-export async function createTicketAtomically(prisma: any, ticketData: any, maxRetries = 5): Promise<any> {
+export async function createTicketAtomically(prisma: any, ticketData: any, maxRetries = 10): Promise<any> {
   let attempts = 0;
 
   while (attempts < maxRetries) {
@@ -66,6 +66,7 @@ export async function createTicketAtomically(prisma: any, ticketData: any, maxRe
     } catch (error: any) {
       // Prisma P2002 is unique constraint violation (ticketNumber collision)
       if (error?.code === "P2002" && attempts < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 30) + 10));
         continue; // Retry with next ticket number
       }
       throw error;
