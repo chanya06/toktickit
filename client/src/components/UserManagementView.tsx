@@ -9,6 +9,7 @@ import {
   UpdateAdminUserPayload,
 } from "../api.js";
 import { useAuth } from "../context/AuthContext.js";
+import { getPaginationItems } from "../utils/pagination.js";
 
 // Role Badges Configuration (from ui-spec.md)
 const ROLE_BADGE_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
@@ -541,24 +542,34 @@ export function UserManagementView() {
                   &larr; Prev
                 </button>
 
-                {Array.from({ length: paginationMeta.totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    className={`btn btn-sm ${
-                      p === paginationMeta.currentPage ? "text-white fw-bold" : "btn-outline-secondary"
-                    }`}
-                    style={
-                      p === paginationMeta.currentPage
-                        ? { backgroundColor: "#006B3C", borderColor: "#006B3C" }
-                        : {}
-                    }
-                    onClick={() => setPage(p)}
-                    data-testid={`page-btn-${p}`}
-                  >
-                    {p}
-                  </button>
-                ))}
+                {getPaginationItems(paginationMeta.currentPage, paginationMeta.totalPages).map((item, idx) => {
+                  if (item === "...") {
+                    return (
+                      <span key={`ellipsis-${idx}`} className="px-2 text-muted small">
+                        &hellip;
+                      </span>
+                    );
+                  }
+                  const p = item as number;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      className={`btn btn-sm ${
+                        p === paginationMeta.currentPage ? "text-white fw-bold" : "btn-outline-secondary"
+                      }`}
+                      style={
+                        p === paginationMeta.currentPage
+                          ? { backgroundColor: "#006B3C", borderColor: "#006B3C" }
+                          : {}
+                      }
+                      onClick={() => setPage(p)}
+                      data-testid={`page-btn-${p}`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
 
                 <button
                   type="button"

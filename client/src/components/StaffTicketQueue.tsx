@@ -6,6 +6,7 @@ import {
   StaffTicketResponse,
   FetchStaffTicketsParams,
 } from "../api.js";
+import { getPaginationItems } from "../utils/pagination.js";
 
 interface StaffTicketQueueProps {
   onSelectTicket?: (ticketId: number) => void;
@@ -647,21 +648,31 @@ export function StaffTicketQueue({ onSelectTicket }: StaffTicketQueueProps) {
                     </button>
                   </li>
 
-                  {Array.from({ length: paginationMeta.totalPages }, (_, i) => i + 1).map((p) => (
-                    <li
-                      key={p}
-                      className={`page-item ${p === paginationMeta.page ? "active" : ""}`}
-                    >
-                      <button
-                        type="button"
-                        className="page-link"
-                        onClick={() => setPage(p)}
-                        data-testid={`queue-page-${p}`}
+                  {getPaginationItems(paginationMeta.page, paginationMeta.totalPages).map((item, idx) => {
+                    if (item === "...") {
+                      return (
+                        <li key={`ellipsis-${idx}`} className="page-item disabled">
+                          <span className="page-link text-muted border-0">&hellip;</span>
+                        </li>
+                      );
+                    }
+                    const p = item as number;
+                    return (
+                      <li
+                        key={p}
+                        className={`page-item ${p === paginationMeta.page ? "active" : ""}`}
                       >
-                        {p}
-                      </button>
-                    </li>
-                  ))}
+                        <button
+                          type="button"
+                          className="page-link"
+                          onClick={() => setPage(p)}
+                          data-testid={`queue-page-${p}`}
+                        >
+                          {p}
+                        </button>
+                      </li>
+                    );
+                  })}
 
                   <li className={`page-item ${paginationMeta.page >= paginationMeta.totalPages ? "disabled" : ""}`}>
                     <button
