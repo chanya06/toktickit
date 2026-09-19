@@ -9,6 +9,7 @@ import {
   PaginationMeta,
   FetchTicketsParams,
 } from "../api.js";
+import { getPaginationItems } from "../utils/pagination.js";
 
 interface MyTicketsViewProps {
   onNavigateCreate: () => void;
@@ -753,19 +754,31 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
                     </button>
                   </li>
 
-                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pNum) => (
-                    <li key={pNum} className="page-item me-1">
-                      <button
-                        className={`btn btn-sm ${
-                          pNum === pagination.currentPage ? "btn-success" : "btn-outline-secondary"
-                        }`}
-                        onClick={() => setPage(pNum)}
-                        data-testid={`page-btn-${pNum}`}
-                      >
-                        {pNum}
-                      </button>
-                    </li>
-                  ))}
+                  {getPaginationItems(pagination.currentPage, pagination.totalPages).map((item, idx) => {
+                    if (item === "...") {
+                      return (
+                        <li key={`ellipsis-${idx}`} className="page-item disabled me-1">
+                          <span className="btn btn-sm btn-link text-muted disabled text-decoration-none px-2">
+                            &hellip;
+                          </span>
+                        </li>
+                      );
+                    }
+                    const pNum = item as number;
+                    return (
+                      <li key={pNum} className="page-item me-1">
+                        <button
+                          className={`btn btn-sm ${
+                            pNum === pagination.currentPage ? "btn-success" : "btn-outline-secondary"
+                          }`}
+                          onClick={() => setPage(pNum)}
+                          data-testid={`page-btn-${pNum}`}
+                        >
+                          {pNum}
+                        </button>
+                      </li>
+                    );
+                  })}
 
                   <li
                     className={`page-item ${

@@ -19,7 +19,8 @@
 | [PR #62](https://github.com/chanya06/toktickit/pull/62) | `feature/23-staff-queue-ui` | Approved |
 | [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | Approved |
 | [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | Approved |
-| [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | In Review |
+| [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | Approved |
+| [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | In Review |
 
 ---
 
@@ -431,6 +432,54 @@
 >    - ผลการรันเทส:
 >      - Server Tests: ผ่านทั้งหมด 149/149 tests (15 test files)
 >      - Client Tests: ผ่านทั้งหมด 99/99 tests (13 test files)
+>      - Client Production Build (`tsc && vite build`): ผ่านสะอาดสมบูรณ์ ปราศจาก error
+
+---
+
+### Reviewer comment I received (PR #66):
+
+> ### ผลการรีวิว PR [#66](https://github.com/chanya06/toktickit/pull/66)
+> จากการตรวจสอบการทำงานและซอร์สโค้ดอย่างละเอียด พบจุดบกพร่องด้านการตรวจสอบข้อมูล ความปลอดภัย และความถูกต้องของโค้ดที่จำเป็นต้องแก้ไขก่อนทำการ Merge ดังนี้:
+> **ประเด็นที่ต้องแก้ไข (Required Changes):**
+> 1. **Regex ตรวจสอบอักขระพิเศษในรหัสผ่านไม่ตรงกับเซิร์ฟเวอร์ (Password Regex Mismatch Bug):**
+>    - ใน `UserManagementView.tsx` (บรรทัดที่ 651 และ 1201) ใช้ Regex: `/[!@#$%^&*(),.?":{}|<>]/` ในขณะที่ฝั่งเซิร์ฟเวอร์ `server/src/routes/auth.ts` รองรับอักขระเพิ่มเติม: `_`, `-`, `+`, `=`, `[`, `]`, `\`, `/`
+>    - **แนวทางแก้ไข:** อัปเดต Regex ใน `UserManagementView.tsx` ให้ครอบคลุมอักขระพิเศษตามเซิร์ฟเวอร์: `/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/]/`
+> 2. **ป้องกันการลดบทบาทตนเองโดยไม่ตั้งใจ (Self-Demotion Prevention):**
+>    - ใน `EditUserModal` เมื่อแก้ไขบัญชีของตนเอง (`isSelf === true`) มีการ disable สวิตช์ `isActive` แล้ว แต่ช่องเลือก Role ยังเปิดให้แก้ไขได้
+>    - **แนวทางแก้ไข:** เพิ่มคุณสมบัติ `disabled={isSelf}` ให้กับ `<select data-testid="edit-user-role">` เมื่อแก้ไขบัญชีตนเอง
+> 3. **ไฟล์แก้ไขนอกขอบเขตของ PR (Out-of-Scope File):**
+>    - มีการแก้ไขไฟล์ `server/src/utils/ticketNumber.ts` ติดเข้ามาใน PR นี้ ซึ่ง PR [#66](https://github.com/chanya06/toktickit/pull/66) มี Scope สำหรับหน้าจอ Admin User Management UI ([#55](https://github.com/chanya06/toktickit/issues/55)) เท่านั้น
+>    - **แนวทางแก้ไข:** Revert ไฟล์ `server/src/utils/ticketNumber.ts` กลับคืนตาม `origin/lab3-staging`
+> 4. **แก้ไขการตั้งชื่อ `data-testid` ในแถวตาราง:**
+>    - มีการใช้ `data-testid={'user-table-row user-row-${u.id}'}` ซึ่งมีเว้นวรรค ทำให้การทดสอบแบบ Exact Match หา Element ไม่พบ
+>    - **แนวทางแก้ไข:** ปรับเป็น `data-testid={'user-row-${u.id}'}`
+> 5. **ซิงโครไนซ์ชื่อบน Header หลังแก้ไขโปรไฟล์ตนเอง:**
+>    - ใน `EditUserModal` จังหวะ `onSuccess` หาก `updated.id === currentUser?.id` ควรเรียกฟังก์ชัน `refreshUser()` จาก `AuthContext` เพื่อให้ชื่อบนแถบ Navigation Bar ด้านบนอัปเดตตามทันที
+> 6. **ใส่ Fallback ให้กับชื่อใน Toast Notification:**
+>    - ควรปรับเป็น `fullName || name` เพื่อป้องกันกรณีแสดงผลคำว่า "undefined" หากเจอข้อมูลเดิมที่ไม่มีฟิลด์ `fullName`
+
+---
+
+### How I responded (PR #66):
+
+> ขอบคุณสำหรับข้อเสนอแนะและผลการตรวจสอบที่ละเอียดและรอบคอบ ได้ดำเนินการปรับปรุงแก้ไขครบถ้วนทั้ง 6 ประเด็นเรียบร้อยแล้ว:
+> 1. **ปรับปรุง Regex อักขระพิเศษให้ตรงกับเซิร์ฟเวอร์ 100% (`client/src/components/UserManagementView.tsx`, `client/src/components/ChangePasswordView.tsx`)**:
+>    - อัปเดต Regex เป็น `/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/]/` ครอบคลุมทั้งเครื่องหมาย `_`, `-`, `+`, `=`, `[`, `]`, `\`, `/` ทำให้สามารถตั้งรหัสผ่านเช่น `Admin_2026` หรือ `Pass-1234!` ได้อย่างถูกต้อง
+> 2. **ป้องกันการลดบทบาทตนเอง (Self-Demotion Prevention) (`client/src/components/UserManagementView.tsx`)**:
+>    - เพิ่ม `disabled={isSelf}` ให้กับ `<select data-testid="edit-user-role">` ใน `EditUserModal` พร้อมข้อความกำกับ `(Role change disabled on your own logged-in account)` และมี Client-side Safety Check ป้องกันใน `handleSubmit`
+> 3. **นำไฟล์นอกขอบเขตออกจาก PR (`server/src/utils/ticketNumber.ts`)**:
+>    - Revert ไฟล์ `server/src/utils/ticketNumber.ts` ให้กลับไปตรงกับ `origin/lab3-staging` เพื่อคง Scope ของ PR ให้เจาะจงเฉพาะ Frontend Admin User Management UI ตามที่กำหนด
+> 4. **แก้ไข `data-testid` แถวตาราง (`client/src/components/UserManagementView.tsx`)**:
+>    - ปรับเป็น `data-testid={`user-row-${u.id}`}` (ไม่มีเว้นวรรค) และใช้ `className="user-table-row"` แทน
+> 5. **ซิงโครไนซ์ชื่อบน Header หลังแก้ไขโปรไฟล์ตนเอง (`client/src/components/UserManagementView.tsx`)**:
+>    - ใน `onSuccess` ของ `EditUserModal` หาก `updated.id === currentUser?.id` จะเรียก `await refreshUser?.()` จาก `useAuth()` ทันที ทำให้ชื่อผู้ใช้บนแถบนำทาง Header อัปเดตแบบ Real-time
+> 6. **เพิ่ม Fallback ให้กับชื่อใน Toast Notifications (`client/src/components/UserManagementView.tsx`)**:
+>    - กำหนด `fullName || name` ใน Toast Notification ทุกจุด (`created`, `updated`, `resettingUser`) ป้องกันการแสดงผล "undefined"
+> 7. **ชุดทดสอบและการตรวจสอบความถูกต้อง**:
+>    - เพิ่มเทสเคสใน `client/tests/lab-03/UserManagement.test.tsx` ตรวจสอบรหัสผ่านที่มี `_` และ `-`, ตรวจสอบการ Disable Role Select และการเรียก `refreshUser()` เมื่อแก้ไขโปรไฟล์ตนเอง
+>    - ผลการรันเทส:
+>      - Client Tests: ผ่านครบ 116/116 tests (15 test files)
+>      - Server Tests: ผ่านครบ 149/149 tests (15 test files)
 >      - Client Production Build (`tsc && vite build`): ผ่านสะอาดสมบูรณ์ ปราศจาก error
 
 ---

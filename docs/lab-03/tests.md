@@ -47,7 +47,7 @@
 - `StaffTicketQueue.test.tsx`: Search input, filter drawer, column sorting, pagination interaction.
 - `StaffTicketDetail.test.tsx`: Ticket claim, owner reassignment, IT Priority update, BR-14 status matrix enforcement, Public Comments vs Internal Notes.
 - `CommentsNotes.test.tsx`: Public Comments tab rendering, comment posting, Internal Notes amber callout, requester security isolation.
-- `UserManagement.test.tsx`: User table, search, Create/Edit drawers, Reset Password modal.
+- `UserManagement.test.tsx`: Administrator user directory table, debounced search, role filtering, pagination, Create User modal with password checklist, Edit User modal with self-deactivation & last admin safety protection (BR-07, BR-08), and Reset Initial Password modal (FR-18).
 
 ### End-to-End Tests (`e2e/lab-03/`)
 - `authentication.spec.ts`: Full E2E flow from login to mandatory password change.

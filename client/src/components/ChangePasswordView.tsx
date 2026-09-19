@@ -18,7 +18,7 @@ export const ChangePasswordView: React.FC<ChangePasswordViewProps> = ({ onSucces
   const hasUppercase = /[A-Z]/.test(newPassword);
   const hasLowercase = /[a-z]/.test(newPassword);
   const hasNumber = /[0-9]/.test(newPassword);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/]/.test(newPassword);
   const passwordsMatch = newPassword.length > 0 && newPassword === confirmPassword;
 
   const isFormValid =

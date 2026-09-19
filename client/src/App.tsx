@@ -10,6 +10,7 @@ import { CreateTicketForm } from "./components/CreateTicketForm.js";
 import { MyTicketsView } from "./components/MyTicketsView.js";
 import { TicketDetailView } from "./components/TicketDetailView.js";
 import { StaffTicketQueue } from "./components/StaffTicketQueue.js";
+import { UserManagementView } from "./components/UserManagementView.js";
 import "./index.css";
 
 type UiState = "idle" | "loading" | "success" | "error";
@@ -131,12 +132,7 @@ function MainApp() {
           {activeTab === "ticket-queue" ? (
             <StaffTicketQueue onSelectTicket={handleSelectTicket} />
           ) : activeTab === "user-management" ? (
-            <div className="card shadow-sm p-4 text-center">
-              <h2 className="h5 fw-bold text-dark mb-2">Administrator User Management</h2>
-              <p className="text-muted small mb-0">
-                User administration interface will be integrated in Sprint 3 increment (Issue 27).
-              </p>
-            </div>
+            <UserManagementView />
           ) : activeTab === "create-ticket" ? (
             <CreateTicketForm onSuccessNavigate={() => setActiveTab("my-tickets")} />
           ) : activeTab === "ticket-detail" && selectedTicketId !== null ? (
