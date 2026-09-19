@@ -77,7 +77,10 @@ const mockUserList: api.AdminUserResponse[] = [
   },
 ];
 
-function renderWithAuth(currentUser: api.AuthUser = mockAdminUser) {
+function renderWithAuth(
+  currentUser: api.AuthUser = mockAdminUser,
+  authOverrides: Partial<any> = {}
+) {
   const mockAuthContextValue = {
     user: currentUser,
     token: "valid-admin-token",
@@ -86,14 +89,17 @@ function renderWithAuth(currentUser: api.AuthUser = mockAdminUser) {
     login: vi.fn(),
     logout: vi.fn(),
     changePassword: vi.fn(),
-    refreshUser: vi.fn(),
+    refreshUser: vi.fn().mockResolvedValue(undefined),
+    ...authOverrides,
   };
 
-  return render(
+  const rendered = render(
     <AuthContext.Provider value={mockAuthContextValue}>
       <UserManagementView />
     </AuthContext.Provider>
   );
+
+  return { ...rendered, authContext: mockAuthContextValue };
 }
 
 describe("UserManagementView Component (Issue 27 / FR-15..20 / AC-09..12)", () => {
@@ -145,6 +151,7 @@ describe("UserManagementView Component (Issue 27 / FR-15..20 / AC-09..12)", () =
     expect(screen.getByTestId("role-filter-select")).toBeInTheDocument();
 
     // Check table rows
+    expect(screen.getByTestId("user-row-1")).toBeInTheDocument();
     expect(screen.getByTestId("user-name-1")).toHaveTextContent("Super Admin");
     expect(screen.getByTestId("user-email-1")).toHaveTextContent("admin@toktickit.com");
     expect(screen.getByTestId("user-dept-1")).toHaveTextContent("System IT");
@@ -291,7 +298,7 @@ describe("UserManagementView Component (Issue 27 / FR-15..20 / AC-09..12)", () =
     fireEvent.change(screen.getByTestId("create-user-email"), { target: { value: "new.user@toktickit.com" } });
     fireEvent.change(screen.getByTestId("create-user-department"), { target: { value: "Helpdesk" } });
     fireEvent.change(screen.getByTestId("create-user-role"), { target: { value: "IT_STAFF" } });
-    fireEvent.change(screen.getByTestId("create-user-password"), { target: { value: "TempSecret2026!" } });
+    fireEvent.change(screen.getByTestId("create-user-password"), { target: { value: "Admin_2026-Pass!" } });
 
     // Submit
     fireEvent.click(screen.getByTestId("submit-create-user"));
@@ -305,7 +312,7 @@ describe("UserManagementView Component (Issue 27 / FR-15..20 / AC-09..12)", () =
       email: "new.user@toktickit.com",
       department: "Helpdesk",
       role: "IT_STAFF",
-      initialPassword: "TempSecret2026!",
+      initialPassword: "Admin_2026-Pass!",
       isActive: true,
     });
 
@@ -360,6 +367,11 @@ describe("UserManagementView Component (Issue 27 / FR-15..20 / AC-09..12)", () =
     const activeToggle = screen.getByTestId("edit-user-isactive");
     expect(activeToggle).toBeDisabled();
     expect(activeToggle).toBeChecked();
+
+    // Verify Role select is disabled to prevent self-demotion
+    const roleSelect = screen.getByTestId("edit-user-role");
+    expect(roleSelect).toBeDisabled();
+    expect(screen.getByText(/Role change disabled on your own logged-in account/i)).toBeInTheDocument();
   });
 
   it("successfully updates user details when saving valid changes", async () => {
@@ -399,6 +411,34 @@ describe("UserManagementView Component (Issue 27 / FR-15..20 / AC-09..12)", () =
     });
 
     expect(screen.getByTestId("success-toast")).toHaveTextContent('User "Alex Chen Senior" updated successfully.');
+  });
+
+  it("calls refreshUser when successfully updating own profile", async () => {
+    vi.mocked(api.updateAdminUser).mockResolvedValue({
+      message: "User updated successfully",
+      user: {
+        ...mockUserList[0],
+        fullName: "Super Admin Updated",
+      },
+    });
+
+    const { authContext } = renderWithAuth(mockAdminUser);
+
+    await act(async () => {
+      vi.runAllTimers();
+    });
+
+    fireEvent.click(screen.getByTestId("edit-user-btn-1"));
+    fireEvent.change(screen.getByTestId("edit-user-fullname"), { target: { value: "Super Admin Updated" } });
+    fireEvent.click(screen.getByTestId("submit-edit-user"));
+
+    await act(async () => {
+      vi.runAllTimers();
+    });
+
+    expect(api.updateAdminUser).toHaveBeenCalled();
+    expect(authContext.refreshUser).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("success-toast")).toHaveTextContent('User "Super Admin Updated" updated successfully.');
   });
 
   it("displays server 422 error when deactivating the last active administrator (BR-08 / AC-12)", async () => {

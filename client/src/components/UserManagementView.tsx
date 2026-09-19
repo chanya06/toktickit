@@ -35,7 +35,7 @@ function formatDate(dateStr: string): string {
 }
 
 export function UserManagementView() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refreshUser } = useAuth();
 
   // Directory state
   const [users, setUsers] = useState<AdminUserResponse[]>([]);
@@ -376,7 +376,8 @@ export function UserManagementView() {
                   return (
                     <tr
                       key={u.id}
-                      data-testid={`user-table-row user-row-${u.id}`}
+                      data-testid={`user-row-${u.id}`}
+                      className="user-table-row"
                       style={{ transition: "background-color 0.15s ease" }}
                     >
                       {/* Name */}
@@ -594,7 +595,7 @@ export function UserManagementView() {
           onClose={() => setIsCreateModalOpen(false)}
           onSuccess={(created) => {
             setIsCreateModalOpen(false);
-            setSuccessToast(`User "${created.fullName}" created successfully.`);
+            setSuccessToast(`User "${created.fullName || created.name}" created successfully.`);
             loadUsers();
           }}
         />
@@ -608,9 +609,12 @@ export function UserManagementView() {
           user={editingUser}
           currentUserId={currentUser?.id}
           onClose={() => setEditingUser(null)}
-          onSuccess={(updated) => {
+          onSuccess={async (updated) => {
             setEditingUser(null);
-            setSuccessToast(`User "${updated.fullName}" updated successfully.`);
+            setSuccessToast(`User "${updated.fullName || updated.name}" updated successfully.`);
+            if (updated.id === currentUser?.id) {
+              await refreshUser?.();
+            }
             loadUsers();
           }}
         />
@@ -625,7 +629,7 @@ export function UserManagementView() {
           onClose={() => setResettingUser(null)}
           onSuccess={() => {
             setResettingUser(null);
-            setSuccessToast(`Initial password reset for "${resettingUser.fullName}".`);
+            setSuccessToast(`Initial password reset for "${resettingUser.fullName || resettingUser.name}".`);
             loadUsers();
           }}
         />
@@ -659,7 +663,7 @@ function CreateUserModal({ onClose, onSuccess }: CreateUserModalProps) {
   const hasUppercase = /[A-Z]/.test(initialPassword);
   const hasLowercase = /[a-z]/.test(initialPassword);
   const hasNumber = /[0-9]/.test(initialPassword);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(initialPassword);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/]/.test(initialPassword);
   const isPasswordValid =
     hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSpecialChar;
 
@@ -959,6 +963,12 @@ function EditUserModal({ user, currentUserId, onClose, onSuccess }: EditUserModa
       return;
     }
 
+    // Client-side Safety Check for Self-Demotion
+    if (isSelf && role !== "ADMINISTRATOR") {
+      setErrorMessage("Safety Rule: You cannot change or demote your own role.");
+      return;
+    }
+
     setLoading(true);
     try {
       const payload: UpdateAdminUserPayload = {
@@ -1123,6 +1133,7 @@ function EditUserModal({ user, currentUserId, onClose, onSuccess }: EditUserModa
                 <select
                   className="form-select"
                   value={role}
+                  disabled={isSelf} // Self cannot change role
                   onChange={(e) => setRole(e.target.value as any)}
                   data-testid="edit-user-role"
                 >
@@ -1130,6 +1141,11 @@ function EditUserModal({ user, currentUserId, onClose, onSuccess }: EditUserModa
                   <option value="IT_STAFF">IT Staff</option>
                   <option value="ADMINISTRATOR">Administrator</option>
                 </select>
+                {isSelf && (
+                  <div className="text-muted small mt-1" style={{ fontSize: "0.75rem" }}>
+                    (Role change disabled on your own logged-in account)
+                  </div>
+                )}
               </div>
 
               {/* Active Toggle */}
@@ -1209,7 +1225,7 @@ function ResetPasswordModal({ user, onClose, onSuccess }: ResetPasswordModalProp
   const hasUppercase = /[A-Z]/.test(newPassword);
   const hasLowercase = /[a-z]/.test(newPassword);
   const hasNumber = /[0-9]/.test(newPassword);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/]/.test(newPassword);
   const isPasswordValid =
     hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSpecialChar;
 
