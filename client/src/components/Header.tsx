@@ -72,27 +72,27 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
 
   return (
     <header
-      className="app-header py-2 px-3 mb-4 shadow-sm"
+      className="app-header py-2 px-2 px-sm-3 mb-4 shadow-sm"
       style={{ backgroundColor: "var(--primary-green, #006B3C)" }}
     >
-      <div className="container-fluid d-flex align-items-center justify-content-between">
+      <div className="container-fluid d-flex flex-wrap align-items-center justify-content-between gap-2 px-0 px-sm-2">
         {/* Application Brand Logo & Navigation */}
-        <div className="d-flex align-items-center gap-4">
+        <div className="d-flex flex-wrap align-items-center gap-2 gap-md-4">
           <a
             href="#"
-            className="fs-4 fw-bold text-white d-flex align-items-center gap-2 text-decoration-none"
+            className="fs-5 fs-md-4 fw-bold text-white d-flex align-items-center gap-2 text-decoration-none text-nowrap"
             onClick={handleBrandClick}
           >
             <svg
-              width="24"
-              height="24"
+              width="22"
+              height="22"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-white"
+              className="text-white flex-shrink-0"
             >
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
@@ -100,13 +100,13 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
             <span className="tracking-tight">TokTickIT</span>
           </a>
 
-          <nav className="d-flex gap-2">
+          <nav className="d-flex flex-wrap align-items-center gap-1 gap-md-2">
             {/* Requester Navigation Links */}
             {isRequesterRole && (
               <>
                 <button
                   type="button"
-                  className={`btn btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 ${
+                  className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
                     activeTab === "my-tickets"
                       ? "opacity-100 fw-bold border-bottom border-2 border-white pb-1"
                       : "opacity-75"
@@ -114,8 +114,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
                   onClick={() => onSelectTab("my-tickets")}
                 >
                   <svg
-                    width="16"
-                    height="16"
+                    width="15"
+                    height="15"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -132,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
                 </button>
                 <button
                   type="button"
-                  className={`btn btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 ${
+                  className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
                     activeTab === "create-ticket"
                       ? "opacity-100 fw-bold border-bottom border-2 border-white pb-1"
                       : "opacity-75"
@@ -140,8 +140,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
                   onClick={() => onSelectTab("create-ticket")}
                 >
                   <svg
-                    width="16"
-                    height="16"
+                    width="15"
+                    height="15"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -162,7 +162,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
             {isItStaffRole && (
               <button
                 type="button"
-                className={`btn btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 ${
+                className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
                   activeTab === "ticket-queue"
                     ? "opacity-100 fw-bold border-bottom border-2 border-white pb-1"
                     : "opacity-75"
@@ -170,8 +170,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
                 onClick={() => onSelectTab("ticket-queue")}
               >
                 <svg
-                  width="16"
-                  height="16"
+                  width="15"
+                  height="15"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -191,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
               <>
                 <button
                   type="button"
-                  className={`btn btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 ${
+                  className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
                     activeTab === "user-management"
                       ? "opacity-100 fw-bold border-bottom border-2 border-white pb-1"
                       : "opacity-75"
@@ -199,8 +199,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
                   onClick={() => onSelectTab("user-management")}
                 >
                   <svg
-                    width="16"
-                    height="16"
+                    width="15"
+                    height="15"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -217,7 +217,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
                 </button>
                 <button
                   type="button"
-                  className={`btn btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 ${
+                  className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
                     activeTab === "ticket-queue"
                       ? "opacity-100 fw-bold border-bottom border-2 border-white pb-1"
                       : "opacity-75"
@@ -225,8 +225,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
                   onClick={() => onSelectTab("ticket-queue")}
                 >
                   <svg
-                    width="16"
-                    height="16"
+                    width="15"
+                    height="15"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -245,27 +245,28 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
         </div>
 
         {/* User Identity & Logout / Dev Switcher */}
-        <div className="d-flex align-items-center gap-2">
+        <div className="d-flex flex-wrap align-items-center gap-2">
           {user ? (
-            <div className="d-flex align-items-center gap-2">
+            <div className="d-flex flex-wrap align-items-center gap-2">
               <div
-                className="user-profile-badge bg-white bg-opacity-10 border border-white border-opacity-25 rounded-pill px-3 py-1 text-white d-flex align-items-center gap-2"
+                className="user-profile-badge bg-white bg-opacity-10 border border-white border-opacity-25 rounded-pill px-2 px-sm-3 py-1 text-white d-flex align-items-center gap-1 gap-sm-2 text-nowrap"
                 data-testid="header-user-profile"
               >
                 <svg
-                  width="16"
-                  height="16"
+                  width="15"
+                  height="15"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="flex-shrink-0"
                 >
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
-                <span className="fw-semibold text-white" data-testid="header-user-name">
+                <span className="fw-semibold text-white small" data-testid="header-user-name">
                   {user.fullName}
                 </span>
                 {renderRoleBadge(user.role)}
@@ -273,14 +274,14 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
 
               <button
                 type="button"
-                className="btn btn-sm btn-outline-light d-flex align-items-center gap-1 ms-2"
+                className="btn btn-sm btn-outline-light d-flex align-items-center gap-1 px-2 py-1"
                 onClick={logout}
                 data-testid="header-logout-button"
                 title="Sign out of TokTickIT"
               >
                 <svg
-                  width="15"
-                  height="15"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

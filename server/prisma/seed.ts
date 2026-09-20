@@ -149,6 +149,23 @@ async function main() {
     },
   ];
 
+  // Purge non-seed tickets and non-seed users to ensure clean state
+  const seedTicketNumbers = ["TKT-2026-000001", "TKT-2026-000002", "TKT-2026-000003"];
+  await prisma.ticket.deleteMany({
+    where: { ticketNumber: { notIn: seedTicketNumbers } },
+  });
+
+  const seedEmails = usersToSeed.map((u) => u.email);
+  await prisma.publicComment.deleteMany({
+    where: { author: { email: { notIn: seedEmails } } },
+  });
+  await prisma.internalNote.deleteMany({
+    where: { author: { email: { notIn: seedEmails } } },
+  });
+  await prisma.user.deleteMany({
+    where: { email: { notIn: seedEmails } },
+  });
+
   const userMap = new Map<string, number>();
   for (const u of usersToSeed) {
     const user = await prisma.user.upsert({
@@ -159,6 +176,8 @@ async function main() {
         role: u.role,
         department: u.department,
         isActive: u.isActive,
+        mustChangePassword: u.mustChangePassword,
+        passwordHash: defaultPasswordHash,
       },
       create: {
         fullName: u.fullName,
@@ -239,6 +258,21 @@ async function main() {
       });
       ticketId = created.id;
     } else {
+      await prisma.ticket.update({
+        where: { ticketNumber: t.ticketNumber },
+        data: {
+          requesterId: t.requesterId,
+          ownerId: t.ownerId,
+          categoryId: t.categoryId,
+          relatedSystemId: t.relatedSystemId,
+          summary: t.summary,
+          description: t.description,
+          requestedPriority: t.requestedPriority,
+          itPriority: t.itPriority,
+          status: t.status,
+          isResolutionIndicated: false,
+        },
+      });
       ticketId = existing.id;
     }
 

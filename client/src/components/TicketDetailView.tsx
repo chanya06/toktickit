@@ -25,6 +25,7 @@ const PERMITTED_NEXT_STATUSES: Record<string, string[]> = {
   CLOSED: ["REOPENED"],
   REOPENED: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
   CANCELLED: ["OPEN"],
+  PENDING: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -36,6 +37,7 @@ const STATUS_LABELS: Record<string, string> = {
   CLOSED: "Closed",
   REOPENED: "Reopened",
   CANCELLED: "Cancelled",
+  PENDING: "Pending",
 };
 
 interface TicketDetailViewProps {
@@ -230,6 +232,8 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
         return { backgroundColor: "#FFEDD5", color: "#C2410C" };
       case "CANCELLED":
         return { backgroundColor: "#FEE2E2", color: "#B91C1C" };
+      case "PENDING":
+        return { backgroundColor: "#E2E8F0", color: "#475569" };
       default:
         return {};
     }

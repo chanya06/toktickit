@@ -298,6 +298,11 @@ export const PERMITTED_STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> 
     TicketStatus.RESOLVED,
     TicketStatus.CANCELLED,
   ],
+  [TicketStatus.PENDING]: [
+    TicketStatus.IN_PROGRESS,
+    TicketStatus.RESOLVED,
+    TicketStatus.CANCELLED,
+  ],
   [TicketStatus.WAITING_FOR_REQUESTER]: [
     TicketStatus.IN_PROGRESS,
     TicketStatus.RESOLVED,

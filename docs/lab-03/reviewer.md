@@ -20,7 +20,8 @@
 | [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | Approved |
 | [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | Approved |
 | [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | Approved |
-| [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | In Review |
+| [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | Approved |
+| [PR #70](https://github.com/chanya06/toktickit/pull/70) | `feature/28-qa-automated-tests-release-integration` | In Review |
 
 ---
 
@@ -484,11 +485,130 @@
 
 ---
 
+### Reviewer approval I received (PR #66 Round 2):
+
+> ### ผลการตรวจสอบรอบแก้ไข PR [#66](https://github.com/chanya06/toktickit/pull/66) (APPROVED)
+> ตรวจสอบโค้ดที่อัปเดตครบทั้ง 6 ข้อเรียบร้อยแล้ว:
+> - Regex อักขระพิเศษตรงกับ Server และผ่านทุกเงื่อนไข
+> - ป้องกันการลดบทบาทตนเอง (Self-demotion) เรียบร้อย
+> - ถอนไฟล์ส่วนเกินออกนอก Scope
+> - data-testid ถูกต้องและซิงก์ชื่อ Header ได้แบบ Real-time
+> อนุมัติและ Merge เข้า `lab3-staging` เรียบร้อยแล้ว
+
+
+---
+
+### Reviewer comment I received (PR #67):
+
+> ### ผลการรีวิว PR [#67](https://github.com/chanya06/toktickit/pull/67) (CHANGES REQUESTED)
+> จากการตรวจสอบชุดทดสอบ Playwright E2E, ไฟล์คอนฟิก และความเข้ากันได้ของระบบอย่างละเอียด พบประเด็นสำคัญที่ต้องปรับปรุงก่อนทำการ Merge ดังนี้:
+> 1. ปรับขอบเขต `testDir` ใน `playwright.config.ts` ให้เจาะจงเฉพาะ Lab 3 (`./e2e/lab-03`)
+> 2. แก้ไข Browser Channel ใน `playwright.config.ts` ให้ตรงกับเอกสาร (ปรับเป็น `chromium`)
+> 3. เพิ่ม Teardown คืนค่ารหัสผ่านของผู้ใช้ทดสอบใน E2E (Data Hygiene)
+> 4. ปรับปรุงตัวเลขจำนวน Screenshots ใน `docs/lab-03/tests.md` เป็น 21 screenshots
+
+---
+
+### How I responded (PR #67):
+
+> ขอบคุณสำหรับข้อเสนอแนะและผลการตรวจสอบที่ละเอียดและตรงจุด ได้ดำเนินการปรับปรุงแก้ไขครบทั้ง 4 ประเด็นเรียบร้อยแล้ว:
+> 1. **ปรับขอบเขต `testDir` เป็น `./e2e/lab-03` (`playwright.config.ts`)**:
+>    - กำหนด `testDir: "./e2e/lab-03"` ทำให้คำสั่ง `npm run test:e2e` และ Playwright runner โฟกัสเฉพาะชุดทดสอบของ Lab 3 ทั้ง 4 ไฟล์สเปก (12 tests) โดยตรง ไม่ดึงเทสของ Lab 2 มารันปะปน
+> 2. **ปรับแต่ง Browser Profile เป็น Chromium มาตรฐาน (`playwright.config.ts`)**:
+>    - ปรับโปรเจกต์เป็น `{ name: "chromium", use: { ...devices["Desktop Chrome"] } }` และนำ `channel: "msedge"` ออก เพื่อให้สอดคล้องกับเอกสาร `docs/lab-03/tests.md` และสามารถรันได้ทุกระบบปฏิบัติการรวมถึง Linux/CI Runners
+> 3. **เพิ่ม Teardown คืนค่ารหัสผ่านใน E2E Suites (`e2e/lab-03/staff-ticket-flow.spec.ts`, `e2e/lab-03/user-administration.spec.ts`)**:
+>    - ใน `staff-ticket-flow.spec.ts`: เพิ่ม `test.afterAll` เรียก Admin API รีเซ็ตรหัสผ่านของ Lisa Martinez (`lisa.martinez@toktickit.com`) กลับคืนเป็น `InitialPass123!`
+>    - ใน `user-administration.spec.ts`: เพิ่ม `test.afterAll` เรียก Admin API รีเซ็ตรหัสผ่านของ Michael Brown (`michael.brown@example.com`) กลับคืนเป็น `InitialPass123!`
+>    - รักษา Data Hygiene และความบริสุทธิ์ของข้อมูลในฐานข้อมูลให้พร้อมรันซ้ำได้โดยไม่ต้อง re-seed
+> 4. **ปรับแก้จำนวน Screenshots ในเอกสาร (`docs/lab-03/tests.md`)**:
+>    - ปรับตัวเลขในตาราง Execution Summary เป็น **21 screenshots** ครบถ้วนตามไฟล์หลักฐานจริงใน `artifacts/lab-03/screenshots/` (Screen 1: 3 ภาพ, Screen 2: 3 ภาพ, Screen 3: 3 ภาพ, Screen 4: 6 ภาพ, Screen 5: 6 ภาพ)
+> 5. **ผลการทดสอบ & Build**:
+>    - `npm run test:e2e`: ผ่านครบทั้ง 12/12 tests (Chromium)
+>    - Server Tests: ผ่านครบ 149/149 tests (15 test files)
+>    - Client Tests: ผ่านครบ 116/116 tests (15 test files)
+>    - Client Production Build (`tsc && vite build`): ผ่านสะอาดสมบูรณ์
+
+---
+
+### Reviewer comment I received (PR #68):
+
+> ### ผลการรีวิว PR [#68](https://github.com/chanya06/toktickit/pull/68)
+> จากการตรวจสอบการแก้ไขโค้ด ชุดทดสอบ Playwright และเอกสารประกอบอย่างละเอียด พบประเด็นที่ต้องปรับปรุงแก้ไขก่อนทำการอนุมัติ ดังนี้:
+> 1. **แก้ไขสถานะและนำข้อความ Reviewer Approval ล่วงหน้าออก (docs/lab-03/reviewer.md):**
+>    - ในตารางสรุป PR บรรทัดที่ 24 ให้ปรับสถานะของ PR #67 / #68 กลับเป็น In Review ให้ตรงตาม Workflow จริง
+>    - นำบล็อกข้อความ Reviewer approval I received (PR #67 Round 2) ที่ใส่ข้อความอนุมัติล่วงหน้าออก และเก็บบันทึกเฉพาะจุดที่ได้ดำเนินการแก้ไขจริง
+> 2. **เพิ่ม Teardown คืนค่า Department ของ John Smith (e2e/lab-03/user-administration.spec.ts):**
+>    - ใน Test ข้อ 3 มีการแก้ไข Department ของ admin@toktickit.com เป็น "IT Management Systems"
+>    - ให้เพิ่มคำสั่งใน test.afterAll เพื่ออัปเดต Department ของ John Smith กลับคืนเป็น "IT Administration" เพื่อรักษาความสะอาดของฐานข้อมูล (Data Hygiene) ให้พร้อมสำหรับการรันซ้ำ
+> 3. **ซิงก์สถานะ PENDING ใน Client (client/src/components/TicketDetailView.tsx):**
+>    - ในเมื่อฝั่ง Server ได้เพิ่ม [TicketStatus.PENDING] ใน PERMITTED_STATUS_TRANSITIONS แล้ว ให้เพิ่มคีย์ PENDING: ["IN_PROGRESS", "RESOLVED", "CANCELLED"] ใน PERMITTED_NEXT_STATUSES ฝั่ง Client ด้วย เพื่อป้องกันไม่ให้ Dropdown เปลี่ยนสถานะบน UI ค้างและไม่มีตัวเลือกเมื่อเจอสถานะ PENDING
+
+---
+
+### How I responded (PR #68):
+
+> ดำเนินการปรับปรุงแก้ไขครบทั้ง 3 ข้อเรียบร้อยแล้ว:
+> 1. **ปรับสถานะและนำบล็อกข้อความอนุมัติล่วงหน้าออก (`docs/lab-03/reviewer.md`)**:
+>    - ปรับสถานะของ PR #67 / #68 ในตารางสรุปกลับเป็น `In Review` ให้ตรงตามสถานะจริง
+>    - นำบล็อกข้อความ Reviewer approval ล่วงหน้าออกทั้งหมด โดยบันทึกเฉพาะขั้นตอนที่ดำเนินการแก้ไขจริง
+> 2. **เพิ่ม Teardown คืนค่า Department ของ John Smith (`e2e/lab-03/user-administration.spec.ts`)**:
+>    - เพิ่มคำสั่งใน `test.afterAll` เรียก Admin API `PATCH /api/admin/users/:id` คืนค่า department ของ John Smith (`admin@toktickit.com`) กลับเป็น `"IT Administration"` ตามค่าเริ่มต้นใน `seed.ts` รักษา Data Hygiene ได้สมบูรณ์
+> 3. **ซิงก์สถานะ PENDING ใน Client (`client/src/components/TicketDetailView.tsx`)**:
+>    - เพิ่ม `PENDING: ["IN_PROGRESS", "RESOLVED", "CANCELLED"]` ใน `PERMITTED_NEXT_STATUSES`, เพิ่ม `PENDING: "Pending"` ใน `STATUS_LABELS`, และเพิ่มสี Badge ใน `getStatusBadgeStyle` ป้องกัน Dropdown ค้างเมื่อตั๋วมีสถานะ PENDING
+> 4. **ผลการทดสอบ & Build**:
+>    - `npm run test:e2e`: ผ่านครบ 12/12 tests
+>    - Server Tests: ผ่านครบ 149/149 tests
+>    - Client Tests: ผ่านครบ 116/116 tests
+>    - Client Production Build: ผ่านสะอาดสมบูรณ์
+
+---
+
+### Reviewer comment I received (PR #70):
+
+> ### ข้อบกพร่องเพิ่มเติมที่ต้องแก้ไขใน PR [#70](https://github.com/chanya06/toktickit/pull/70)
+> 1. **ทำความสะอาดฐานข้อมูล (Re-seed) ก่อนรันแคปเจอร์ Screenshots**:
+>    - ในรูปภาพ Screen 5 มีผู้ใช้ขยะ `QA Auto Staff <timestamp>` ค้างอยู่ 4 แถวบนสุด และรูปโมดอลเปิดบน user ขยะ (#88) รวมถึงแผนกของ John Smith ยังแสดงเป็น IT Management Systems
+>    - ในรูป Screen 3 มีตั๋วขยะสะสมจนยอดรวมกลายเป็น 897 ใบ
+>    - ให้ทำการ Reset / Re-seed ฐานข้อมูล (`npm run prisma:seed` หรือรีเซ็ต db) ให้สะอาดก่อนทำการรันเก็บภาพ Screenshots ใหม่
+> 2. **ปรับสคริปต์ Screen 3 และ Screen 4 ให้ใช้บัญชี IT Staff จริง (`capture-screenshots.spec.ts`)**:
+>    - ในขั้นตอนแคปเจอร์ Screen 3 (Ticket Queue) และ Screen 4 (Ticket Detail) ให้ล็อกอินด้วยผู้ใช้บทบาท IT Staff (เช่น `lisa.martinez@toktickit.com` หรือ `kevin.patel@toktickit.com`) เพื่อให้ Header แสดง Badge บทบาท IT Staff และไม่มีเมนู User Management ของ Admin ปรากฏบนหน้าจอ IT Staff
+> 3. **แก้ไข Layout ล้นบน Mobile และรัน Screenshots ทั้งหมดใหม่**:
+>    - ปรับปรุง Header ให้รองรับ Mobile หน้าจอ 375px ไม่ล้นออกไปเป็น 727px-731px
+>    - รัน `capture-screenshots.spec.ts` ใหม่ทั้งหมดหลังทำความสะอาดฐานข้อมูล เพื่อให้ได้ภาพหลักฐานที่ถูกต้องตรงตามระบบจริง
+
+---
+
+### How I responded (PR #70):
+
+> ดำเนินการแก้ไขปรับปรุงครบถ้วนทั้ง 3 ประเด็น พร้อมบันทึกภาพหน้าจอหลักฐานใหม่ทั้งหมดเรียบร้อยแล้ว:
+> 1. **ปรับปรุงกระบวนการ Re-seed และล้างข้อมูลขยะ (`server/prisma/seed.ts`)**:
+>    - เพิ่มขั้นตอนลบตั๋วที่ไม่ได้อยู่ในชุด Seed 3 ใบ (`ticketNumber NOT IN ('TKT-2026-000001', 'TKT-2026-000002', 'TKT-2026-000003')`) ซึ่ง Cascade ลบความคิดเห็นและบันทึกภายในที่เกี่ยวข้องทั้งหมด
+>    - เพิ่มขั้นตอนลบผู้ใช้ที่ไม่ได้อยู่ในรายการ Seed 10 ราย กำจัดผู้ใช้ `QA Auto Staff <timestamp>` ทั้งหมด
+>    - อัปเดตคำสั่ง `upsert` ให้คืนค่าสถานะ แผนก (`IT Administration`) และรหัสผ่านเริ่มต้นของ John Smith รวมถึงผู้ใช้ทั้งหมด
+>    - รีเซ็ตสถานะและผู้รับผิดชอบของตั๋วตัวอย่างทั้ง 3 ใบให้ตรงตามข้อกำหนดเริ่มต้น
+> 2. **ปรับสคริปต์ใช้บัญชี IT Staff สำหรับ Screen 3 และ Screen 4 (`e2e/lab-03/capture-screenshots.spec.ts`)**:
+>    - เพิ่มขั้นตอนเตรียมการใน `beforeAll` ให้บัญชี Lisa Martinez (`lisa.martinez@toktickit.com`) มีรหัสผ่านถาวรและตั้งค่า `mustChangePassword: false`
+>    - Screen 3 (Ticket Queue) และ Screen 4 (Ticket Detail) ล็อกอินด้วยบัญชี Lisa Martinez แสดง Badge บทบาท `IT Staff` และไม่มีเมนู `User Management` ของ Administrator ปรากฏบน Header
+>    - Screen 5 (User Management) สลับไปล็อกอินด้วยบัญชี Administrator (`admin@toktickit.com`) เพื่อแสดงตารางผู้ใช้ที่สะอาด 10 ราย และเปิดโมดอลบนผู้ใช้ที่เป็นทางการ ไม่ติดค้างบนผู้ใช้ขยะ
+>    - เพิ่ม `afterAll` รีเซ็ตรหัสผ่านของ Lisa Martinez กลับเป็น `InitialPass123!` และยืนยันแผนกของ John Smith กลับเป็น `IT Administration`
+> 3. **แก้ไข Layout ล้นบน Mobile และบันทึกภาพใหม่ทั้งหมด (`client/src/components/Header.tsx`, `client/src/index.css`)**:
+>    - เพิ่ม `flex-wrap: wrap` และปรับ Gap/Padding สำหรับหน้าจอขนาดเล็ก (< 768px) บน Header ป้องกันการดันความกว้างออกด้านข้าง
+>    - กำหนด `max-width: 100%` และ `overflow-x: hidden` ใน `index.css` ควบคุมไม่ให้หน้าเว็บล้น
+>    - รัน `capture-screenshots.spec.ts` ใหม่ครบทั้ง 21 ภาพ โดยภาพ Mobile ทั้งหมด (`mobile.png`) มีขนาดความกว้าง 375px พอดี ไม่ล้นเป็น 727px–731px อีกต่อไป
+> 4. **ผลการทดสอบ & Build**:
+>    - Playwright E2E: ผ่านครบ 12/12 tests
+>    - Server Vitest: ผ่านครบ 149/149 tests
+>    - Client Vitest: ผ่านครบ 116/116 tests
+>    - Client Production Build: ผ่านสะอาดสมบูรณ์
+
+---
+
 ## Pull Requests I reviewed for my partner (@titayaaa)
 
 
 | PR | Branch | Reviewer verdict |
 | :--- | :--- | :--- |
 | *To be updated during peer reviews* | - | - |
+
 
 

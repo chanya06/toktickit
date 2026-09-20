@@ -38,7 +38,8 @@ describe("Authentication API Endpoints (Issue 19 - Lab 3)", () => {
       // Verify Set-Cookie header contains auth_token
       const setCookie = res.headers["set-cookie"];
       expect(setCookie).toBeDefined();
-      expect(setCookie.some((c: string) => c.includes("auth_token="))).toBe(true);
+      const setCookies = Array.isArray(setCookie) ? setCookie : [setCookie || ""];
+      expect(setCookies.some((c: string) => c.includes("auth_token="))).toBe(true);
     });
 
     it("API-02: rejects login for inactive accounts with 401 and safe message", async () => {
