@@ -11,12 +11,20 @@ export default defineConfig({
     baseURL: "http://localhost:5173",
     trace: "on-first-retry",
   },
-  webServer: {
-    command: "npm run dev --prefix client",
-    url: "http://localhost:5173",
-    reuseExistingServer: true,
-    timeout: 120000,
-  },
+  webServer: [
+    {
+      command: "npm run dev --prefix server",
+      url: "http://localhost:3000/api/health",
+      reuseExistingServer: true,
+      timeout: 120000,
+    },
+    {
+      command: "npm run dev --prefix client",
+      url: "http://localhost:5173",
+      reuseExistingServer: true,
+      timeout: 120000,
+    },
+  ],
   projects: [
     {
       name: "msedge",

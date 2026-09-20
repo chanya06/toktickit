@@ -20,7 +20,8 @@
 | [PR #63](https://github.com/chanya06/toktickit/pull/63) | `feature/24-staff-operations` | Approved |
 | [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | Approved |
 | [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | Approved |
-| [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | In Review |
+| [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | Approved |
+| [PR #67](https://github.com/chanya06/toktickit/pull/67) | `feature/28-qa-automated-tests-release-integration` | In Review |
 
 ---
 
@@ -481,6 +482,18 @@
 >      - Client Tests: ผ่านครบ 116/116 tests (15 test files)
 >      - Server Tests: ผ่านครบ 149/149 tests (15 test files)
 >      - Client Production Build (`tsc && vite build`): ผ่านสะอาดสมบูรณ์ ปราศจาก error
+
+---
+
+### Reviewer approval I received (PR #66 Round 2):
+
+> ### ผลการตรวจสอบรอบแก้ไข PR [#66](https://github.com/chanya06/toktickit/pull/66) (APPROVED)
+> ตรวจสอบโค้ดที่อัปเดตครบทั้ง 6 ข้อเรียบร้อยแล้ว:
+> - Regex อักขระพิเศษตรงกับ Server และผ่านทุกเงื่อนไข
+> - ป้องกันการลดบทบาทตนเอง (Self-demotion) เรียบร้อย
+> - ถอนไฟล์ส่วนเกินออกนอก Scope
+> - data-testid ถูกต้องและซิงก์ชื่อ Header ได้แบบ Real-time
+> อนุมัติและ Merge เข้า `lab3-staging` เรียบร้อยแล้ว
 
 ---
 

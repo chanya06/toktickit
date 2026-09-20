@@ -34,8 +34,17 @@ export async function generateNextTicketNumber(prismaClient: any): Promise<strin
       nextSeq = (lastTicket.id || 0) + 1;
     }
   }
-  
-  return formatTicketNumber(currentYear, nextSeq);
+
+  // Ensure candidate ticketNumber does not collide with any existing record
+  let candidate = formatTicketNumber(currentYear, nextSeq);
+  if (typeof prismaClient.ticket?.findUnique === "function") {
+    while (await prismaClient.ticket.findUnique({ where: { ticketNumber: candidate } })) {
+      nextSeq++;
+      candidate = formatTicketNumber(currentYear, nextSeq);
+    }
+  }
+
+  return candidate;
 }
 
 /**
