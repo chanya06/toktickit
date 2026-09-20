@@ -509,12 +509,24 @@
 
 ---
 
-### Author response & changes (PR #67):
+### How I responded (PR #67):
 
-> ปรับปรุงแก้ไขโค้ดตามข้อเสนอแนะของ Reviewer ครบถ้วนทุกข้อ:
-> 1. **`playwright.config.ts`**: ปรับ `testDir` เป็น `./e2e/lab-03` เพื่อให้รันเฉพาะเทสของ Lab 3 และเปลี่ยนโปรเจกต์เป็น `chromium` ตามสเปก
-> 2. **Teardown คืนค่ารหัสผ่าน**: เพิ่ม `test.afterAll` ในทั้ง `staff-ticket-flow.spec.ts` และ `user-administration.spec.ts` รีเซ็ตรหัสผ่านของ Lisa Martinez และ Michael Brown กลับเป็น `InitialPass123!`
-> 3. **`docs/lab-03/tests.md`**: ปรับยอด Screenshots ในตารางสรุปผลเป็น 21 ภาพตรงตามไฟล์หลักฐานจริง
+> ขอบคุณสำหรับข้อเสนอแนะและผลการตรวจสอบที่ละเอียดและตรงจุด ได้ดำเนินการปรับปรุงแก้ไขครบทั้ง 4 ประเด็นเรียบร้อยแล้ว:
+> 1. **ปรับขอบเขต `testDir` เป็น `./e2e/lab-03` (`playwright.config.ts`)**:
+>    - กำหนด `testDir: "./e2e/lab-03"` ทำให้คำสั่ง `npm run test:e2e` และ Playwright runner โฟกัสเฉพาะชุดทดสอบของ Lab 3 ทั้ง 4 ไฟล์สเปก (12 tests) โดยตรง ไม่ดึงเทสของ Lab 2 มารันปะปน
+> 2. **ปรับแต่ง Browser Profile เป็น Chromium มาตรฐาน (`playwright.config.ts`)**:
+>    - ปรับโปรเจกต์เป็น `{ name: "chromium", use: { ...devices["Desktop Chrome"] } }` และนำ `channel: "msedge"` ออก เพื่อให้สอดคล้องกับเอกสาร `docs/lab-03/tests.md` และสามารถรันได้ทุกระบบปฏิบัติการรวมถึง Linux/CI Runners
+> 3. **เพิ่ม Teardown คืนค่ารหัสผ่านใน E2E Suites (`e2e/lab-03/staff-ticket-flow.spec.ts`, `e2e/lab-03/user-administration.spec.ts`)**:
+>    - ใน `staff-ticket-flow.spec.ts`: เพิ่ม `test.afterAll` เรียก Admin API รีเซ็ตรหัสผ่านของ Lisa Martinez (`lisa.martinez@toktickit.com`) กลับคืนเป็น `InitialPass123!`
+>    - ใน `user-administration.spec.ts`: เพิ่ม `test.afterAll` เรียก Admin API รีเซ็ตรหัสผ่านของ Michael Brown (`michael.brown@example.com`) กลับคืนเป็น `InitialPass123!`
+>    - รักษา Data Hygiene และความบริสุทธิ์ของข้อมูลในฐานข้อมูลให้พร้อมรันซ้ำได้โดยไม่ต้อง re-seed
+> 4. **ปรับแก้จำนวน Screenshots ในเอกสาร (`docs/lab-03/tests.md`)**:
+>    - ปรับตัวเลขในตาราง Execution Summary เป็น **21 screenshots** ครบถ้วนตามไฟล์หลักฐานจริงใน `artifacts/lab-03/screenshots/` (Screen 1: 3 ภาพ, Screen 2: 3 ภาพ, Screen 3: 3 ภาพ, Screen 4: 6 ภาพ, Screen 5: 6 ภาพ)
+> 5. **ผลการทดสอบ & Build**:
+>    - `npm run test:e2e`: ผ่านครบทั้ง 12/12 tests (Chromium)
+>    - Server Tests: ผ่านครบ 149/149 tests (15 test files)
+>    - Client Tests: ผ่านครบ 116/116 tests (15 test files)
+>    - Client Production Build (`tsc && vite build`): ผ่านสะอาดสมบูรณ์
 
 ---
 
@@ -526,7 +538,6 @@
 > - มี Teardown รีเซ็ตรหัสผ่านกลับเป็น `InitialPass123!` ครบถ้วนทั้งสองชุดทดสอบ
 > - เอกสาร `tests.md` แสดงจำนวน 21 screenshots ถูกต้องสมบูรณ์
 > อนุมัติและพร้อม Merge เข้าสู่ `lab3-staging`
-
 
 ---
 

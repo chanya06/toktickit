@@ -166,11 +166,11 @@ test.describe("E2E-02: IT Staff Ticket Queue, Operations, Claim, and Communicati
     const resetAdminData = await resetLoginRes.json();
     const resetAdminToken = resetAdminData.token;
 
-    const resetUsersRes = await request.get("http://localhost:3000/api/admin/users?search=lisa.martinez@toktickit.com", {
+    const resetUsersRes = await request.get(`http://localhost:3000/api/admin/users?search=${encodeURIComponent(staffEmail)}`, {
       headers: { Authorization: `Bearer ${resetAdminToken}` },
     });
     const resetUsersData = await resetUsersRes.json();
-    const lisaUser = resetUsersData.data.find((u: any) => u.email === staffEmail);
+    const lisaUser = resetUsersData.data?.find((u: any) => u.email === staffEmail);
 
     if (lisaUser) {
       await request.post(`http://localhost:3000/api/admin/users/${lisaUser.id}/reset-password`, {

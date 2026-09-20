@@ -127,21 +127,21 @@ test.describe("E2E-03: Administrator User Directory, Provisioning, Safety Guards
 
   test.afterAll(async ({ request }) => {
     // Teardown: Re-login as Admin and reset Michael Brown's password back to InitialPass123!
-    const resetLoginRes = await request.post("http://localhost:3000/api/auth/login", {
-      data: { email: "admin@toktickit.com", password: "InitialPass123!" },
+    const adminLoginRes = await request.post("http://localhost:3000/api/auth/login", {
+      data: { email: adminEmail, password: adminPass },
     });
-    const resetAdminData = await resetLoginRes.json();
-    const resetAdminToken = resetAdminData.token;
+    const adminData = await adminLoginRes.json();
+    const adminToken = adminData.token;
 
-    const resetUsersRes = await request.get("http://localhost:3000/api/admin/users?search=michael.brown@toktickit.com", {
-      headers: { Authorization: `Bearer ${resetAdminToken}` },
+    const usersRes = await request.get("http://localhost:3000/api/admin/users?search=michael.brown@example.com", {
+      headers: { Authorization: `Bearer ${adminToken}` },
     });
-    const resetUsersData = await resetUsersRes.json();
-    const michaelUser = resetUsersData.data.find((u: any) => u.email === "michael.brown@toktickit.com");
+    const usersData = await usersRes.json();
+    const michaelUser = usersData.data?.find((u: any) => u.email === "michael.brown@example.com");
 
     if (michaelUser) {
       await request.post(`http://localhost:3000/api/admin/users/${michaelUser.id}/reset-password`, {
-        headers: { Authorization: `Bearer ${resetAdminToken}` },
+        headers: { Authorization: `Bearer ${adminToken}` },
         data: { initialPassword: "InitialPass123!" },
       });
     }
