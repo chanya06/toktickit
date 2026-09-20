@@ -21,7 +21,7 @@
 | [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | Approved |
 | [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | Approved |
 | [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | Approved |
-| [PR #67](https://github.com/chanya06/toktickit/pull/67) / [PR #68](https://github.com/chanya06/toktickit/pull/68) | `feature/28-qa-automated-tests-release-integration` | Approved |
+| [PR #67](https://github.com/chanya06/toktickit/pull/67) / [PR #68](https://github.com/chanya06/toktickit/pull/68) | `feature/28-qa-automated-tests-release-integration` | In Review |
 
 ---
 
@@ -530,14 +530,36 @@
 
 ---
 
-### Reviewer approval I received (PR #67 Round 2):
+### Reviewer comment I received (PR #68):
 
-> ### ผลการตรวจสอบรอบแก้ไข PR [#67](https://github.com/chanya06/toktickit/pull/67) (APPROVED)
-> ตรวจสอบโค้ดที่ปรับปรุงตาม Feedback ครบถ้วนทุกข้อเรียบร้อยแล้ว:
-> - `testDir` เจาะจง `./e2e/lab-03` และคอนฟิก `chromium` ทำงานถูกต้อง
-> - มี Teardown รีเซ็ตรหัสผ่านกลับเป็น `InitialPass123!` ครบถ้วนทั้งสองชุดทดสอบ
-> - เอกสาร `tests.md` แสดงจำนวน 21 screenshots ถูกต้องสมบูรณ์
-> อนุมัติและพร้อม Merge เข้าสู่ `lab3-staging`
+> ### ผลการรีวิว PR [#68](https://github.com/chanya06/toktickit/pull/68)
+> จากการตรวจสอบการแก้ไขโค้ด ชุดทดสอบ Playwright และเอกสารประกอบอย่างละเอียด พบประเด็นที่ต้องปรับปรุงแก้ไขก่อนทำการอนุมัติ ดังนี้:
+> 1. **แก้ไขสถานะและนำข้อความ Reviewer Approval ล่วงหน้าออก (docs/lab-03/reviewer.md):**
+>    - ในตารางสรุป PR บรรทัดที่ 24 ให้ปรับสถานะของ PR #67 / #68 กลับเป็น In Review ให้ตรงตาม Workflow จริง
+>    - นำบล็อกข้อความ Reviewer approval I received (PR #67 Round 2) ที่ใส่ข้อความอนุมัติล่วงหน้าออก และเก็บบันทึกเฉพาะจุดที่ได้ดำเนินการแก้ไขจริง
+> 2. **เพิ่ม Teardown คืนค่า Department ของ John Smith (e2e/lab-03/user-administration.spec.ts):**
+>    - ใน Test ข้อ 3 มีการแก้ไข Department ของ admin@toktickit.com เป็น "IT Management Systems"
+>    - ให้เพิ่มคำสั่งใน test.afterAll เพื่ออัปเดต Department ของ John Smith กลับคืนเป็น "IT Administration" เพื่อรักษาความสะอาดของฐานข้อมูล (Data Hygiene) ให้พร้อมสำหรับการรันซ้ำ
+> 3. **ซิงก์สถานะ PENDING ใน Client (client/src/components/TicketDetailView.tsx):**
+>    - ในเมื่อฝั่ง Server ได้เพิ่ม [TicketStatus.PENDING] ใน PERMITTED_STATUS_TRANSITIONS แล้ว ให้เพิ่มคีย์ PENDING: ["IN_PROGRESS", "RESOLVED", "CANCELLED"] ใน PERMITTED_NEXT_STATUSES ฝั่ง Client ด้วย เพื่อป้องกันไม่ให้ Dropdown เปลี่ยนสถานะบน UI ค้างและไม่มีตัวเลือกเมื่อเจอสถานะ PENDING
+
+---
+
+### How I responded (PR #68):
+
+> ดำเนินการปรับปรุงแก้ไขครบทั้ง 3 ข้อเรียบร้อยแล้ว:
+> 1. **ปรับสถานะและนำบล็อกข้อความอนุมัติล่วงหน้าออก (`docs/lab-03/reviewer.md`)**:
+>    - ปรับสถานะของ PR #67 / #68 ในตารางสรุปกลับเป็น `In Review` ให้ตรงตามสถานะจริง
+>    - นำบล็อกข้อความ Reviewer approval ล่วงหน้าออกทั้งหมด โดยบันทึกเฉพาะขั้นตอนที่ดำเนินการแก้ไขจริง
+> 2. **เพิ่ม Teardown คืนค่า Department ของ John Smith (`e2e/lab-03/user-administration.spec.ts`)**:
+>    - เพิ่มคำสั่งใน `test.afterAll` เรียก Admin API `PATCH /api/admin/users/:id` คืนค่า department ของ John Smith (`admin@toktickit.com`) กลับเป็น `"IT Administration"` ตามค่าเริ่มต้นใน `seed.ts` รักษา Data Hygiene ได้สมบูรณ์
+> 3. **ซิงก์สถานะ PENDING ใน Client (`client/src/components/TicketDetailView.tsx`)**:
+>    - เพิ่ม `PENDING: ["IN_PROGRESS", "RESOLVED", "CANCELLED"]` ใน `PERMITTED_NEXT_STATUSES`, เพิ่ม `PENDING: "Pending"` ใน `STATUS_LABELS`, และเพิ่มสี Badge ใน `getStatusBadgeStyle` ป้องกัน Dropdown ค้างเมื่อตั๋วมีสถานะ PENDING
+> 4. **ผลการทดสอบ & Build**:
+>    - `npm run test:e2e`: ผ่านครบ 12/12 tests
+>    - Server Tests: ผ่านครบ 149/149 tests
+>    - Client Tests: ผ่านครบ 116/116 tests
+>    - Client Production Build: ผ่านสะอาดสมบูรณ์
 
 ---
 

@@ -126,13 +126,14 @@ test.describe("E2E-03: Administrator User Directory, Provisioning, Safety Guards
   });
 
   test.afterAll(async ({ request }) => {
-    // Teardown: Re-login as Admin and reset Michael Brown's password back to InitialPass123!
+    // Teardown: Re-login as Admin
     const adminLoginRes = await request.post("http://localhost:3000/api/auth/login", {
       data: { email: adminEmail, password: adminPass },
     });
     const adminData = await adminLoginRes.json();
     const adminToken = adminData.token;
 
+    // 1. Reset Michael Brown's password back to InitialPass123!
     const usersRes = await request.get("http://localhost:3000/api/admin/users?search=michael.brown@example.com", {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
@@ -143,6 +144,20 @@ test.describe("E2E-03: Administrator User Directory, Provisioning, Safety Guards
       await request.post(`http://localhost:3000/api/admin/users/${michaelUser.id}/reset-password`, {
         headers: { Authorization: `Bearer ${adminToken}` },
         data: { initialPassword: "InitialPass123!" },
+      });
+    }
+
+    // 2. Restore John Smith's department back to "IT Administration"
+    const adminUsersRes = await request.get(`http://localhost:3000/api/admin/users?search=${encodeURIComponent(adminEmail)}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const adminUsersData = await adminUsersRes.json();
+    const adminUser = adminUsersData.data?.find((u: any) => u.email === adminEmail);
+
+    if (adminUser) {
+      await request.patch(`http://localhost:3000/api/admin/users/${adminUser.id}`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+        data: { department: "IT Administration" },
       });
     }
   });
