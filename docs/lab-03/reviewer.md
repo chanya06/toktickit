@@ -21,7 +21,7 @@
 | [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | Approved |
 | [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | Approved |
 | [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | Approved |
-| [PR #67](https://github.com/chanya06/toktickit/pull/67) / [PR #68](https://github.com/chanya06/toktickit/pull/68) | `feature/28-qa-automated-tests-release-integration` | In Review |
+| [PR #70](https://github.com/chanya06/toktickit/pull/70) | `feature/28-qa-automated-tests-release-integration` | In Review |
 
 ---
 
