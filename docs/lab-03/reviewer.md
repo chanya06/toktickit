@@ -563,11 +563,52 @@
 
 ---
 
+### Reviewer comment I received (PR #70):
+
+> ### ข้อบกพร่องเพิ่มเติมที่ต้องแก้ไขใน PR [#70](https://github.com/chanya06/toktickit/pull/70)
+> 1. **ทำความสะอาดฐานข้อมูล (Re-seed) ก่อนรันแคปเจอร์ Screenshots**:
+>    - ในรูปภาพ Screen 5 มีผู้ใช้ขยะ `QA Auto Staff <timestamp>` ค้างอยู่ 4 แถวบนสุด และรูปโมดอลเปิดบน user ขยะ (#88) รวมถึงแผนกของ John Smith ยังแสดงเป็น IT Management Systems
+>    - ในรูป Screen 3 มีตั๋วขยะสะสมจนยอดรวมกลายเป็น 897 ใบ
+>    - ให้ทำการ Reset / Re-seed ฐานข้อมูล (`npm run prisma:seed` หรือรีเซ็ต db) ให้สะอาดก่อนทำการรันเก็บภาพ Screenshots ใหม่
+> 2. **ปรับสคริปต์ Screen 3 และ Screen 4 ให้ใช้บัญชี IT Staff จริง (`capture-screenshots.spec.ts`)**:
+>    - ในขั้นตอนแคปเจอร์ Screen 3 (Ticket Queue) และ Screen 4 (Ticket Detail) ให้ล็อกอินด้วยผู้ใช้บทบาท IT Staff (เช่น `lisa.martinez@toktickit.com` หรือ `kevin.patel@toktickit.com`) เพื่อให้ Header แสดง Badge บทบาท IT Staff และไม่มีเมนู User Management ของ Admin ปรากฏบนหน้าจอ IT Staff
+> 3. **แก้ไข Layout ล้นบน Mobile และรัน Screenshots ทั้งหมดใหม่**:
+>    - ปรับปรุง Header ให้รองรับ Mobile หน้าจอ 375px ไม่ล้นออกไปเป็น 727px-731px
+>    - รัน `capture-screenshots.spec.ts` ใหม่ทั้งหมดหลังทำความสะอาดฐานข้อมูล เพื่อให้ได้ภาพหลักฐานที่ถูกต้องตรงตามระบบจริง
+
+---
+
+### How I responded (PR #70):
+
+> ดำเนินการแก้ไขปรับปรุงครบถ้วนทั้ง 3 ประเด็น พร้อมบันทึกภาพหน้าจอหลักฐานใหม่ทั้งหมดเรียบร้อยแล้ว:
+> 1. **ปรับปรุงกระบวนการ Re-seed และล้างข้อมูลขยะ (`server/prisma/seed.ts`)**:
+>    - เพิ่มขั้นตอนลบตั๋วที่ไม่ได้อยู่ในชุด Seed 3 ใบ (`ticketNumber NOT IN ('TKT-2026-000001', 'TKT-2026-000002', 'TKT-2026-000003')`) ซึ่ง Cascade ลบความคิดเห็นและบันทึกภายในที่เกี่ยวข้องทั้งหมด
+>    - เพิ่มขั้นตอนลบผู้ใช้ที่ไม่ได้อยู่ในรายการ Seed 10 ราย กำจัดผู้ใช้ `QA Auto Staff <timestamp>` ทั้งหมด
+>    - อัปเดตคำสั่ง `upsert` ให้คืนค่าสถานะ แผนก (`IT Administration`) และรหัสผ่านเริ่มต้นของ John Smith รวมถึงผู้ใช้ทั้งหมด
+>    - รีเซ็ตสถานะและผู้รับผิดชอบของตั๋วตัวอย่างทั้ง 3 ใบให้ตรงตามข้อกำหนดเริ่มต้น
+> 2. **ปรับสคริปต์ใช้บัญชี IT Staff สำหรับ Screen 3 และ Screen 4 (`e2e/lab-03/capture-screenshots.spec.ts`)**:
+>    - เพิ่มขั้นตอนเตรียมการใน `beforeAll` ให้บัญชี Lisa Martinez (`lisa.martinez@toktickit.com`) มีรหัสผ่านถาวรและตั้งค่า `mustChangePassword: false`
+>    - Screen 3 (Ticket Queue) และ Screen 4 (Ticket Detail) ล็อกอินด้วยบัญชี Lisa Martinez แสดง Badge บทบาท `IT Staff` และไม่มีเมนู `User Management` ของ Administrator ปรากฏบน Header
+>    - Screen 5 (User Management) สลับไปล็อกอินด้วยบัญชี Administrator (`admin@toktickit.com`) เพื่อแสดงตารางผู้ใช้ที่สะอาด 10 ราย และเปิดโมดอลบนผู้ใช้ที่เป็นทางการ ไม่ติดค้างบนผู้ใช้ขยะ
+>    - เพิ่ม `afterAll` รีเซ็ตรหัสผ่านของ Lisa Martinez กลับเป็น `InitialPass123!` และยืนยันแผนกของ John Smith กลับเป็น `IT Administration`
+> 3. **แก้ไข Layout ล้นบน Mobile และบันทึกภาพใหม่ทั้งหมด (`client/src/components/Header.tsx`, `client/src/index.css`)**:
+>    - เพิ่ม `flex-wrap: wrap` และปรับ Gap/Padding สำหรับหน้าจอขนาดเล็ก (< 768px) บน Header ป้องกันการดันความกว้างออกด้านข้าง
+>    - กำหนด `max-width: 100%` และ `overflow-x: hidden` ใน `index.css` ควบคุมไม่ให้หน้าเว็บล้น
+>    - รัน `capture-screenshots.spec.ts` ใหม่ครบทั้ง 21 ภาพ โดยภาพ Mobile ทั้งหมด (`mobile.png`) มีขนาดความกว้าง 375px พอดี ไม่ล้นเป็น 727px–731px อีกต่อไป
+> 4. **ผลการทดสอบ & Build**:
+>    - Playwright E2E: ผ่านครบ 12/12 tests
+>    - Server Vitest: ผ่านครบ 149/149 tests
+>    - Client Vitest: ผ่านครบ 116/116 tests
+>    - Client Production Build: ผ่านสะอาดสมบูรณ์
+
+---
+
 ## Pull Requests I reviewed for my partner (@titayaaa)
 
 
 | PR | Branch | Reviewer verdict |
 | :--- | :--- | :--- |
 | *To be updated during peer reviews* | - | - |
+
 
 

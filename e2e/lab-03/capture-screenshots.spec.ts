@@ -11,6 +11,11 @@ const dirs = {
   screen5UserManagement: path.join(baseDir, "screen-5-user-management"),
 };
 
+const adminEmail = "admin@toktickit.com";
+const adminPassword = "InitialPass123!";
+const staffEmail = "lisa.martinez@toktickit.com";
+const staffPassword = "StaffPermanent123!";
+
 test.beforeAll(async ({ request }) => {
   for (const dir of Object.values(dirs)) {
     if (!fs.existsSync(dir)) {
@@ -18,21 +23,90 @@ test.beforeAll(async ({ request }) => {
     }
   }
 
-  // Ensure Emily Davis has mustChangePassword: true and initial password
+  // 1. Admin login to setup test user accounts
   const adminLoginRes = await request.post("http://localhost:3000/api/auth/login", {
-    data: { email: "admin@toktickit.com", password: "InitialPass123!" },
+    data: { email: adminEmail, password: adminPassword },
   });
   if (adminLoginRes.ok()) {
     const adminData = await adminLoginRes.json();
-    const usersRes = await request.get("http://localhost:3000/api/admin/users?search=emily.davis@toktickit.com", {
-      headers: { Authorization: `Bearer ${adminData.token}` },
+    const adminToken = adminData.token;
+
+    // Ensure Emily Davis has mustChangePassword: true and initial password (for Screen 2)
+    const emilyRes = await request.get("http://localhost:3000/api/admin/users?search=emily.davis@toktickit.com", {
+      headers: { Authorization: `Bearer ${adminToken}` },
     });
-    const usersData = await usersRes.json();
-    const emilyUser = usersData.data.find((u: any) => u.email === "emily.davis@toktickit.com");
+    const emilyData = await emilyRes.json();
+    const emilyUser = emilyData.data?.find((u: any) => u.email === "emily.davis@toktickit.com");
     if (emilyUser) {
       await request.post(`http://localhost:3000/api/admin/users/${emilyUser.id}/reset-password`, {
-        headers: { Authorization: `Bearer ${adminData.token}` },
+        headers: { Authorization: `Bearer ${adminToken}` },
         data: { initialPassword: "InitialPass123!" },
+      });
+    }
+
+    // Configure Lisa Martinez (IT Staff) with completed password change for Screen 3 & Screen 4
+    const lisaRes = await request.get(`http://localhost:3000/api/admin/users?search=${encodeURIComponent(staffEmail)}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const lisaData = await lisaRes.json();
+    const lisaUser = lisaData.data?.find((u: any) => u.email === staffEmail);
+    if (lisaUser) {
+      // Reset Lisa's initial password to temporary password
+      await request.post(`http://localhost:3000/api/admin/users/${lisaUser.id}/reset-password`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+        data: { initialPassword: "TempStaff123!" },
+      });
+
+      // Login as Lisa with temporary password
+      const lisaLoginRes = await request.post("http://localhost:3000/api/auth/login", {
+        data: { email: staffEmail, password: "TempStaff123!" },
+      });
+      const lisaLoginData = await lisaLoginRes.json();
+
+      // Complete mandatory password change so Lisa can access queue directly
+      await request.post("http://localhost:3000/api/auth/change-password", {
+        headers: { Authorization: `Bearer ${lisaLoginData.token}` },
+        data: {
+          currentPassword: "TempStaff123!",
+          newPassword: staffPassword,
+        },
+      });
+    }
+  }
+});
+
+test.afterAll(async ({ request }) => {
+  // Teardown: Reset Lisa Martinez's password back to InitialPass123!
+  const resetLoginRes = await request.post("http://localhost:3000/api/auth/login", {
+    data: { email: adminEmail, password: adminPassword },
+  });
+  if (resetLoginRes.ok()) {
+    const resetAdminData = await resetLoginRes.json();
+    const resetAdminToken = resetAdminData.token;
+
+    const resetUsersRes = await request.get(`http://localhost:3000/api/admin/users?search=${encodeURIComponent(staffEmail)}`, {
+      headers: { Authorization: `Bearer ${resetAdminToken}` },
+    });
+    const resetUsersData = await resetUsersRes.json();
+    const lisaUser = resetUsersData.data?.find((u: any) => u.email === staffEmail);
+
+    if (lisaUser) {
+      await request.post(`http://localhost:3000/api/admin/users/${lisaUser.id}/reset-password`, {
+        headers: { Authorization: `Bearer ${resetAdminToken}` },
+        data: { initialPassword: "InitialPass123!" },
+      });
+    }
+
+    // Ensure John Smith's department is IT Administration
+    const adminUsersRes = await request.get(`http://localhost:3000/api/admin/users?search=${encodeURIComponent(adminEmail)}`, {
+      headers: { Authorization: `Bearer ${resetAdminToken}` },
+    });
+    const adminUsersData = await adminUsersRes.json();
+    const adminUser = adminUsersData.data?.find((u: any) => u.email === adminEmail);
+    if (adminUser) {
+      await request.patch(`http://localhost:3000/api/admin/users/${adminUser.id}`, {
+        headers: { Authorization: `Bearer ${resetAdminToken}` },
+        data: { department: "IT Administration" },
       });
     }
   }
@@ -85,15 +159,19 @@ for (const vp of viewports) {
       await expect(page.locator("h1")).toContainText("Sign in to TokTickIT");
 
       // -------------------------------------------------------------
-      // Screen 3: IT Staff Ticket Queue
+      // Screen 3: IT Staff Ticket Queue (Logged in as Lisa Martinez)
       // -------------------------------------------------------------
-      await page.fill("#login-email", "admin@toktickit.com");
-      await page.fill("#login-password", "InitialPass123!");
+      await page.fill("#login-email", staffEmail);
+      await page.fill("#login-password", staffPassword);
       await page.click('[data-testid="login-submit-button"]');
 
-      // Navigate to Ticket Queue tab
-      await page.click('nav button:has-text("Ticket Queue")');
+      // Verify IT Staff view and header role badge
       await expect(page.locator("h2")).toContainText("IT Staff Ticket Queue");
+      await expect(page.locator('[data-testid="header-user-name"]')).toContainText("Lisa Martinez");
+      await expect(page.locator('[data-testid="user-role-badge"]')).toContainText("IT Staff");
+      // Admin User Management tab must NOT be visible to IT Staff
+      await expect(page.locator('nav button:has-text("User Management")')).not.toBeVisible();
+
       await page.waitForSelector('[data-testid="queue-search-input"]', { state: "visible" });
       await page.waitForTimeout(400);
       await page.screenshot({
@@ -102,13 +180,14 @@ for (const vp of viewports) {
       });
 
       // -------------------------------------------------------------
-      // Screen 4: Ticket Detail & Operations Panel
+      // Screen 4: Ticket Detail & Operations Panel (IT Staff View)
       // -------------------------------------------------------------
       const firstRowOrCard = page.locator('[data-testid^="queue-row-"]:visible, [data-testid^="queue-card-"]:visible').first();
       await firstRowOrCard.click();
 
       await expect(page.locator("h2")).toContainText("TKT-2026-");
       await expect(page.locator('[data-testid="staff-operations-panel"]')).toBeVisible();
+      await expect(page.locator('[data-testid="user-role-badge"]')).toContainText("IT Staff");
       await page.waitForTimeout(400);
       await page.screenshot({
         path: path.join(dirs.screen4TicketDetail, `${vp.name}.png`),
@@ -143,10 +222,21 @@ for (const vp of viewports) {
       }
 
       // -------------------------------------------------------------
-      // Screen 5: User Management Directory
+      // Screen 5: Administrator User Management Directory
       // -------------------------------------------------------------
-      await page.click('nav button:has-text("User Management")');
+      // Logout IT Staff
+      await page.click('[data-testid="header-logout-button"]');
+      await expect(page.locator("h1")).toContainText("Sign in to TokTickIT");
+
+      // Login as Administrator (John Smith)
+      await page.fill("#login-email", adminEmail);
+      await page.fill("#login-password", adminPassword);
+      await page.click('[data-testid="login-submit-button"]');
+
+      // Admin lands directly on User Management
       await page.waitForSelector('[data-testid="user-table"]', { state: "visible" });
+      await expect(page.locator('[data-testid="header-user-name"]')).toContainText("John Smith");
+      await expect(page.locator('[data-testid="user-role-badge"]')).toContainText("Administrator");
       await page.waitForTimeout(400);
       await page.screenshot({
         path: path.join(dirs.screen5UserManagement, `${vp.name}.png`),
@@ -165,7 +255,7 @@ for (const vp of viewports) {
         });
         await page.click('.modal-header button[aria-label="Close"]');
 
-        // Edit User Modal (on first user)
+        // Edit User Modal (on first user in table)
         const firstEditBtn = page.locator('[data-testid^="edit-user-btn-"]').first();
         await firstEditBtn.click();
         await expect(page.locator("h2.modal-title")).toContainText("Edit User Profile");
@@ -187,6 +277,10 @@ for (const vp of viewports) {
         });
         await page.click('.modal-header button[aria-label="Close"]');
       }
+
+      // Logout Administrator to leave clean session
+      await page.click('[data-testid="header-logout-button"]');
+      await expect(page.locator("h1")).toContainText("Sign in to TokTickIT");
     });
   });
 }
