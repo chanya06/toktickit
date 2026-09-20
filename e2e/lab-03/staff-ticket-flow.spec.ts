@@ -157,4 +157,26 @@ test.describe("E2E-02: IT Staff Ticket Queue, Operations, Claim, and Communicati
     await page.click('[data-testid="bottom-back-btn"]');
     await expect(page.locator("h2")).toContainText("IT Staff Ticket Queue");
   });
+
+  test.afterAll(async ({ request }) => {
+    // Teardown: Re-login as Admin and reset Lisa's password back to InitialPass123!
+    const resetLoginRes = await request.post("http://localhost:3000/api/auth/login", {
+      data: { email: "admin@toktickit.com", password: "InitialPass123!" },
+    });
+    const resetAdminData = await resetLoginRes.json();
+    const resetAdminToken = resetAdminData.token;
+
+    const resetUsersRes = await request.get("http://localhost:3000/api/admin/users?search=lisa.martinez@toktickit.com", {
+      headers: { Authorization: `Bearer ${resetAdminToken}` },
+    });
+    const resetUsersData = await resetUsersRes.json();
+    const lisaUser = resetUsersData.data.find((u: any) => u.email === staffEmail);
+
+    if (lisaUser) {
+      await request.post(`http://localhost:3000/api/admin/users/${lisaUser.id}/reset-password`, {
+        headers: { Authorization: `Bearer ${resetAdminToken}` },
+        data: { initialPassword: "InitialPass123!" },
+      });
+    }
+  });
 });

@@ -124,4 +124,26 @@ test.describe("E2E-03: Administrator User Directory, Provisioning, Safety Guards
     await expect(page.locator("h2.modal-title")).not.toBeVisible();
     await expect(page.locator(".alert-success")).toContainText("Initial password reset");
   });
+
+  test.afterAll(async ({ request }) => {
+    // Teardown: Re-login as Admin and reset Michael Brown's password back to InitialPass123!
+    const resetLoginRes = await request.post("http://localhost:3000/api/auth/login", {
+      data: { email: "admin@toktickit.com", password: "InitialPass123!" },
+    });
+    const resetAdminData = await resetLoginRes.json();
+    const resetAdminToken = resetAdminData.token;
+
+    const resetUsersRes = await request.get("http://localhost:3000/api/admin/users?search=michael.brown@toktickit.com", {
+      headers: { Authorization: `Bearer ${resetAdminToken}` },
+    });
+    const resetUsersData = await resetUsersRes.json();
+    const michaelUser = resetUsersData.data.find((u: any) => u.email === "michael.brown@toktickit.com");
+
+    if (michaelUser) {
+      await request.post(`http://localhost:3000/api/admin/users/${michaelUser.id}/reset-password`, {
+        headers: { Authorization: `Bearer ${resetAdminToken}` },
+        data: { initialPassword: "InitialPass123!" },
+      });
+    }
+  });
 });

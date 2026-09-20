@@ -64,6 +64,6 @@
 | **Backend Integration & Security** | Vitest + Supertest | 15 test files | 149 passed | **100% Pass** | ~11.5s |
 | **Frontend UI Components** | Vitest + React Testing Library | 15 test files | 116 passed | **100% Pass** | ~14.8s |
 | **End-to-End & Acceptance** | Playwright (Chromium) | 4 spec files | 12 passed | **100% Pass** | ~25.9s |
-| **Responsive Artifacts** | Playwright Screenshot Suite | Screens 1–5 | 18 screenshots | **Completed** | Full coverage |
+| **Responsive Artifacts** | Playwright Screenshot Suite | Screens 1–5 | 21 screenshots | **Completed** | Full coverage |
 | **Build & Type Check** | TypeScript `tsc` + Vite | Client & Server | Clean build | **Passed** | 0 errors |
 

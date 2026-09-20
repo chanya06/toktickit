@@ -21,7 +21,7 @@
 | [PR #64](https://github.com/chanya06/toktickit/pull/64) | `feature/25-comments-and-notes` | Approved |
 | [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | Approved |
 | [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | Approved |
-| [PR #67](https://github.com/chanya06/toktickit/pull/67) | `feature/28-qa-automated-tests-release-integration` | In Review |
+| [PR #67](https://github.com/chanya06/toktickit/pull/67) | `feature/28-qa-automated-tests-release-integration` | Approved |
 
 ---
 
@@ -494,6 +494,39 @@
 > - ถอนไฟล์ส่วนเกินออกนอก Scope
 > - data-testid ถูกต้องและซิงก์ชื่อ Header ได้แบบ Real-time
 > อนุมัติและ Merge เข้า `lab3-staging` เรียบร้อยแล้ว
+
+
+---
+
+### Reviewer comment I received (PR #67):
+
+> ### ผลการรีวิว PR [#67](https://github.com/chanya06/toktickit/pull/67) (CHANGES REQUESTED)
+> จากการตรวจสอบชุดทดสอบ Playwright E2E, ไฟล์คอนฟิก และความเข้ากันได้ของระบบอย่างละเอียด พบประเด็นสำคัญที่ต้องปรับปรุงก่อนทำการ Merge ดังนี้:
+> 1. ปรับขอบเขต `testDir` ใน `playwright.config.ts` ให้เจาะจงเฉพาะ Lab 3 (`./e2e/lab-03`)
+> 2. แก้ไข Browser Channel ใน `playwright.config.ts` ให้ตรงกับเอกสาร (ปรับเป็น `chromium`)
+> 3. เพิ่ม Teardown คืนค่ารหัสผ่านของผู้ใช้ทดสอบใน E2E (Data Hygiene)
+> 4. ปรับปรุงตัวเลขจำนวน Screenshots ใน `docs/lab-03/tests.md` เป็น 21 screenshots
+
+---
+
+### Author response & changes (PR #67):
+
+> ปรับปรุงแก้ไขโค้ดตามข้อเสนอแนะของ Reviewer ครบถ้วนทุกข้อ:
+> 1. **`playwright.config.ts`**: ปรับ `testDir` เป็น `./e2e/lab-03` เพื่อให้รันเฉพาะเทสของ Lab 3 และเปลี่ยนโปรเจกต์เป็น `chromium` ตามสเปก
+> 2. **Teardown คืนค่ารหัสผ่าน**: เพิ่ม `test.afterAll` ในทั้ง `staff-ticket-flow.spec.ts` และ `user-administration.spec.ts` รีเซ็ตรหัสผ่านของ Lisa Martinez และ Michael Brown กลับเป็น `InitialPass123!`
+> 3. **`docs/lab-03/tests.md`**: ปรับยอด Screenshots ในตารางสรุปผลเป็น 21 ภาพตรงตามไฟล์หลักฐานจริง
+
+---
+
+### Reviewer approval I received (PR #67 Round 2):
+
+> ### ผลการตรวจสอบรอบแก้ไข PR [#67](https://github.com/chanya06/toktickit/pull/67) (APPROVED)
+> ตรวจสอบโค้ดที่ปรับปรุงตาม Feedback ครบถ้วนทุกข้อเรียบร้อยแล้ว:
+> - `testDir` เจาะจง `./e2e/lab-03` และคอนฟิก `chromium` ทำงานถูกต้อง
+> - มี Teardown รีเซ็ตรหัสผ่านกลับเป็น `InitialPass123!` ครบถ้วนทั้งสองชุดทดสอบ
+> - เอกสาร `tests.md` แสดงจำนวน 21 screenshots ถูกต้องสมบูรณ์
+> อนุมัติและพร้อม Merge เข้าสู่ `lab3-staging`
+
 
 ---
 

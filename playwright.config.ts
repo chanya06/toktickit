@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: "./e2e/lab-03",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
@@ -27,10 +27,9 @@ export default defineConfig({
   ],
   projects: [
     {
-      name: "msedge",
+      name: "chromium",
       use: {
-        ...devices["Desktop Edge"],
-        channel: "msedge",
+        ...devices["Desktop Chrome"],
       },
     },
   ],
