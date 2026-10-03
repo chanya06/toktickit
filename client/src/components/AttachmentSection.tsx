@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { AuthContext } from "../context/AuthContext.js";
 import { useRequester } from "../context/RequesterContext.js";
 import {
   fetchTicketAttachments,
@@ -13,8 +14,11 @@ interface AttachmentSectionProps {
 }
 
 export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
   const { selectedRequester } = useRequester();
-  const currentRequesterIdRef = useRef(selectedRequester?.id);
+  const effectiveRequesterId = user ? user.id : selectedRequester?.id;
+  const currentRequesterIdRef = useRef(effectiveRequesterId);
 
   const [attachments, setAttachments] = useState<AttachmentMetadata[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -32,23 +36,26 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
-    currentRequesterIdRef.current = selectedRequester?.id;
-  }, [selectedRequester?.id]);
+    currentRequesterIdRef.current = effectiveRequesterId;
+  }, [effectiveRequesterId]);
 
   const loadAttachments = (signal?: AbortSignal) => {
-    if (!selectedRequester) return;
+    if (!effectiveRequesterId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
 
-    fetchTicketAttachments(ticketId, selectedRequester.id, signal)
+    fetchTicketAttachments(ticketId, effectiveRequesterId, signal)
       .then((data) => {
-        if (!signal?.aborted && currentRequesterIdRef.current === selectedRequester.id) {
+        if (!signal?.aborted && currentRequesterIdRef.current === effectiveRequesterId) {
           setAttachments(data);
           setLoading(false);
         }
       })
       .catch((err: any) => {
-        if (err?.name === "AbortError" || signal?.aborted || currentRequesterIdRef.current !== selectedRequester.id) return;
+        if (err?.name === "AbortError" || signal?.aborted || currentRequesterIdRef.current !== effectiveRequesterId) return;
         setError(err.message || "Failed to load attachments");
         setLoading(false);
       });
@@ -72,7 +79,7 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
     return () => {
       controller.abort();
     };
-  }, [ticketId, selectedRequester?.id]);
+  }, [ticketId, effectiveRequesterId]);
 
   function formatBytes(bytes: number): string {
     if (bytes === 0) return "0 Bytes";
@@ -131,14 +138,14 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
 
   const handleUpload = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFile || !selectedRequester) return;
+    if (!selectedFile || !effectiveRequesterId) return;
 
     if (isLimitReached) {
       setUploadError("Maximum active attachments limit (5) reached");
       return;
     }
 
-    const requestRequesterId = selectedRequester.id;
+    const requestRequesterId = effectiveRequesterId;
     setUploading(true);
     setUploadError(null);
 
@@ -164,9 +171,9 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
   };
 
   const handleDownload = (attachmentId: number) => {
-    if (!selectedRequester) return;
+    if (!effectiveRequesterId) return;
     setDownloadError(null);
-    downloadAttachment(attachmentId, selectedRequester.id).catch((err: any) => {
+    downloadAttachment(attachmentId, effectiveRequesterId).catch((err: any) => {
       setDownloadError(err.message || "Failed to download attachment");
     });
   };
@@ -185,9 +192,9 @@ export function AttachmentSection({ ticketId }: AttachmentSectionProps) {
 
   const handleConfirmSoftRemove = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!softRemoveTarget || !selectedRequester) return;
+    if (!softRemoveTarget || !effectiveRequesterId) return;
 
-    const requestRequesterId = selectedRequester.id;
+    const requestRequesterId = effectiveRequesterId;
     const trimmed = removalReason.trim();
     if (trimmed.length < 3) {
       setSoftRemoveError("Soft-removal reason must be at least 3 characters");

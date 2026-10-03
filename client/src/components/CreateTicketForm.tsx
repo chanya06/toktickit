@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   fetchActiveCategories,
   fetchActiveSystems,
@@ -7,6 +7,7 @@ import {
   RelatedSystem,
   TicketResponse,
 } from "../api.js";
+import { AuthContext } from "../context/AuthContext.js";
 import { useRequester } from "../context/RequesterContext.js";
 
 interface CreateTicketFormProps {
@@ -14,7 +15,13 @@ interface CreateTicketFormProps {
 }
 
 export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNavigate }) => {
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
   const { selectedRequester, openSelectorModal } = useRequester();
+
+  const effectiveRequester = user
+    ? { id: user.id, name: user.fullName, email: user.email, department: user.department }
+    : selectedRequester;
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [systems, setSystems] = useState<RelatedSystem[]>([]);
@@ -171,7 +178,7 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
     e.preventDefault();
     setApiError(null);
 
-    if (!selectedRequester) {
+    if (!effectiveRequester) {
       openSelectorModal();
       return;
     }
@@ -183,7 +190,7 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
     setIsSubmitting(true);
     try {
       const ticket = await createTicket({
-        requesterId: selectedRequester.id,
+        requesterId: effectiveRequester.id,
         categoryId: Number(categoryId),
         relatedSystemId: Number(relatedSystemId),
         requestedPriority,
@@ -254,7 +261,7 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
             </div>
             <div>
               <span className="fw-semibold">Requester: </span>
-              <span>{selectedRequester?.name} ({selectedRequester?.email})</span>
+              <span>{effectiveRequester?.name} ({effectiveRequester?.email})</span>
             </div>
           </div>
 
@@ -303,7 +310,7 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
         </div>
 
         {/* Requester Identity Warning / Selector Bar */}
-        {!selectedRequester ? (
+        {!effectiveRequester ? (
           <div className="alert alert-warning mb-4 d-flex justify-content-between align-items-center">
             <div>
               <strong>No Requester Selected:</strong> Please select a Development Requester context before submitting a ticket.
@@ -314,7 +321,7 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ onSuccessNav
           </div>
         ) : (
           <div className="notice-box mb-4">
-            Submitting as: <strong>{selectedRequester.name}</strong> ({selectedRequester.email}) — <em>{selectedRequester.department || "General"}</em>
+            Submitting as: <strong>{effectiveRequester.name}</strong> ({effectiveRequester.email}) — <em>{effectiveRequester.department || "General"}</em>
           </div>
         )}
 

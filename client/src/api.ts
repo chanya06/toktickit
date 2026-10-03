@@ -1,5 +1,53 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+export const TOKEN_STORAGE_KEY = "toktickit_auth_token";
+export const USER_STORAGE_KEY = "toktickit_auth_user";
+
+export function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredToken(token: string | null): void {
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore localStorage errors in non-browser environments
+  }
+}
+
+export function getAuthHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+  const token = getStoredToken();
+  const headers: Record<string, string> = { ...extraHeaders };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+export interface AuthUser {
+  id: number;
+  email: string;
+  fullName: string;
+  role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+  mustChangePassword: boolean;
+  department?: string | null;
+  isActive?: boolean;
+}
+
+export interface LoginResponse {
+  message?: string;
+  token?: string;
+  user: AuthUser;
+}
+
 export interface Category {
   id: number;
   name: string;
@@ -41,9 +89,14 @@ export interface TicketResponse {
   summary: string;
   description: string;
   createdAt: string;
-  requester?: { id: number; name: string; email: string };
+  updatedAt?: string;
+  isResolutionIndicated?: boolean;
+  requester?: { id: number; name?: string; fullName?: string; email: string; department?: string | null };
   category?: { id: number; name: string };
   relatedSystem?: { id: number; name: string };
+  ticketOwner?: string | null;
+  ownerId?: number | null;
+  owner?: { id: number; fullName: string; email: string } | null;
 }
 
 export interface SystemStatus {
@@ -93,12 +146,13 @@ export async function createTicket(payload: CreateTicketPayload): Promise<Ticket
 
     reqOptions = {
       method: "POST",
+      headers: getAuthHeaders(),
       body: formData,
     };
   } else {
     reqOptions = {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         requesterId: payload.requesterId,
         categoryId: payload.categoryId,
@@ -125,7 +179,7 @@ export async function createTicket(payload: CreateTicketPayload): Promise<Ticket
 }
 
 export interface FetchTicketsParams {
-  requesterId: number;
+  requesterId?: number;
   search?: string;
   categoryId?: number | number[];
   relatedSystemId?: number | number[];
@@ -154,7 +208,9 @@ export async function fetchTickets(
   signal?: AbortSignal
 ): Promise<PaginatedTicketsResponse> {
   const query = new URLSearchParams();
-  query.set("requesterId", String(params.requesterId));
+  if (params.requesterId !== undefined && params.requesterId !== null) {
+    query.set("requesterId", String(params.requesterId));
+  }
 
   if (params.search && params.search.trim() !== "") {
     query.set("search", params.search.trim());
@@ -196,7 +252,10 @@ export async function fetchTickets(
     query.set("pageSize", String(params.pageSize));
   }
 
-  const res = await fetch(`${API_URL}/api/tickets?${query.toString()}`, { signal }).catch((err) => {
+  const res = await fetch(`${API_URL}/api/tickets?${query.toString()}`, {
+    headers: getAuthHeaders(),
+    signal,
+  }).catch((err) => {
     if (err?.name === "AbortError" || signal?.aborted) {
       throw err;
     }
@@ -217,10 +276,15 @@ export async function fetchTickets(
 
 export async function fetchTicketDetail(
   ticketId: number,
-  requesterId: number,
+  requesterId?: number,
   signal?: AbortSignal
 ): Promise<TicketResponse> {
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}?requesterId=${requesterId}`, {
+  const url = requesterId !== undefined && requesterId !== null
+    ? `${API_URL}/api/tickets/${ticketId}?requesterId=${requesterId}`
+    : `${API_URL}/api/tickets/${ticketId}`;
+
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
     signal,
   }).catch((err) => {
     if (err?.name === "AbortError" || signal?.aborted) {
@@ -237,6 +301,26 @@ export async function fetchTicketDetail(
   if (!res.ok) {
     const errorMsg = data.error || (res.status === 403 ? "Forbidden: You do not have access to this ticket" : "Failed to fetch ticket detail");
     const err = new Error(errorMsg);
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  return data;
+}
+
+export async function indicateResolution(
+  ticketId: number,
+  comment?: string
+): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/resolve-indication`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ comment }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to record resolution indication");
     (err as any).status = res.status;
     throw err;
   }
@@ -278,10 +362,17 @@ export interface AttachmentMetadata {
 
 export async function fetchTicketAttachments(
   ticketId: number,
-  requesterId: number,
+  requesterId?: number,
   signal?: AbortSignal
 ): Promise<AttachmentMetadata[]> {
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments?requesterId=${requesterId}`, { signal }).catch((err) => {
+  const url = requesterId !== undefined && requesterId !== null
+    ? `${API_URL}/api/tickets/${ticketId}/attachments?requesterId=${requesterId}`
+    : `${API_URL}/api/tickets/${ticketId}/attachments`;
+
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
+    signal,
+  }).catch((err) => {
     if (err?.name === "AbortError" || signal?.aborted) throw err;
     return null;
   });
@@ -300,16 +391,21 @@ export async function fetchTicketAttachments(
 
 export async function uploadTicketAttachment(
   ticketId: number,
-  requesterId: number,
-  file: File,
+  requesterId?: number,
+  file?: File,
   signal?: AbortSignal
 ): Promise<AttachmentMetadata> {
   const formData = new FormData();
-  formData.append("requesterId", String(requesterId));
-  formData.append("file", file);
+  if (requesterId !== undefined && requesterId !== null) {
+    formData.append("requesterId", String(requesterId));
+  }
+  if (file) {
+    formData.append("file", file);
+  }
 
   const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments`, {
     method: "POST",
+    headers: getAuthHeaders(),
     body: formData,
     signal,
   }).catch((err) => {
@@ -329,8 +425,14 @@ export async function uploadTicketAttachment(
   return data;
 }
 
-export async function downloadAttachment(attachmentId: number, requesterId: number): Promise<void> {
-  const res = await fetch(`${API_URL}/api/attachments/${attachmentId}/download?requesterId=${requesterId}`).catch(() => null);
+export async function downloadAttachment(attachmentId: number, requesterId?: number): Promise<void> {
+  const url = requesterId !== undefined && requesterId !== null
+    ? `${API_URL}/api/attachments/${attachmentId}/download?requesterId=${requesterId}`
+    : `${API_URL}/api/attachments/${attachmentId}/download`;
+
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
+  }).catch(() => null);
 
   if (!res) throw new Error("Network error: Unable to connect to server");
 
@@ -342,7 +444,7 @@ export async function downloadAttachment(attachmentId: number, requesterId: numb
   }
 
   const blob = await res.blob();
-  const url = window.URL.createObjectURL(blob);
+  const blobUrl = window.URL.createObjectURL(blob);
   const contentDisposition = res.headers.get("Content-Disposition");
   let filename = "attachment";
   if (contentDisposition && contentDisposition.includes("filename=")) {
@@ -353,24 +455,24 @@ export async function downloadAttachment(attachmentId: number, requesterId: numb
   }
 
   const a = document.createElement("a");
-  a.href = url;
+  a.href = blobUrl;
   a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  window.URL.revokeObjectURL(url);
+  window.URL.revokeObjectURL(blobUrl);
 }
 
 export async function softRemoveAttachment(
   attachmentId: number,
-  requesterId: number,
-  removalReason: string
+  requesterId?: number,
+  removalReason?: string
 ): Promise<AttachmentMetadata> {
   const res = await fetch(`${API_URL}/api/attachments/${attachmentId}/soft-remove`, {
     method: "DELETE",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify({ requesterId, removalReason }),
   }).catch(() => null);
 
@@ -385,3 +487,607 @@ export async function softRemoveAttachment(
 
   return data;
 }
+
+export async function login(email: string, password: string): Promise<LoginResponse> {
+  const res = await fetch(`${API_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email, password }),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Authentication failed");
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  if (data.token) {
+    setStoredToken(data.token);
+  }
+  if (data.user) {
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
+    } catch {
+      // Ignore localStorage error
+    }
+  }
+
+  return data;
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await fetch(`${API_URL}/api/auth/logout`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      credentials: "include",
+    }).catch(() => null);
+  } finally {
+    setStoredToken(null);
+    try {
+      localStorage.removeItem(USER_STORAGE_KEY);
+    } catch {
+      // Ignore localStorage error
+    }
+  }
+}
+
+export async function fetchCurrentUser(): Promise<AuthUser> {
+  const res = await fetch(`${API_URL}/api/auth/me`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch current user");
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  if (data.user) {
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
+    } catch {
+      // Ignore localStorage error
+    }
+  }
+
+  return data.user;
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ message: string; user: AuthUser; token?: string }> {
+  const res = await fetch(`${API_URL}/api/auth/change-password`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to change password");
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  if (data.token) {
+    setStoredToken(data.token);
+  }
+  if (data.user) {
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
+    } catch {
+      // Ignore localStorage error
+    }
+  }
+
+  return data;
+}
+
+export interface StaffTicketResponse {
+  id: number;
+  ticketNumber: string;
+  summary: string;
+  description?: string;
+  category: { id: number; name: string };
+  relatedSystem?: { id: number; name: string };
+  requestedPriority: string;
+  itPriority: string;
+  status: string;
+  currentStatus?: string;
+  isResolutionIndicated: boolean;
+  requesterId?: number;
+  requester?: {
+    id: number;
+    fullName: string;
+    email: string;
+    department?: string | null;
+  } | null;
+  ownerId?: number | null;
+  owner?: {
+    id: number;
+    fullName: string;
+    email: string;
+    role: string;
+  } | null;
+  ticketOwner?: string;
+  attachmentCount?: number;
+  publicCommentCount?: number;
+  internalNoteCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FetchStaffTicketsParams {
+  search?: string;
+  category?: number | number[] | string;
+  categoryId?: number | number[] | string;
+  status?: string | string[];
+  itPriority?: string | string[];
+  priority?: string | string[];
+  ownerId?: string | number;
+  page?: number;
+  limit?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
+  sortOrder?: "asc" | "desc";
+}
+
+export interface PaginatedStaffTicketsResponse {
+  data: StaffTicketResponse[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+    totalItems: number;
+  };
+}
+
+export async function fetchStaffTickets(
+  params?: FetchStaffTicketsParams,
+  signal?: AbortSignal
+): Promise<PaginatedStaffTicketsResponse> {
+  const query = new URLSearchParams();
+  if (params?.search && params.search.trim()) {
+    query.set("search", params.search.trim());
+  }
+  const cat = params?.category ?? params?.categoryId;
+  if (cat !== undefined && cat !== null) {
+    const catStr = Array.isArray(cat) ? cat.join(",") : String(cat);
+    if (catStr) query.set("category", catStr);
+  }
+  if (params?.status) {
+    const stStr = Array.isArray(params.status) ? params.status.join(",") : String(params.status);
+    if (stStr) query.set("status", stStr);
+  }
+  const pri = params?.itPriority ?? params?.priority;
+  if (pri) {
+    const priStr = Array.isArray(pri) ? pri.join(",") : String(pri);
+    if (priStr) query.set("itPriority", priStr);
+  }
+  if (params?.ownerId !== undefined && params.ownerId !== null && String(params.ownerId).trim()) {
+    query.set("ownerId", String(params.ownerId).trim());
+  }
+  if (params?.page !== undefined) {
+    query.set("page", String(params.page));
+  }
+  const lim = params?.limit ?? params?.pageSize;
+  if (lim !== undefined) {
+    query.set("limit", String(lim));
+  }
+  if (params?.sortBy) {
+    query.set("sortBy", params.sortBy);
+  }
+  const dir = params?.sortDir ?? params?.sortOrder;
+  if (dir) {
+    query.set("sortDir", dir);
+  }
+
+  const res = await fetch(`${API_URL}/api/staff/tickets?${query.toString()}`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch staff tickets queue");
+    (err as any).status = res.status;
+    throw err;
+  }
+
+  return data;
+}
+
+export interface StaffAssignee {
+  id: number;
+  fullName: string;
+  email: string;
+  role: string;
+}
+
+export async function fetchStaffAssignees(signal?: AbortSignal): Promise<StaffAssignee[]> {
+  const res = await fetch(`${API_URL}/api/staff/assignees`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch staff assignees");
+  }
+  return data;
+}
+
+export async function claimTicket(ticketId: number): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/claim`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to claim ticket");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function assignTicket(
+  ticketId: number,
+  ownerId: number | null
+): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/assign`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ ownerId }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to assign ticket");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function updateTicketITPriority(
+  ticketId: number,
+  itPriority: string
+): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/it-priority`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ itPriority }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to update IT priority");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function updateTicketStatus(
+  ticketId: number,
+  status: string
+): Promise<{ message: string; ticket: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/status`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ status }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to update ticket status");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export interface PublicCommentResponse {
+  id: number;
+  ticketId: number;
+  authorId: number;
+  content: string;
+  createdAt: string;
+  author: {
+    id: number;
+    fullName: string;
+    role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+    email?: string;
+  };
+}
+
+export interface InternalNoteResponse {
+  id: number;
+  ticketId: number;
+  authorId: number;
+  content: string;
+  createdAt: string;
+  author: {
+    id: number;
+    fullName: string;
+    role: "IT_STAFF" | "ADMINISTRATOR";
+    email?: string;
+  };
+}
+
+export async function fetchTicketComments(
+  ticketId: number,
+  signal?: AbortSignal
+): Promise<PublicCommentResponse[]> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/comments`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch comments");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function createTicketComment(
+  ticketId: number,
+  content: string
+): Promise<{ message: string; comment: PublicCommentResponse; ticket?: TicketResponse }> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/comments`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ content }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to add comment");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function fetchTicketNotes(
+  ticketId: number,
+  signal?: AbortSignal
+): Promise<InternalNoteResponse[]> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/notes`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch internal notes");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function createTicketNote(
+  ticketId: number,
+  content: string
+): Promise<{ message: string; note: InternalNoteResponse }> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/notes`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ content }),
+  }).catch((err) => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to add internal note");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// Administrator User Management (Issue 26 & 27 / FR-15..20 / API-10..13)
+// ---------------------------------------------------------------------------
+
+export interface AdminUserResponse {
+  id: number;
+  email: string;
+  fullName: string;
+  name?: string | null;
+  department?: string | null;
+  role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+  isActive: boolean;
+  mustChangePassword: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUsersListResponse {
+  data: AdminUserResponse[];
+  pagination: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+  };
+}
+
+export interface CreateAdminUserPayload {
+  fullName: string;
+  email: string;
+  role: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+  initialPassword: string;
+  department?: string | null;
+  isActive?: boolean;
+}
+
+export interface UpdateAdminUserPayload {
+  fullName?: string;
+  email?: string;
+  role?: "REQUESTER" | "IT_STAFF" | "ADMINISTRATOR";
+  department?: string | null;
+  isActive?: boolean;
+}
+
+export async function fetchAdminUsers(
+  params: {
+    search?: string;
+    role?: string;
+    page?: number;
+    limit?: number;
+    pageSize?: number;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  } = {},
+  signal?: AbortSignal
+): Promise<AdminUsersListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params.search) searchParams.append("search", params.search);
+  if (params.role) searchParams.append("role", params.role);
+  if (params.page) searchParams.append("page", String(params.page));
+  if (params.limit) searchParams.append("limit", String(params.limit));
+  if (params.pageSize) searchParams.append("pageSize", String(params.pageSize));
+  if (params.sortBy) searchParams.append("sortBy", params.sortBy);
+  if (params.sortOrder) searchParams.append("sortOrder", params.sortOrder);
+
+  const qs = searchParams.toString();
+  const url = `${API_URL}/api/admin/users${qs ? `?${qs}` : ""}`;
+
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch users");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function createAdminUser(
+  payload: CreateAdminUserPayload
+): Promise<{ message: string; user: AdminUserResponse }> {
+  const res = await fetch(`${API_URL}/api/admin/users`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to create user");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function updateAdminUser(
+  id: number,
+  payload: UpdateAdminUserPayload
+): Promise<{ message: string; user: AdminUserResponse }> {
+  const res = await fetch(`${API_URL}/api/admin/users/${id}`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to update user");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function resetAdminUserPassword(
+  id: number,
+  initialPassword: string
+): Promise<{ message: string; user: AdminUserResponse }> {
+  const res = await fetch(`${API_URL}/api/admin/users/${id}/reset-password`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ initialPassword }),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to reset password");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+

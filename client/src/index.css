@@ -12,9 +12,11 @@
   --success-green: #16A34A;
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
+  max-width: 100%;
+  overflow-x: hidden;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--page-bg);
   color: var(--text-dark);
@@ -26,6 +28,8 @@ body {
   background-color: var(--primary-green);
   color: #FFFFFF;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .app-header a {
@@ -118,3 +122,11 @@ body {
   font-size: 0.875rem;
   color: var(--text-dark);
 }
+
+/* Zen Green Table Row Hover Highlight (Token #EAF6EF) */
+.table-hover tbody tr:hover,
+.table-hover tbody tr:hover > * {
+  --bs-table-hover-bg: #EAF6EF;
+  background-color: #EAF6EF !important;
+}
+

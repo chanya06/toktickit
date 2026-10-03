@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
+import { AuthContext } from "../context/AuthContext.js";
 import { useRequester } from "../context/RequesterContext.js";
 import {
   fetchTickets,
@@ -8,6 +9,7 @@ import {
   PaginationMeta,
   FetchTicketsParams,
 } from "../api.js";
+import { getPaginationItems } from "../utils/pagination.js";
 
 interface MyTicketsViewProps {
   onNavigateCreate: () => void;
@@ -160,7 +162,12 @@ function MultiSelectFilter<T extends string | number>({
 }
 
 export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsViewProps) {
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
   const { selectedRequester } = useRequester();
+
+  const effectiveRequesterId = user ? user.id : selectedRequester?.id;
+  const effectiveRequesterName = user ? user.fullName : selectedRequester?.name;
 
   const [tickets, setTickets] = useState<(TicketResponse & { attachmentCount?: number })[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
@@ -240,10 +247,10 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
 
   // Main ticket loading effect with AbortController for race condition & stale response protection
   useEffect(() => {
-    if (!selectedRequester) return;
+    if (!effectiveRequesterId) return;
 
     const controller = new AbortController();
-    const currentRequesterId = selectedRequester.id;
+    const currentRequesterId = effectiveRequesterId;
 
     setLoading(true);
     setError(null);
@@ -282,7 +289,7 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
       controller.abort();
     };
   }, [
-    selectedRequester?.id,
+    effectiveRequesterId,
     debouncedSearch,
     selectedCategories,
     selectedPriorities,
@@ -352,7 +359,7 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
     }
   }
 
-  if (!selectedRequester) {
+  if (!effectiveRequesterId) {
     return (
       <div className="alert alert-info shadow-sm" data-testid="no-requester-alert">
         <h5 className="alert-heading fw-bold mb-2">Requester Context Required</h5>
@@ -369,10 +376,10 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
           <h2 className="h4 fw-bold text-dark mb-1">
-            Welcome, {selectedRequester.name}
+            Welcome, {effectiveRequesterName}
           </h2>
           <p className="text-muted small mb-0">
-            <strong>My Tickets</strong> — View and track support tickets created by <strong>{selectedRequester.name}</strong>
+            <strong>My Tickets</strong> — View and track support tickets created by <strong>{effectiveRequesterName}</strong>
           </p>
         </div>
         <button
@@ -629,6 +636,16 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
                       </td>
                       <td>
                         <span className={getStatusBadgeClass(t.status)}>{t.status}</span>
+                        {t.isResolutionIndicated && (
+                          <span
+                            className="badge rounded-pill ms-1 text-white"
+                            style={{ backgroundColor: "#0D9488", fontSize: "0.7rem" }}
+                            data-testid={`resolution-indicated-badge-${t.id}`}
+                            title="Requester indicated resolution"
+                          >
+                            Resolved?
+                          </span>
+                        )}
                       </td>
                       <td className="text-center text-muted small">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="me-1">
@@ -661,7 +678,18 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <strong className="text-success h6 mb-0">{t.ticketNumber}</strong>
-                    <span className={getStatusBadgeClass(t.status)}>{t.status}</span>
+                    <div className="d-flex align-items-center gap-1">
+                      <span className={getStatusBadgeClass(t.status)}>{t.status}</span>
+                      {t.isResolutionIndicated && (
+                        <span
+                          className="badge rounded-pill text-white"
+                          style={{ backgroundColor: "#0D9488", fontSize: "0.7rem" }}
+                          data-testid={`mobile-resolution-badge-${t.id}`}
+                        >
+                          Resolved?
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <h6 className="card-title fw-bold text-dark mb-2">{t.summary}</h6>
                   <div className="d-flex flex-wrap gap-2 mb-3">
@@ -726,19 +754,31 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
                     </button>
                   </li>
 
-                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pNum) => (
-                    <li key={pNum} className="page-item me-1">
-                      <button
-                        className={`btn btn-sm ${
-                          pNum === pagination.currentPage ? "btn-success" : "btn-outline-secondary"
-                        }`}
-                        onClick={() => setPage(pNum)}
-                        data-testid={`page-btn-${pNum}`}
-                      >
-                        {pNum}
-                      </button>
-                    </li>
-                  ))}
+                  {getPaginationItems(pagination.currentPage, pagination.totalPages).map((item, idx) => {
+                    if (item === "...") {
+                      return (
+                        <li key={`ellipsis-${idx}`} className="page-item disabled me-1">
+                          <span className="btn btn-sm btn-link text-muted disabled text-decoration-none px-2">
+                            &hellip;
+                          </span>
+                        </li>
+                      );
+                    }
+                    const pNum = item as number;
+                    return (
+                      <li key={pNum} className="page-item me-1">
+                        <button
+                          className={`btn btn-sm ${
+                            pNum === pagination.currentPage ? "btn-success" : "btn-outline-secondary"
+                          }`}
+                          onClick={() => setPage(pNum)}
+                          data-testid={`page-btn-${pNum}`}
+                        >
+                          {pNum}
+                        </button>
+                      </li>
+                    );
+                  })}
 
                   <li
                     className={`page-item ${

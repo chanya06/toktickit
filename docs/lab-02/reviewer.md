@@ -2,10 +2,11 @@
 
 **Author:** Chanya Poolketkij — GitHub: @chanya06  
 **Peer reviewer:** Peer Reviewer — GitHub: @lmaybelgracel  
+**Partner reviewed by author:** Phatthidawadi — GitHub: @phatthidawadi  
 
 ---
 
-## Pull Requests I authored (reviewed by my partner)
+## Pull Requests I authored (reviewed by my partner @lmaybelgracel)
 
 | PR | Branch | Reviewer verdict |
 | :--- | :--- | :--- |
@@ -763,384 +764,306 @@
 
 ---
 
-## Pull Requests I reviewed for my partner
+## Pull Requests I reviewed for my partner (@phatthidawadi)
 
 | PR | Branch | Reviewer verdict |
 | :--- | :--- | :--- |
-| [lmaybelgracel/toktickit#23](https://github.com/lmaybelgracel/TokTickit/pull/23) | `feature/lab2-engineering-spec` | Approved with comments |
-| [lmaybelgracel/toktickit#24](https://github.com/lmaybelgracel/TokTickit/pull/24) | `feature/lab2-ui-api-spec` | Approved with comments |
-| [lmaybelgracel/toktickit#25](https://github.com/lmaybelgracel/TokTickit/pull/25) | `feature/lab2-test-plan` | Approved with comments |
-| [lmaybelgracel/toktickit#26](https://github.com/lmaybelgracel/TokTickit/pull/26) | `feature/lab2-database-seed` | Approved with comments |
-| [lmaybelgracel/toktickit#27](https://github.com/lmaybelgracel/TokTickit/pull/27) | `feature/lab2-requester-context` | Approved with comments |
-| [lmaybelgracel/toktickit#28](https://github.com/lmaybelgracel/TokTickit/pull/28) | `feature/lab2-create-ticket` | Approved with comments |
-| [lmaybelgracel/toktickit#29](https://github.com/lmaybelgracel/TokTickit/pull/29) | `feature/lab2-my-tickets` | Approved with comments |
-| [lmaybelgracel/toktickit#30](https://github.com/lmaybelgracel/TokTickit/pull/30) | `feature/lab2-ticket-detail-attachments` | Approved with comments |
-| [lmaybelgracel/toktickit#31](https://github.com/lmaybelgracel/TokTickit/pull/31) | `feature/lab2-automated-e2e-tests` | Approved with comments |
-| [lmaybelgracel/toktickit#32](https://github.com/lmaybelgracel/TokTickit/pull/32) | `feature/lab2-visual-evidence` | Approved with comments |
-| [lmaybelgracel/toktickit#33](https://github.com/lmaybelgracel/TokTickit/pull/33) | `docs/lab2-delivery-evidence` | Approved with comments |
-| [lmaybelgracel/toktickit#34](https://github.com/lmaybelgracel/TokTickit/pull/34) | `lab2-staging` | Approved with comments |
+| [phatthidawadi/toktickit#23](https://github.com/phatthidawadi/toktickit/pull/23) | `feature/5-doc-spec` | Approved with comments |
+| [phatthidawadi/toktickit#24](https://github.com/phatthidawadi/toktickit/pull/24) | `feature/6-doc-tests` | Approved with comments |
+| [phatthidawadi/toktickit#25](https://github.com/phatthidawadi/toktickit/pull/25) | `feature/7-db-seed` | Approved with comments |
+| [phatthidawadi/toktickit#26](https://github.com/phatthidawadi/toktickit/pull/26) | `feature/8-requester-context` | Approved with comments |
+| [phatthidawadi/toktickit#27](https://github.com/phatthidawadi/toktickit/pull/27) | `feature/9-create-ticket` | Approved with comments |
+| [phatthidawadi/toktickit#28](https://github.com/phatthidawadi/toktickit/pull/28) | `feature/10-my-tickets` | Approved with comments |
+| [phatthidawadi/toktickit#29](https://github.com/phatthidawadi/toktickit/pull/29) | `feature/11-ticket-detail` | Approved with comments |
+| [phatthidawadi/toktickit#30](https://github.com/phatthidawadi/toktickit/pull/30) | `feature/12-attachment-lifecycle` | Approved with comments |
+| [phatthidawadi/toktickit#31](https://github.com/phatthidawadi/toktickit/pull/31) | `feature/13-e2e-staging` | Approved with comments |
+| [phatthidawadi/toktickit#36](https://github.com/phatthidawadi/toktickit/pull/36) | `docs/lab2-reviewer` | Approved with comments |
+| [phatthidawadi/toktickit#37](https://github.com/phatthidawadi/toktickit/pull/37) | `lab2-staging` | Approved with comments |
 
-### My comment (PR #23 for partner lmaybelgracel):
-> ## Peer Review Comments for Issue #23 / PR: Sprint Engineering Specification (`docs/lab-02/specification.md`)
+### My comment (PR #23 for partner phatthidawadi):
+> ทำส่วน **Sprint 2 Engineering Specification** และ **UI Specification (Zen Green Theme)** ได้สมบูรณ์และละเอียดมาก
 > 
-> ภาพรวมสเปกทำได้ดีมาก โครงสร้างตรงตาม Appendix A ของ Lab 2 Handout กำหนด Scope และ Zen Green Theme ได้ชัดเจนดีมาก
+> **คำแนะนำเพิ่มเติมเล็กน้อย:**
+> - ในขั้นตอนพัฒนา API Issue ถัดไป อาจตกลงกันเรื่องการสร้างเลข Sequence `XXXXXX` ของ Ticket Number (`TKT-YYYY-XXXXXX`) ว่าเป็น 6-digit Zero-padded sequence เพื่อให้ generator ทำงานสอดคล้องกัน
 > 
-> ขอเสนอแนะเพิ่มเติมเล็กน้อยเพื่อความสมบูรณ์ก่อนเริ่ม Implement:
-> 
-> 1. **[BR Strategy] เพิ่มความชัดเจนเรื่อง Transaction เมื่ออัปโหลดไฟล์ล้มเหลว:**
->    - ใน Section 5 (Business Rules) อยากให้ระบุพฤติกรรมชัดเจนตามโจทย์หน้า 5 ว่า หากสร้าง Ticket สำเร็จแต่อัปโหลด Attachment ไม่สำเร็จ ระบบจะใช้ Rollback Transaction ทั้งหมด หรือจะสร้าง Ticket ไว้แล้วแจ้ง error การไฟล์แนบ
-> 
-> 2. **[BR Validation] กำหนดความยาวของ `removalReason`:**
->    - แนะนำเพิ่ม constraint ของ `removalReason` ใน BR-07/BR-08 เช่น ต้องเป็นข้อความตัด whitespace แล้ว ความยาวระหว่าง 3 - 250 ตัวอักษร เพื่อให้ครอบคลุมการทดสอบ validation
-> 
-> 3. **[Data Schema] ระบุ Prisma Indexes (โจทย์ Section 5.2):**
->    - ใน Section 7 อยากให้ระบุ Index สำหรับ Prisma schema เพิ่มเติม เช่น `@@index([requesterId])` และ `@@index([requesterId, createdAt])` บน `Ticket` เพื่อรองรับการทำ Query/Pagination ใน My Tickets
-> 
-> 4. **[API Standard] ระบุ HTTP Header สำหรับ Requester Context:**
->    - ใน Section 8 แนะนำตกลงมาตรฐาน Header เช่น `X-Development-Requester-Id: <id>` ในการส่ง context ของ Dev Requester เพื่อให้ Frontend และ API Test ทำงานตรงกัน
-> 
-> 5. **[Acceptance Criteria] เพิ่ม AC สำหรับ No-results และ Error State:**
->    - เสนอเพิ่ม AC-08 (No-results state เมื่อ search/filter ไม่พบข้อมูล) และ AC-09 (Safe Error State แสดงแจ้งเตือนแต่ยังคงค่าในฟอร์มไว้เมื่อสร้าง ticket ไม่สำเร็จ)
-> 
-> โดยรวมเขียนสเปกได้ครอบคลุมและดีมาก
+> ภาพรวมโครงสร้างเอกสารคลีนมาก ระบุ Data Model Prisma และ API Summary ไว้ครบถ้วน
 
-### Partner's response (PR #23 for partner lmaybelgracel):
-> > ## Peer Review Comments for Issue #23 / PR: Sprint Engineering Specification (`docs/lab-02/specification.md`)
-> > ภาพรวมสเปกทำได้ดีมาก โครงสร้างตรงตาม Appendix A ของ Lab 2 Handout กำหนด Scope และ Zen Green Theme ได้ชัดเจนดีมาก
+### Partner's response (PR #23 for partner phatthidawadi):
+> > ทำส่วน **Sprint 2 Engineering Specification** และ **UI Specification (Zen Green Theme)** ได้สมบูรณ์และละเอียดมาก
 > > 
-> > ขอเสนอแนะเพิ่มเติมเล็กน้อยเพื่อความสมบูรณ์ก่อนเริ่ม Implement:
+> > **คำแนะนำเพิ่มเติมเล็กน้อย:**
 > > 
-> > 1. **[BR Strategy] เพิ่มความชัดเจนเรื่อง Transaction เมื่ออัปโหลดไฟล์ล้มเหลว:**
-> >    
-> >    * ใน Section 5 (Business Rules) อยากให้ระบุพฤติกรรมชัดเจนตามโจทย์หน้า 5 ว่า หากสร้าง Ticket สำเร็จแต่อัปโหลด Attachment ไม่สำเร็จ ระบบจะใช้ Rollback Transaction ทั้งหมด หรือจะสร้าง Ticket ไว้แล้วแจ้ง error การไฟล์แนบ
-> > 2. **[BR Validation] กำหนดความยาวของ `removalReason`:**
-> >    
-> >    * แนะนำเพิ่ม constraint ของ `removalReason` ใน BR-07/BR-08 เช่น ต้องเป็นข้อความตัด whitespace แล้ว ความยาวระหว่าง 3 - 250 ตัวอักษร เพื่อให้ครอบคลุมการทดสอบ validation
-> > 3. **[Data Schema] ระบุ Prisma Indexes (โจทย์ Section 5.2):**
-> >    
-> >    * ใน Section 7 อยากให้ระบุ Index สำหรับ Prisma schema เพิ่มเติม เช่น `@@index([requesterId])` และ `@@index([requesterId, createdAt])` บน `Ticket` เพื่อรองรับการทำ Query/Pagination ใน My Tickets
-> > 4. **[API Standard] ระบุ HTTP Header สำหรับ Requester Context:**
-> >    
-> >    * ใน Section 8 แนะนำตกลงมาตรฐาน Header เช่น `X-Development-Requester-Id: <id>` ในการส่ง context ของ Dev Requester เพื่อให้ Frontend และ API Test ทำงานตรงกัน
-> > 5. **[Acceptance Criteria] เพิ่ม AC สำหรับ No-results และ Error State:**
-> >    
-> >    * เสนอเพิ่ม AC-08 (No-results state เมื่อ search/filter ไม่พบข้อมูล) และ AC-09 (Safe Error State แสดงแจ้งเตือนแต่ยังคงค่าในฟอร์มไว้เมื่อสร้าง ticket ไม่สำเร็จ)
+> > * ในขั้นตอนพัฒนา API Issue ถัดไป อาจตกลงกันเรื่องการสร้างเลข Sequence `XXXXXX` ของ Ticket Number (`TKT-YYYY-XXXXXX`) ว่าเป็น 6-digit Zero-padded sequence เพื่อให้ generator ทำงานสอดคล้องกัน
 > > 
-> > โดยรวมเขียนสเปกได้ครอบคลุมและดีมาก
+> > ภาพรวมโครงสร้างเอกสารคลีนมาก ระบุ Data Model Prisma และ API Summary ไว้ครบถ้วน
 > 
-> ขอบคุณมากสำหรับข้อเสนอแนะที่มีประโยชน์มากค่ะ ได้ทำการปรับปรุงเอกสาร docs/lab-02/specification.md และ push อัปเดตเข้า PR เรียบร้อยแล้วดังนี้:
 > 
-> 1. [BR Strategy] เพิ่ม BR-11 กำหนดการใช้ Atomic Database Transaction ในการสร้าง Ticket ร่วมกับไฟล์แนบเริ่มต้น หากการอัปโหลดหรือสร้าง metadata ล้มเหลว ระบบจะ Rollback ทั้งหมดเพื่อรักษาความถูกต้องของข้อมูล
-> 2. [BR Validation] ปรับปรุง BR-07 และ BR-08 กำหนดให้ removalReason ต้องมีความยาวระหว่าง 3 - 250 ตัวอักษรหลัง trim whitespace
-> 3. [Data Schema] เพิ่ม Prisma Indexes บน Ticket model (@@index([requesterId]), @@index([requesterId, createdAt])) เพื่อรองรับ Query/Pagination ใน My Tickets
-> 4. [API Standard] กำหนดมาตรฐาน Header เป็น X-Development-Requester-Id ใน Section 8 สำหรับส่ง Dev Requester context
-> 5. [Acceptance Criteria] เพิ่ม AC-08 (No-results state เมื่อไม่พบข้อมูล) และ AC-09 (Safe Error State คงค่าในฟอร์มไว้เมื่อเกิด error)
+> ขอบคุณสำหรับรีวิวและคำแนะนำนะ
 > 
-> รบกวนตรวจสอบอีกครั้งและช่วยกด Merge pull request เข้า lab2-staging ได้เลยค่ะ
+> ฉันได้อัปเดตข้อกำหนดใน Business Rule (BR-01) ในเอกสาร specification.md เพิ่มเติมแล้วนะ โดยระบุชัดเจนว่าส่วน XXXXXX ของ Ticket Number (TKT-YYYY-XXXXXX) จะเป็น 6-digit zero-padded sequence (ตัวอย่างเช่น TKT-2026-000001) เพื่อให้การพัฒนา Ticket Number Generator ใน Issue ถัดไปสอดคล้องกัน ฝากตรวจสอบให้อีกทีนะ
 
-### My comment (PR #24 for partner lmaybelgracel):
-> ### PR Review: Issue 6 — UI and API Specifications (#24)
+### My comment (PR #24 for partner phatthidawadi):
+> **REST API Specification (`api-spec.md`)** และ **Test Plan (`tests.md`)** ของ Sprint 2 ได้สมบูรณ์และเป็นมืออาชีพมาก
 > 
-> **Comment:**
-> เอกสาร UI Specification และ API Contract ใน `docs/lab-02/specification.md` เขียนได้ครอบคลุมและชัดเจนดีมาก มีการกำหนดธีมสี Zen Green พร้อม Hex Code ชัดเจน และมี Endpoints ครอบคลุมการทำงานของ Requester ทั้งหมด รวมถึงการใช้ Header `X-Development-Requester-Id` สำหรับแยก Identity
-> 
-> **ข้อเสนอแนะเพิ่มเติมเล็กน้อย:**
-> 1. ใน UI Spec อาจระบุสีของ Priority/Status Badge และ Visual State ของไฟล์ที่โดน Soft-remove (เช่น Strikethrough/แสดงเหตุผลการลบ) เพิ่มเติม
-> 2. ใน API Spec อยากเสนอให้ใส่ HTTP Status Codes (200, 201, 400, 403, 404, 410) และ Request Body สำหรับ `DELETE /api/attachments/:id` (`removalReason`) ให้ชัดเจนยิ่งขึ้น
+> **จุดเด่นที่ประทับใจ:**
+> 1. **REST API Contract (`api-spec.md`):** ระบุรายละเอียดทั้ง 9 Endpoints ได้ชัดเจนมาก มีตัวอย่าง Request/Response JSON, Header `x-requester-id`, Query parameters (search, filter, sort, pagination) รวมถึงการคืนค่า HTTP Status Codes ที่เป็นมาตรฐาน (200, 201, 400, 403, 410 Gone)
+> 2. **Comprehensive Test Strategy (`tests.md`):** ออกแบบการทดสอบไว้ครบถ้วนทั้ง 4 เลเยอร์ (Unit, Supertest API, Vitest UI Component, Playwright E2E) รวม 19 Test Scenarios
+> 3. **AC Traceability Matrix:** ตารางสอบทานการครอบคลุมของ Requirement จับคู่ AC-01 ถึง AC-08 กับ Test IDs ได้ครบ 100% ทำให้มั่นใจว่าการทำ TDD ใน Issue ถัดๆ ไปจะตรงตามสเปก
+> 4. **Responsive & Color Verification:** มี Checklist สำหรับทดสอบ Viewports (Desktop, Tablet, Mobile) และ Zen Green Design Tokens ชัดเจน
 
-### Partner's response (PR #24 for partner lmaybelgracel):
-> > ### PR Review: Issue 6 — UI and API Specifications (#24)
-> > **Comment:** เอกสาร UI Specification และ API Contract ใน `docs/lab-02/specification.md` เขียนได้ครอบคลุมและชัดเจนดีมาก มีการกำหนดธีมสี Zen Green พร้อม Hex Code ชัดเจน และมี Endpoints ครอบคลุมการทำงานของ Requester ทั้งหมด รวมถึงการใช้ Header `X-Development-Requester-Id` สำหรับแยก Identity
+### Partner's response (PR #24 for partner phatthidawadi):
+> > **REST API Specification (`api-spec.md`)** และ **Test Plan (`tests.md`)** ของ Sprint 2 ได้สมบูรณ์และเป็นมืออาชีพมาก
 > > 
-> > **ข้อเสนอแนะเพิ่มเติมเล็กน้อย:**
+> > **จุดเด่นที่ประทับใจ:**
 > > 
-> > 1. ใน UI Spec อาจระบุสีของ Priority/Status Badge และ Visual State ของไฟล์ที่โดน Soft-remove (เช่น Strikethrough/แสดงเหตุผลการลบ) เพิ่มเติม
-> > 2. ใน API Spec อยากเสนอให้ใส่ HTTP Status Codes (200, 201, 400, 403, 404, 410) และ Request Body สำหรับ `DELETE /api/attachments/:id` (`removalReason`) ให้ชัดเจนยิ่งขึ้น
+> > 1. **REST API Contract (`api-spec.md`):** ระบุรายละเอียดทั้ง 9 Endpoints ได้ชัดเจนมาก มีตัวอย่าง Request/Response JSON, Header `x-requester-id`, Query parameters (search, filter, sort, pagination) รวมถึงการคืนค่า HTTP Status Codes ที่เป็นมาตรฐาน (200, 201, 400, 403, 410 Gone)
+> > 2. **Comprehensive Test Strategy (`tests.md`):** ออกแบบการทดสอบไว้ครบถ้วนทั้ง 4 เลเยอร์ (Unit, Supertest API, Vitest UI Component, Playwright E2E) รวม 19 Test Scenarios
+> > 3. **AC Traceability Matrix:** ตารางสอบทานการครอบคลุมของ Requirement จับคู่ AC-01 ถึง AC-08 กับ Test IDs ได้ครบ 100% ทำให้มั่นใจว่าการทำ TDD ใน Issue ถัดๆ ไปจะตรงตามสเปก
+> > 4. **Responsive & Color Verification:** มี Checklist สำหรับทดสอบ Viewports (Desktop, Tablet, Mobile) และ Zen Green Design Tokens ชัดเจน
 > 
-> ขอบคุณมากสำหรับคำแนะนำและข้อเสนอแนะที่มีประโยชน์มากค่ะ ได้ทำการอัปเดตเอกสาร docs/lab-02/ui-spec.md และ push ขึ้น PR #24 เรียบร้อยแล้วดังนี้ค่ะ:
+> ขอบคุณมากนะสำหรับคำรีวิวและการตรวจสอบเอกสาร api-spec.md และ tests.md อย่างละเอียด
 > 
-> 1. [UI Spec - Priority/Status Badges] เพิ่ม Section 3 กำหนดโทนสี Hex Code ของ Priority Badges (HIGH: Red #B71C1C, MEDIUM: Amber #E65100, LOW: Green #2E7D32) และ Status Badge (NEW: Primary Green #006B3C)
-> 2. [UI Spec - Soft-removed Visual State] ปรับปรุง Section 6.4 กำหนดรูปแบบ Visual State ของไฟล์ที่ถูกลบ ได้แก่ ชื่อไฟล์ใช้ Strikethrough, ตัวหนังสือสีจาง #5A6E63, แสดงป้าย Removed พร้อมแสดงเหตุผลการลบและเวลา, และปิดปุ่มดาวน์โหลด/พรีวิว
-> 3. [API Spec] ใน api-spec.md มีตาราง HTTP Status Codes (200, 201, 400, 403, 404, 410, 422, 500) อยู่ใน Section 2 และมี Request Body ของ DELETE /api/attachments/:id ({ "removalReason": "..." }) อยู่ใน Section 3.9 เรียบร้อยแล้วค่ะ
-> 
-> รบกวนตรวจสอบอีกครั้ง และช่วยกด Approve พร้อมกด "Merge pull request" เข้า lab2-staging ให้ด้วยนะคะ
+> ยินดีอย่างยิ่งที่โครงสร้าง REST API Contract ทั้ง 9 Endpoints และแผนการทดสอบทั้ง 4 เลเยอร์ รวมถึง AC Traceability Matrix มีความชัดเจนและครอบคลุม ผมจะนำข้อกำหนดและแผนการทดสอบทั้งหมดนี้ไปใช้เป็นหลักในการพัฒนาโค้ดและทำ TDD สำหรับ Issue ถัดๆ ไป
 
-### My comment (PR #25 for partner lmaybelgracel):
-> ### Peer Review: Issue 7 — Test Plan and Traceability (#25)
+### My comment (PR #25 for partner phatthidawadi):
+> **Prisma Database Schema** และ **Seed Data Script** สำหรับ Sprint 2 ได้สมบูรณ์และเรียบร้อยมาก
 > 
-> สวัสดีจ้า ได้ทำการรีวิวเอกสารแผนการทดสอบและตาราง Traceability Matrix สำหรับ Lab 2 เรียบร้อยแล้ว โดยรวมวางโครงสร้างและกำหนดขอบเขตการทดสอบได้ดีมาก ขอส่งสรุปผลการรีวิวและข้อแนะนำเพิ่มเติมดังนี้:
+> **จุดเด่นที่ประทับใจ:**
+> 1. **Schema Design & Integrity (`schema.prisma`):** ออกแบบครบ 5 โมเดลตาม Spec (`RequesterUser`, `Category`, `RelatedSystem`, `Ticket`, `Attachment`) มีการตั้งค่า `@unique` บน `ticketNumber` และ compound unique `[name, categoryId]` อย่างถูกต้อง รวมถึงใช้ `onDelete: Restrict` เพื่อรักษาความสมบูรณ์ของข้อมูล และตั้งค่า `@@index` บนฟิลด์ค้นหาช่วยเพิ่มประสิทธิภาพ Query
+> 2. **Idempotent Seed Script (`seed.ts`):** ออกแบบการ Seed ด้วย `upsert` และ `findFirst` รันซ้ำได้ปลอดภัยไม่เกิด duplicate key errors
+> 3. **Realistic Test Data:** มีข้อมูล Requesters ทั้งแบบ Active (4 คน) และ Inactive (1 คน) ตรงตามข้อกำหนด BR-04 สำหรับนำไปใช้ทดสอบตัวเลือก Requester ในหน้าเว็บได้ทันที
 > 
-> ---
-> 
-> #### จุดที่ทำได้ดี (Strengths)
-> 1. **Multi-layer Testing Architecture:** วางแผนการทดสอบได้ครอบคลุมหลายระดับ ทั้ง API Integration (Supertest), UI Component (Vitest) และ E2E Workflow (Playwright)
-> 2. **Security & Data Ownership Boundary:** มีการกำหนดเคสทดสอบสำหรับสิทธิ์การเข้าถึงข้อมูลตาม Requester Context (`X-Development-Requester-Id`) ป้องกันการเข้าถึงข้อมูลข้ามตัวตน (Cross-Requester Data Access) ชัดเจน
-> 3. **Requirement Mapping:** โครงสร้างตาราง Traceability Matrix มีการเชื่อมโยง Test ID กับ Functional Requirements (FR) และ Acceptance Criteria (AC) ได้อย่างเป็นระบบ
-> 
-> ---
-> 
-> #### ข้อแนะนำเพิ่มเติมสำหรับปรับปรุง (Actionable Suggestions)
-> 
-> 1. **เพิ่ม Test Cases สำหรับ Edge Cases & Business Rules ให้ครบถ้วน:**
->    - **Soft-Removal Download Blocking (BR-07, AC-06):** แนะนำให้ระบุเคสทดสอบยืนยันว่าเมื่อซอฟต์ลบไฟล์แนบแล้ว ลิงก์ดาวน์โหลดจะต้องคืนค่า **HTTP 410 Gone / 404 Not Found** และต้องมีการตรวจสอบความยาวของเหตุผลในการลบ (`removalReason` 3 - 250 ตัวอักษร)
->    - **Active Attachment Limit (BR-06, AC-05):** เพิ่มเคสทดสอบการอัปโหลดไฟล์แนบใบที่ 6 (เมื่อมีไฟล์ Active ครบ 5 ไฟล์แล้ว) ว่าระบบต้องปฏิเสธด้วย **HTTP 400 Bad Request**
->    - **Atomic Transaction Rollback (BR-11):** เพิ่มเคสทดสอบยืนยันว่าหากการเซฟไฟล์แนบตอนสร้าง Ticket ล้มเหลว ตั๋ว Ticket ต้องถูก Rollback ทั้งหมดเพื่อไม่ให้เกิด Orphaned Record ในฐานข้อมูล
-> 
-> 2. **Form Data Retention on Error (BR-09, AC-09):**
->    - แนะนำให้ระบุเคสทดสอบฝั่ง UI Component ยืนยันว่าเมื่อการส่งฟอร์มสร้าง Ticket ล้มเหลว ข้อมูลที่กรอกค้างไว้ในฟอร์มจะต้องไม่สูญหาย
-> 
-> 3. **อัปเดต Test Evidence & File Paths:**
->    - ตรวจสอบการใช้ Relative Path ของไฟล์ทดสอบให้ถูกต้อง เช่น `server/tests/lab-02/...` และ `client/tests/lab-02/...`
->    - รบกวนแนบผลลัพธ์การรันคำสั่ง `npm test` (Terminal Execution Output) ล่าสุดลงในส่วน Evidence ของเอกสาร `docs/lab-02/tests.md` เพื่อให้ตรงตาม Definition of Done (DoD)
-> 
-> ---
-> 
-> #### สรุปผลการรีวิว (Verdict)
-> โดยรวมทำได้ดีมากแล้ว รบกวนลองเช็กและอัปเดตจุดข้างต้นเพิ่มเติมอีกนิดหน่อย เมื่ออัปเดตเรียบร้อยแล้วแจ้งได้เลยนะ เดี๋ยวเข้ามา Approve ให้นะ
+> โค้ดสะอาด เป็นระเบียบ และรัน Seed ผ่าน 100%
 
-### Partner's response (PR #25 for partner lmaybelgracel):
-> > ### Peer Review: Issue 7 — Test Plan and Traceability (#25)
-> > สวัสดีจ้า ได้ทำการรีวิวเอกสารแผนการทดสอบและตาราง Traceability Matrix สำหรับ Lab 2 เรียบร้อยแล้ว โดยรวมวางโครงสร้างและกำหนดขอบเขตการทดสอบได้ดีมาก ขอส่งสรุปผลการรีวิวและข้อแนะนำเพิ่มเติมดังนี้:
+### Partner's response (PR #25 for partner phatthidawadi):
+> > **Prisma Database Schema** และ **Seed Data Script** สำหรับ Sprint 2 ได้สมบูรณ์และเรียบร้อยมาก
 > > 
-> > #### จุดที่ทำได้ดี (Strengths)
-> > 1. **Multi-layer Testing Architecture:** วางแผนการทดสอบได้ครอบคลุมหลายระดับ ทั้ง API Integration (Supertest), UI Component (Vitest) และ E2E Workflow (Playwright)
-> > 2. **Security & Data Ownership Boundary:** มีการกำหนดเคสทดสอบสำหรับสิทธิ์การเข้าถึงข้อมูลตาม Requester Context (`X-Development-Requester-Id`) ป้องกันการเข้าถึงข้อมูลข้ามตัวตน (Cross-Requester Data Access) ชัดเจน
-> > 3. **Requirement Mapping:** โครงสร้างตาราง Traceability Matrix มีการเชื่อมโยง Test ID กับ Functional Requirements (FR) และ Acceptance Criteria (AC) ได้อย่างเป็นระบบ
+> > **จุดเด่นที่ประทับใจ:**
 > > 
-> > #### ข้อแนะนำเพิ่มเติมสำหรับปรับปรุง (Actionable Suggestions)
-> > 1. **เพิ่ม Test Cases สำหรับ Edge Cases & Business Rules ให้ครบถ้วน:**
-> >    
-> >    * **Soft-Removal Download Blocking (BR-07, AC-06):** แนะนำให้ระบุเคสทดสอบยืนยันว่าเมื่อซอฟต์ลบไฟล์แนบแล้ว ลิงก์ดาวน์โหลดจะต้องคืนค่า **HTTP 410 Gone / 404 Not Found** และต้องมีการตรวจสอบความยาวของเหตุผลในการลบ (`removalReason` 3 - 250 ตัวอักษร)
-> >    * **Active Attachment Limit (BR-06, AC-05):** เพิ่มเคสทดสอบการอัปโหลดไฟล์แนบใบที่ 6 (เมื่อมีไฟล์ Active ครบ 5 ไฟล์แล้ว) ว่าระบบต้องปฏิเสธด้วย **HTTP 400 Bad Request**
-> >    * **Atomic Transaction Rollback (BR-11):** เพิ่มเคสทดสอบยืนยันว่าหากการเซฟไฟล์แนบตอนสร้าง Ticket ล้มเหลว ตั๋ว Ticket ต้องถูก Rollback ทั้งหมดเพื่อไม่ให้เกิด Orphaned Record ในฐานข้อมูล
-> > 2. **Form Data Retention on Error (BR-09, AC-09):**
-> >    
-> >    * แนะนำให้ระบุเคสทดสอบฝั่ง UI Component ยืนยันว่าเมื่อการส่งฟอร์มสร้าง Ticket ล้มเหลว ข้อมูลที่กรอกค้างไว้ในฟอร์มจะต้องไม่สูญหาย
-> > 3. **อัปเดต Test Evidence & File Paths:**
-> >    
-> >    * ตรวจสอบการใช้ Relative Path ของไฟล์ทดสอบให้ถูกต้อง เช่น `server/tests/lab-02/...` และ `client/tests/lab-02/...`
-> >    * รบกวนแนบผลลัพธ์การรันคำสั่ง `npm test` (Terminal Execution Output) ล่าสุดลงในส่วน Evidence ของเอกสาร `docs/lab-02/tests.md` เพื่อให้ตรงตาม Definition of Done (DoD)
+> > 1. **Schema Design & Integrity (`schema.prisma`):** ออกแบบครบ 5 โมเดลตาม Spec (`RequesterUser`, `Category`, `RelatedSystem`, `Ticket`, `Attachment`) มีการตั้งค่า `@unique` บน `ticketNumber` และ compound unique `[name, categoryId]` อย่างถูกต้อง รวมถึงใช้ `onDelete: Restrict` เพื่อรักษาความสมบูรณ์ของข้อมูล และตั้งค่า `@@index` บนฟิลด์ค้นหาช่วยเพิ่มประสิทธิภาพ Query
+> > 2. **Idempotent Seed Script (`seed.ts`):** ออกแบบการ Seed ด้วย `upsert` และ `findFirst` รันซ้ำได้ปลอดภัยไม่เกิด duplicate key errors
+> > 3. **Realistic Test Data:** มีข้อมูล Requesters ทั้งแบบ Active (4 คน) และ Inactive (1 คน) ตรงตามข้อกำหนด BR-04 สำหรับนำไปใช้ทดสอบตัวเลือก Requester ในหน้าเว็บได้ทันที
 > > 
-> > #### สรุปผลการรีวิว (Verdict)
-> > โดยรวมทำได้ดีมากแล้ว รบกวนลองเช็กและอัปเดตจุดข้างต้นเพิ่มเติมอีกนิดหน่อย เมื่ออัปเดตเรียบร้อยแล้วแจ้งได้เลยนะ เดี๋ยวเข้ามา Approve ให้นะ
+> > โค้ดสะอาด เป็นระเบียบ และรัน Seed ผ่าน 100%
 > 
-> ขอบคุณสำหรับคำแนะนำและข้อเสนอแนะที่มีประโยชน์มากค่ะ ได้ทำการปรับปรุงเอกสาร docs/lab-02/tests.md และ push ขึ้น PR #25 เรียบร้อยแล้วดังนี้ค่ะ:
+> ขอบคุณมากนะสำหรับคำรีวิวและการตรวจสอบ Prisma Schema รวมถึง Seed Script อย่างละเอียด
 > 
-> 1. [Edge Cases & Business Rules] ปรับรายละเอียดเคสทดสอบ API-07 (ปฏิเสธไฟล์ที่ 6 ด้วย HTTP 400), API-08 (ตรวจสอบ removalReason 3-250 ตัวอักษร), API-09 (บล็อกดาวน์โหลดไฟล์ที่ถูกลบด้วย HTTP 410/404) และ API-10 (Rollback ทั้งหมดเมื่อเซฟไฟล์ล้มเหลว)
-> 2. [Form Data Retention] ระบุการตรวจสอบในเคส UI-03 ชัดเจนว่าเมื่อเกิด error ข้อมูลที่กรอกค้างในฟอร์มจะไม่สูญหาย
-> 3. [File Paths & Execution Note] ตรวจสอบ Relative Path ของไฟล์ทดสอบเรียบร้อยแล้ว และระบุหมายเหตุใน Section 6 ว่าไฟล์ทดสอบจะถูกเขียนและรันจริงพร้อมแนบ Terminal Execution Output ในขั้นตอน Implementation (Issues 8-15) ตามหลัก TDD ค่ะ
-> 
-> รบกวนตรวจสอบอีกครั้ง และช่วยกด Approve พร้อมกด "Merge pull request" เข้า lab2-staging ให้ด้วยนะคะ
+> ยินดีอย่างยิ่งที่โครงสร้าง Schema การจัดการความสัมพันธ์ของข้อมูล และชุดข้อมูลตัวอย่างถูกต้องตรงตามข้อกำหนด BR-04 ฉันจะใช้โครงสร้างฐานข้อมูลและข้อมูลเริ่มต้นชุดนี้สำหรับการพัฒนา API และหน้าจอแสดงผลใน Issue ถัดๆ ไป
 
-### My comment (PR #26 for partner lmaybelgracel):
-> ดูภาพรวมของ PR #26 (Issue 8: Database Schema and Seed Data) แล้วทำได้ตรงตาม Specification ของ Lab 2 ครบถ้วนและเรียบร้อยมาก
+### My comment (PR #26 for partner phatthidawadi):
+> **Development Requester Selector** สำหรับ Sprint 2 ได้สมบูรณ์และสวยงามมาก
 > 
-> จุดที่ชอบและออกแบบได้ดี:
-> 1. schema.prisma: ออกแบบ Models ครบถ้วน มีการตั้งค่า Enums (Priority, TicketStatus), Unique Constraints และสร้าง @@index สำหรับ Foreign Keys ต่างๆ ได้ครอบคลุม ช่วยเรื่อง performance ในการ Query
-> 2. Attachment Model: มี fields รองรับ Soft Removal (isRemoved, removedAt, removalReason) ตาม BR-07 และตั้งค่า onDelete: Cascade ไว้อย่างเหมาะสม
-> 3. seed.ts: ใช้งาน upsert สำหรับทุก Entity ทำให้รัน Seed ซ้ำได้โดยไม่เกิดข้อมูลซ้ำ (Idempotency ตาม BR-10) รวมถึงเตรียมข้อมูล Requesters ทั้ง Active และ Inactive ไว้รองรับการทดสอบ Context Switching ได้ดีมาก
+> **จุดเด่นที่ประทับใจ:**
+> 1. **Backend Integration (`GET /api/requesters`):** ดึงข้อมูลเฉพาะ Active Requesters จาก PostgreSQL ตาม BR-04 ได้ถูกต้อง และเขียน Supertest ตรวจสอบการกรอง Inactive user (Alex Taylor) ออกจากผลลัพธ์ได้อย่างแม่นยำ
+> 2. **State & LocalStorage Persistence (`RequesterContext.tsx`):** บริหารจัดการ React Context ได้สะอาด มีการบันทึกผู้ใช้ลงใน `localStorage` เพื่อจดจำ Context ข้ามการ Reload หน้าเว็บ และเปิด Modal เลือกผู้ใช้อัตโนมัติเมื่อยังไม่มีการเลือก
+> 3. **Zen Green UI Spec Compliance (`Header.tsx` & `RequesterSelectorScreen.tsx`):** ถอดแบบหน้าจอจาก UI Spec 5.1 ได้เป๊ะมาก ทั้งโทนสี Primary Green (#006B3C), Notice banner Pale Green (#EAF6EF) "Authentication coming in Lab 3", Badge ชื่อผู้ใช้ใน Header และ Accessibility (`htmlFor`)
+> 4. **UI Test Coverage (`RequesterSelector.test.tsx`):** เขียน Vitest + RTL Mock API ทดสอบ Component rendering ได้อย่างถูกต้องครบถ้วน
 > 
-> ข้อเสนอแนะเพิ่มเติมก่อน Merge:
-> - อย่าลืมสร้าง/ตรวจสอบไฟล์ Prisma Migration (npx prisma migrate dev) และ commit โฟลเดอร์ server/prisma/migrations/ ขึ้น Git เพื่อให้สมาชิกในทีม sync database schema ได้ตรงกัน
+> งานเรียบร้อย โค้ดคลีน และผ่านการทดสอบ 100%
 
-### Partner's response (PR #26 for partner lmaybelgracel):
-> > ดูภาพรวมของ PR #26 (Issue 8: Database Schema and Seed Data) แล้วทำได้ตรงตาม Specification ของ Lab 2 ครบถ้วนและเรียบร้อยมาก
+### Partner's response (PR #26 for partner phatthidawadi):
+> > **Development Requester Selector** สำหรับ Sprint 2 ได้สมบูรณ์และสวยงามมาก
 > > 
-> > จุดที่ชอบและออกแบบได้ดี:
+> > **จุดเด่นที่ประทับใจ:**
 > > 
-> > 1. schema.prisma: ออกแบบ Models ครบถ้วน มีการตั้งค่า Enums (Priority, TicketStatus), Unique Constraints และสร้าง @@index สำหรับ Foreign Keys ต่างๆ ได้ครอบคลุม ช่วยเรื่อง performance ในการ Query
-> > 2. Attachment Model: มี fields รองรับ Soft Removal (isRemoved, removedAt, removalReason) ตาม BR-07 และตั้งค่า onDelete: Cascade ไว้อย่างเหมาะสม
-> > 3. seed.ts: ใช้งาน upsert สำหรับทุก Entity ทำให้รัน Seed ซ้ำได้โดยไม่เกิดข้อมูลซ้ำ (Idempotency ตาม BR-10) รวมถึงเตรียมข้อมูล Requesters ทั้ง Active และ Inactive ไว้รองรับการทดสอบ Context Switching ได้ดีมาก
+> > 1. **Backend Integration (`GET /api/requesters`):** ดึงข้อมูลเฉพาะ Active Requesters จาก PostgreSQL ตาม BR-04 ได้ถูกต้อง และเขียน Supertest ตรวจสอบการกรอง Inactive user (Alex Taylor) ออกจากผลลัพธ์ได้อย่างแม่นยำ
+> > 2. **State & LocalStorage Persistence (`RequesterContext.tsx`):** บริหารจัดการ React Context ได้สะอาด มีการบันทึกผู้ใช้ลงใน `localStorage` เพื่อจดจำ Context ข้ามการ Reload หน้าเว็บ และเปิด Modal เลือกผู้ใช้อัตโนมัติเมื่อยังไม่มีการเลือก
+> > 3. **Zen Green UI Spec Compliance (`Header.tsx` & `RequesterSelectorScreen.tsx`):** ถอดแบบหน้าจอจาก UI Spec 5.1 ได้เป๊ะมาก ทั้งโทนสี Primary Green (#006B3C), Notice banner Pale Green (#EAF6EF) "Authentication coming in Lab 3", Badge ชื่อผู้ใช้ใน Header และ Accessibility (`htmlFor`)
+> > 4. **UI Test Coverage (`RequesterSelector.test.tsx`):** เขียน Vitest + RTL Mock API ทดสอบ Component rendering ได้อย่างถูกต้องครบถ้วน
 > > 
-> > ข้อเสนอแนะเพิ่มเติมก่อน Merge:
+> > งานเรียบร้อย โค้ดคลีน และผ่านการทดสอบ 100%
+> 
+> ขอบคุณมากนะสำหรับคำรีวิวและการตรวจทานโค้ดในส่วน Development Requester Selector อย่างถี่ถ้วน
+> 
+> ยินดีอย่างยิ่งที่การจัดการ Context, การบันทึก LocalStorage, การกรอง Active User ตาม BR-04 และหน้าตา UI ธีม Zen Green ตรงตาม UI Spec 5.1  ฉันจะนำ Requester Context และ Header Component ชุดนี้ไปใช้เชื่อมต่อกับการรับค่า header x-requester-id ในฟีเจอร์สร้างตั๋วและดูตั๋วสำหรับ Issue ถัดๆ ไป
+
+### My comment (PR #27 for partner phatthidawadi):
+> **Create Ticket API & Form** สำหรับ Sprint 2 ได้เรียบร้อยและครบถ้วนมาก
+> 
+> **จุดเด่นที่ประทับใจ:**
+> 1. **Ticket Number Generator (`ticketNumber.ts`):** คืนค่าในรูปแบบ `TKT-YYYY-XXXXXX` พร้อม 6-digit zero-padding ตาม BR-01 เป๊ะๆ และมี Unit Test ทดสอบความถูกต้อง 100%
+> 2. **Robust Backend API (`POST /api/tickets`):** มีระบบการตรวจเช็ก Header `x-requester-id`, การ Validate ความยาว Summary (5-100 ตัวอักษร) และ Description (10-1000 ตัวอักษร) ตาม BR-06, การเช็กความสัมพันธ์ระหว่าง Category กับ Related System รวมถึงการกำหนดค่าเริ่มต้น `currentStatus = "NEW"` (BR-02)
+> 3. **Supertest Integration Coverage (`create-ticket.api.test.ts`):** ทดสอบการส่งข้อมูลตั๋วผ่าน API ได้รับ HTTP 201 Created และยืนยันรูปแบบ Regex `/^TKT-\d{4}-\d{6}$/` ได้ถูกต้อง
+> 4. **Zen Green UI Form Compliance (`CreateTicketForm.tsx`):** ตรงตาม UI Spec 5.2 มีดอกจันสีแดง (`*` สี #C5221F), Inline Validation Error Messages, ปุ่ม Busy State ขณะกำลังบันทึกข้อมูล และ Banner สีเขียว Pale Green (#EAF6EF) แสดง Ticket Number เมื่อสร้างสำเร็จ
+> 
+> งานสมบูรณ์แบบ โค้ดคลีน และผ่านการทดสอบ 100%
+
+### Partner's response (PR #27 for partner phatthidawadi):
+> > **Create Ticket API & Form** สำหรับ Sprint 2 ได้เรียบร้อยและครบถ้วนมาก
 > > 
-> > * อย่าลืมสร้าง/ตรวจสอบไฟล์ Prisma Migration (npx prisma migrate dev) และ commit โฟลเดอร์ server/prisma/migrations/ ขึ้น Git เพื่อให้สมาชิกในทีม sync database schema ได้ตรงกัน
-> 
-> ขอบคุณมากสำหรับข้อเสนอแนะ ได้ทำการสร้างไฟล์ Prisma Migration DDL สำหรับ Lab 2 (server/prisma/migrations/20260901000000_lab2_models/migration.sql) ครอบคลุม Tables, Enums, Constraints และ Indexes ทั้งหมด พร้อมทั้ง commit ขึ้น PR #26 เรียบร้อยแล้วค่ะ สมาชิกในทีมสามารถสั่ง sync schema ผ่าน npx prisma migrate dev ได้ทันที
-> 
-> รบกวนช่วยกด Approve และกด "Merge pull request" เข้า lab2-staging ให้ด้วยนะคะ
-
-### My comment (PR #27 for partner lmaybelgracel):
-> ### PR #27 (feature/lab2-requester-context - Issue 9: Development Requester Context)
-> **Reviewer Comment:**
-> ฟีเจอร์ Development Requester Context ทำได้ตรงตามข้อกำหนด FR-01, FR-02, FR-03, BR-03, AC-02 และ AC-07
-> การแสดงผลหน้า Requester Selector มี Banner แจ้งเตือนสภาวะ Context Test ชัดเจน UI สวยงามตาม Zen Green Design System 
-> มี API Test ครอบคลุมการส่งคืนข้อมูล และการกรอง Inactive Users ออกจากระบบเรียบร้อยแล้ว
-> 
-> ข้อเสนอแนะเพิ่มเติมก่อน Merge:
-> 1. ใน `client/vite.config.ts` ควรอัปเดต `include` เป็น `["src/__tests__/**/*.test.tsx", "tests/**/*.test.tsx"]` เพื่อให้ Vitest สามารถตรวจพบและรันไฟล์ `RequesterSelector.test.tsx` ใน `npm test` ได้อย่างสมบูรณ์
-> 2. ใน `client/src/App.tsx` มี Typo property `maxWdith` ใน `styles.headerInner` แนะนำลบออกเพื่อความสะอาดของโค้ด
-
-### Partner's response (PR #27 for partner lmaybelgracel):
-> > ### PR #27 (feature/lab2-requester-context - Issue 9: Development Requester Context)
-> > **Reviewer Comment:** ฟีเจอร์ Development Requester Context ทำได้ตรงตามข้อกำหนด FR-01, FR-02, FR-03, BR-03, AC-02 และ AC-07 การแสดงผลหน้า Requester Selector มี Banner แจ้งเตือนสภาวะ Context Test ชัดเจน UI สวยงามตาม Zen Green Design System มี API Test ครอบคลุมการส่งคืนข้อมูล และการกรอง Inactive Users ออกจากระบบเรียบร้อยแล้ว
+> > **จุดเด่นที่ประทับใจ:**
 > > 
-> > ข้อเสนอแนะเพิ่มเติมก่อน Merge:
+> > 1. **Ticket Number Generator (`ticketNumber.ts`):** คืนค่าในรูปแบบ `TKT-YYYY-XXXXXX` พร้อม 6-digit zero-padding ตาม BR-01 เป๊ะๆ และมี Unit Test ทดสอบความถูกต้อง 100%
+> > 2. **Robust Backend API (`POST /api/tickets`):** มีระบบการตรวจเช็ก Header `x-requester-id`, การ Validate ความยาว Summary (5-100 ตัวอักษร) และ Description (10-1000 ตัวอักษร) ตาม BR-06, การเช็กความสัมพันธ์ระหว่าง Category กับ Related System รวมถึงการกำหนดค่าเริ่มต้น `currentStatus = "NEW"` (BR-02)
+> > 3. **Supertest Integration Coverage (`create-ticket.api.test.ts`):** ทดสอบการส่งข้อมูลตั๋วผ่าน API ได้รับ HTTP 201 Created และยืนยันรูปแบบ Regex `/^TKT-\d{4}-\d{6}$/` ได้ถูกต้อง
+> > 4. **Zen Green UI Form Compliance (`CreateTicketForm.tsx`):** ตรงตาม UI Spec 5.2 มีดอกจันสีแดง (`*` สี #C5221F), Inline Validation Error Messages, ปุ่ม Busy State ขณะกำลังบันทึกข้อมูล และ Banner สีเขียว Pale Green (#EAF6EF) แสดง Ticket Number เมื่อสร้างสำเร็จ
 > > 
-> > 1. ใน `client/vite.config.ts` ควรอัปเดต `include` เป็น `["src/__tests__/**/*.test.tsx", "tests/**/*.test.tsx"]` เพื่อให้ Vitest สามารถตรวจพบและรันไฟล์ `RequesterSelector.test.tsx` ใน `npm test` ได้อย่างสมบูรณ์
-> > 2. ใน `client/src/App.tsx` มี Typo property `maxWdith` ใน `styles.headerInner` แนะนำลบออกเพื่อความสะอาดของโค้ด
+> > งานสมบูรณ์แบบ โค้ดคลีน และผ่านการทดสอบ 100%
 > 
-> ขอบคุณสำหรับ Code Review มากๆ เลยนะคะ
+> ขอบคุณมากสำหรับคำรีวิวและการตรวจทานฟีเจอร์ Create Ticket ทั้งในส่วน Backend API, Ticket Number Generator, Validation และ Frontend UI Form อย่างละเอียด
 > 
-> ได้ดำเนินการแก้ไขตามข้อเสนอแนะเพิ่มเติมเรียบร้อยแล้วค่ะ:
-> 
-> 1. อัปเดตไฟล์ client/vite.config.ts โดยเพิ่ม include เป็น ["src/__tests__/**/*.test.tsx", "tests/**/*.test.tsx"] เรียบร้อยแล้วค่ะ ทำให้ Vitest สามารถตรวจพบและรันไฟล์ RequesterSelector.test.tsx ผ่านครบทุกเคสแล้วค่ะ
-> 2. ลบ typo property maxWdith ออกจาก styles.headerInner ใน client/src/App.tsx เรียบร้อยแล้วค่ะ
-> 3. ปรับปรุง mock ใน server/tests/lab-02/requester-context.api.test.ts ทำให้ API Test รันผ่านสมบูรณ์ 100% แล้วค่ะ
-> 
-> ทำการ push commit แก้ไขขึ้น PR เรียบร้อยแล้วนะคะ รบกวนตรวจสอบและ Approve เพื่อ Merge ได้เลยค่ะ ขอบคุณมากค่ะ
+> ยินดีอย่างยิ่งที่รูปแบบ Ticket Number (TKT-YYYY-XXXXXX), การตรวจสอบเงื่อนไข BR-01, BR-02, BR-06 และองค์ประกอบหน้าฟอร์มตาม UI Spec 5.2 ถูกต้องครบถ้วน ฉันจะนำข้อมูลตั๋วที่ถูกสร้างขึ้นนี้ไปใช้เชื่อมต่อกับหน้า My Tickets และหน้า Ticket Detail สำหรับ Issue ถัดๆ ไป
 
-### My comment (PR #28 for partner lmaybelgracel):
-> ตรวจสอบโค้ดและผลการทดสอบของ **Issue 10: Create Ticket Workflow and Reference Data APIs (#28)** เรียบร้อยแล้ว:
+### My comment (PR #28 for partner phatthidawadi):
+> **My Tickets List (API & Responsive UI)** สำหรับ Sprint 2 ได้สมบูรณ์และเป็นระเบียบมาก
 > 
-> 1. **Backend APIs:** Implement `GET /api/categories`, `GET /api/related-systems`, และ `POST /api/tickets` ได้ตรงตาม specification มีการตรวจเช็ก `X-Development-Requester-Id`, สถานะ active ของ Requester, validation ของ summary/description, และสร้างรหัส `TKT-YYYY-XXXXXX` พร้อมสถานะเริ่มต้น `NEW` ได้ถูกต้อง
-> 2. **Frontend UI:** หน้าจอ `CreateTicket.tsx` ตกแต่งได้สวยงามตาม **Zen Green Theme** มี Read-only section, Character Counter, Segmented Priority Buttons, และทำตามข้อกำหนด Form Data Retention (BR-09) เมื่อเกิด error ได้ครบถ้วน
-> 3. **Automated Tests:** รัน Vitest ทั้งฝั่ง Server (`reference-data.api.test.ts`, `create-ticket.api.test.ts`) และ Client (`CreateTicket.test.tsx`) ผ่าน 100% ครอบคลุมทุกสภาวะ
+> **จุดเด่นที่ประทับใจ:**
+> 1. **Requester Data Isolation (`GET /api/tickets`):** บังคับตรวจเช็ก Header `x-requester-id` กรองเฉพาะตั๋วของผู้ใช้นั้นตรงตาม BR-03 & AC-03 ได้เด็ดขาด
+> 2. **Search, Filter & Pagination Logic:** รองรับการค้นหา Keyword แบบ Case-insensitive บน Ticket Number และ Summary, การกรอง Category/Status/Priority, การเรียงลำดับ Date และส่งคืน Metadata แบบ Paginated อย่างถูกต้อง
+> 3. **Supertest Integration Coverage (`my-tickets.api.test.ts`):** ยืนยันการคัดกรองข้อมูลเฉพาะผู้ใช้และการค้นหาผ่าน API ได้ผลลัพธ์ผ่าน 100%
+> 4. **Responsive Zen Green UI (`MyTicketsView.tsx`):** ถอดแบบหน้าจอตาม UI Spec 5.3 และ AC-08 สวยงามมาก แสดงผลเป็น Data Table บน Desktop และแปลงเป็น Responsive Card View บน Mobile (< 768px) ป้องกัน Horizontal Scrolling ได้สมบูรณ์ พร้อม Status Badges ที่ชัดเจนอ่านง่าย
 > 
-> **ข้อเสนอแนะเล็กน้อย (Non-blocking):**
-> - ใน `POST /api/tickets` อาจเพิ่มการเช็ก `category.isActive === true` และ `relatedSystem.isActive === true` เพื่อป้องกันการส่ง ID หมวดหมู่ที่ถูกปิดใช้งานเข้ามา
-> 
-> ภาพรวมทำได้ดีมาก
+> โค้ดคลีน ประสิทธิภาพดี และผ่านการทดสอบครบถ้วน
 
-### Partner's response (PR #28 for partner lmaybelgracel):
-> > ตรวจสอบโค้ดและผลการทดสอบของ **Issue 10: Create Ticket Workflow and Reference Data APIs (#28)** เรียบร้อยแล้ว:
+### Partner's response (PR #28 for partner phatthidawadi):
+> > **My Tickets List (API & Responsive UI)** สำหรับ Sprint 2 ได้สมบูรณ์และเป็นระเบียบมาก
 > > 
-> > 1. **Backend APIs:** Implement `GET /api/categories`, `GET /api/related-systems`, และ `POST /api/tickets` ได้ตรงตาม specification มีการตรวจเช็ก `X-Development-Requester-Id`, สถานะ active ของ Requester, validation ของ summary/description, และสร้างรหัส `TKT-YYYY-XXXXXX` พร้อมสถานะเริ่มต้น `NEW` ได้ถูกต้อง
-> > 2. **Frontend UI:** หน้าจอ `CreateTicket.tsx` ตกแต่งได้สวยงามตาม **Zen Green Theme** มี Read-only section, Character Counter, Segmented Priority Buttons, และทำตามข้อกำหนด Form Data Retention (BR-09) เมื่อเกิด error ได้ครบถ้วน
-> > 3. **Automated Tests:** รัน Vitest ทั้งฝั่ง Server (`reference-data.api.test.ts`, `create-ticket.api.test.ts`) และ Client (`CreateTicket.test.tsx`) ผ่าน 100% ครอบคลุมทุกสภาวะ
+> > **จุดเด่นที่ประทับใจ:**
 > > 
-> > **ข้อเสนอแนะเล็กน้อย (Non-blocking):**
+> > 1. **Requester Data Isolation (`GET /api/tickets`):** บังคับตรวจเช็ก Header `x-requester-id` กรองเฉพาะตั๋วของผู้ใช้นั้นตรงตาม BR-03 & AC-03 ได้เด็ดขาด
+> > 2. **Search, Filter & Pagination Logic:** รองรับการค้นหา Keyword แบบ Case-insensitive บน Ticket Number และ Summary, การกรอง Category/Status/Priority, การเรียงลำดับ Date และส่งคืน Metadata แบบ Paginated อย่างถูกต้อง
+> > 3. **Supertest Integration Coverage (`my-tickets.api.test.ts`):** ยืนยันการคัดกรองข้อมูลเฉพาะผู้ใช้และการค้นหาผ่าน API ได้ผลลัพธ์ผ่าน 100%
+> > 4. **Responsive Zen Green UI (`MyTicketsView.tsx`):** ถอดแบบหน้าจอตาม UI Spec 5.3 และ AC-08 สวยงามมาก แสดงผลเป็น Data Table บน Desktop และแปลงเป็น Responsive Card View บน Mobile (< 768px) ป้องกัน Horizontal Scrolling ได้สมบูรณ์ พร้อม Status Badges ที่ชัดเจนอ่านง่าย
 > > 
-> > * ใน `POST /api/tickets` อาจเพิ่มการเช็ก `category.isActive === true` และ `relatedSystem.isActive === true` เพื่อป้องกันการส่ง ID หมวดหมู่ที่ถูกปิดใช้งานเข้ามา
+> > โค้ดคลีน ประสิทธิภาพดี และผ่านการทดสอบครบถ้วน
+> 
+> ขอบคุณมากสำหรับคำรีวิวและการตรวจทานฟีเจอร์ My Tickets List ทั้งในส่วน Backend API และ Responsive UI อย่างละเอียด
+> 
+> ยินดีอย่างยิ่งที่ระบบการคัดกรองสิทธิ์ผู้ใช้ตาม BR-03/AC-03, การค้นหา/กรองข้อมูล/Pagination และการแสดงผล Responsive Card แบบไม่มี Horizontal Overflow บน Mobile ตาม UI Spec 5.3 & AC-08 ถูกต้องสมบูรณ์ ฉันจะนำหน้ารายการตั๋วนี้ไปเชื่อมต่อกับการกดคลิกดูรายละเอียดตั๋วแบบ Read-Only ใน Issue 11 ถัดไป
+
+### My comment (PR #29 for partner phatthidawadi):
+> **Ticket Detail Read-Only View** สำหรับ Sprint 2 ได้สมบูรณ์และปลอดภัยมาก
+> 
+> **จุดเด่นที่ประทับใจ:**
+> 1. **Strict Ownership Protection (`GET /api/tickets/:id`):** ตรวจเช็ก Header `x-requester-id` คืนค่า `403 Forbidden` หากพยายามเข้าถึงตั๋วของผู้ใช้อื่นตรงตาม BR-03 & AC-03 ได้เด็ดขาด
+> 2. **Supertest Integration Coverage (`ticket-detail.api.test.ts`):** ทดสอบคลอบคลุมทั้งเคส 200 OK (เจ้าของตั๋วดูข้อมูลสำเร็จ), 403 Forbidden (บล็อกผู้ใช้อื่น) และ 404 Not Found (ตั๋วไม่มีในระบบ) ผลการเทสต์ผ่าน 100%
+> 3. **Zen Green Read-Only UI Spec Compliance (`TicketDetailView.tsx`):** ถอดแบบจาก UI Spec 5.4 สวยงามมาก มี Banner สี Pale Green (#EAF6EF) "Read-Only Mode", ฟิลด์พื้นหลังสีเทา-เขียวอ่อน (#F0F4F2) แยกสถานะฟอร์มอ่านอย่างเดียวชัดเจน และปุ่ม "Back to My Tickets"
+> 4. **Error Handling UI:** จัดการหน้าจอ Error State กรณี 403 Forbidden และ 404 Not Found ได้เป็นมิตรกับผู้ใช้งาน
+> 
+> โค้ดสะอาด ปลอดภัยตามหลัก Security & Spec-Driven Development
+
+### Partner's response (PR #29 for partner phatthidawadi):
+> > **Ticket Detail Read-Only View** สำหรับ Sprint 2 ได้สมบูรณ์และปลอดภัยมาก
 > > 
-> > ภาพรวมทำได้ดีมาก
-> 
-> ขอบคุณสำหรับ Code Review และคำแนะนำ
-> 
-> ได้นำข้อเสนอแนะเพิ่มเติมมาปรับปรุงในระบบเรียบร้อยแล้วค่ะ:
-> 1. อัปเดต API POST /api/tickets ใน server/src/app.ts ให้ตรวจสอบ category.isActive === true และ relatedSystem.isActive === true ก่อนสร้าง Ticket เพื่อป้องกันไม่ให้ผู้ใช้ส่ง ID ของหมวดหมู่หรือระบบที่ปิดใช้งานอยู่เข้ามาได้อย่างรัดกุม 100% ค่ะ
-> 2. พุชโค้ดที่ปรับปรุงเพิ่มเติมขึ้น PR #28 เรียบร้อยแล้วค่ะ ขอบคุณมากนะคะ
-
-### My comment (PR #29 for partner lmaybelgracel):
-> **Review Summary:**
-> ตรวจสอบ PR #29 เรียบร้อยแล้ว โค้ดตรงตามข้อกำหนดของ Issue 11 และสเปกใน `api-spec.md` และ `ui-spec.md` ครบถ้วน:
-> 1. **Backend (`GET /api/tickets`):** รองรับ Header `X-Development-Requester-Id`, กรองข้อมูลแยกตาม Requester Context อย่างชัดเจน, มีการค้นหาแบบ case-insensitive บน ticketNumber และ summary, รองรับ filter ตาม category/priority/status, การเรียงลำดับ (sort), และ Pagination พร้อมส่งคืน metadata ครบถ้วน
-> 2. **Frontend UI:** ออกแบบตาม Zen Green Theme แสดงผล Priority Badges (Low/Medium/High) และ Status Badge (New) ด้วยโค้ดสีตรงตามข้อกำหนด มีการจัดการ Empty State และ No-Results State พร้อมปุ่ม Clear Filters และ Pagination Footer
-> 3. **Automated Tests:** ทดสอบแล้วทั้ง Server API Integration Tests (`my-tickets.api.test.ts` 4/4 passed) และ Client UI Component Tests (`MyTickets.test.tsx` 2/2 passed) ผ่าน 100%
-> **ข้อเสนอแนะเพิ่มเติม (Minor Recommendations)**
-> 1. Debounce สำหรับ Search Input (Client):
-> ในปัจจุบันการพิมพ์ในช่อง Search จะอัปเดต state ทันที สามารถพิจารณาเติม Debounce (ประมาณ 300ms) ในอนาคต เพื่อลดจำนวน HTTP Requests ไปยัง Backend เมื่อมีข้อมูลปริมาณมาก
-> 2. ขจัด Warning ใน Vitest UI Test (act(...) Warning):
-> ในไฟล์ MyTickets.test.tsx มี warning ของ React เกี่ยวกับ act(...) เล็กน้อยขณะจำลองการเปลี่ยนค่าในช่องค้นหา สามารถแก้ไขได้ด้วยการห่อการเรียก fireEvent.change ไว้ใน await waitFor(...)
-
-### Partner's response (PR #29 for partner lmaybelgracel):
-> > **Review Summary:** ตรวจสอบ PR #29 เรียบร้อยแล้ว โค้ดตรงตามข้อกำหนดของ Issue 11 และสเปกใน `api-spec.md` และ `ui-spec.md` ครบถ้วน:
+> > **จุดเด่นที่ประทับใจ:**
 > > 
-> > 1. **Backend (`GET /api/tickets`):** รองรับ Header `X-Development-Requester-Id`, กรองข้อมูลแยกตาม Requester Context อย่างชัดเจน, มีการค้นหาแบบ case-insensitive บน ticketNumber และ summary, รองรับ filter ตาม category/priority/status, การเรียงลำดับ (sort), และ Pagination พร้อมส่งคืน metadata ครบถ้วน
-> > 2. **Frontend UI:** ออกแบบตาม Zen Green Theme แสดงผล Priority Badges (Low/Medium/High) และ Status Badge (New) ด้วยโค้ดสีตรงตามข้อกำหนด มีการจัดการ Empty State และ No-Results State พร้อมปุ่ม Clear Filters และ Pagination Footer
-> > 3. **Automated Tests:** ทดสอบแล้วทั้ง Server API Integration Tests (`my-tickets.api.test.ts` 4/4 passed) และ Client UI Component Tests (`MyTickets.test.tsx` 2/2 passed) ผ่าน 100%
-> >    **ข้อเสนอแนะเพิ่มเติม (Minor Recommendations)**
-> > 4. Debounce สำหรับ Search Input (Client):
-> >    ในปัจจุบันการพิมพ์ในช่อง Search จะอัปเดต state ทันที สามารถพิจารณาเติม Debounce (ประมาณ 300ms) ในอนาคต เพื่อลดจำนวน HTTP Requests ไปยัง Backend เมื่อมีข้อมูลปริมาณมาก
-> > 5. ขจัด Warning ใน Vitest UI Test (act(...) Warning):
-> >    ในไฟล์ MyTickets.test.tsx มี warning ของ React เกี่ยวกับ act(...) เล็กน้อยขณะจำลองการเปลี่ยนค่าในช่องค้นหา สามารถแก้ไขได้ด้วยการห่อการเรียก fireEvent.change ไว้ใน await waitFor(...)
-> 
-> ขอบคุณสำหรับคำแนะนำนะคะ แก้เรียบร้อยแล้วค่ะ
-> - เพิ่ม debounce 250ms ให้ช่อง Search เพื่อลดการเรียก API ถี่เกินไป
-> - แก้ test ใน MyTickets.test.tsx แล้ว ตอนนี้ไม่มี act(...) warning
-> - เพิ่ม test สำหรับ query ที่ไม่ถูกต้อง และปรับหน้า mobile เพิ่มเติม
-> ตอนนี้ test ผ่านทั้งหมดและ push ขึ้น PR #29 แล้วค่ะ รบกวนช่วยตรวจอีกรอบได้เลย ขอบคุณค่ะ
-
-### My comment (PR #30 for partner lmaybelgracel):
-> ตรวจ schema, migration และ seed data แล้วค่ะ ภาพรวมจัดโครงสร้างได้ดีและครอบคลุมงานส่วนฐานข้อมูลของ Feature 6 ค่ะ การใช้ upsert กับ seed data เหมาะกับการรันซ้ำ และข้อมูลที่เตรียมไว้ก็ครบตามที่ feature นี้ต้องใช้
-> มีจุดหนึ่งที่อยากเสนอให้ปรับเพิ่มเติมค่ะ ใน Attachment มีฟิลด์ removedByRequesterId สำหรับเก็บผู้ที่นำไฟล์ออก แต่ตอนนี้ฟิลด์นี้ยังไม่ได้เชื่อม relation กับ DevelopmentRequester ถ้าเพิ่ม relation และ foreign key เข้าไป จะช่วยให้ข้อมูลมีความถูกต้องมากขึ้น และป้องกันการบันทึก requester ID ที่ไม่มีอยู่จริงค่ะ
-> หลังจากเพิ่ม relation แล้ว แนะนำให้สร้าง migration ใหม่ และลองรัน migration, seed สองรอบ รวมถึง tests อีกครั้ง เพื่อเช็กว่ายังทำงานได้ตามเดิมและไม่มีข้อมูลซ้ำค่ะ
-> ส่วนอื่นโดยรวมเรียบร้อยดีค่ะ หลังปรับจุดนี้แล้วน่าจะพร้อมสำหรับการตรวจรอบถัดไปค่ะ
-
-### Partner's response (PR #30 for partner lmaybelgracel):
-> แก้ครบทั้ง 3 ข้อแล้วนะ
-> 
-> - เพิ่มตรวจ isActive ของ Requester ก่อนอัปโหลดไฟล์
-> - เพิ่มเช็กประเภทและขนาดไฟล์ฝั่งหน้าเว็บก่อนส่ง request
-> - เพิ่ม word-break: break-word ให้ชื่อไฟล์ยาวบนมือถือ
-> 
-> เพิ่ม test ครอบคลุมไว้แล้ว ตอนนี้ Server ผ่าน 30/30 และ Client ผ่าน 15/15 รวมถึง build ผ่านทั้งสองฝั่ง รบกวนช่วยตรวจให้อีกรอบนะ
-
-### My comment (PR #31 for partner lmaybelgracel):
-> ตรวจสอบโค้ดและผลการทดสอบของ Issue 13: Automated Testing and End-to-End Tests (#31) เรียบร้อยแล้ว:
-> - **Backend API Tests (Vitest & Supertest):** มีชุดทดสอบใน `server/tests/lab-02/` ครอบคลุม API-01 ถึง API-10 (create-ticket, attachments, my-tickets, ticket-detail, requester-context, reference-data) รวม 33/33 test cases ผ่าน 100%
-> - **Frontend UI Component Tests (Vitest & RTL):** มีชุดทดสอบใน `client/src/__tests__/lab-02/` ครอบคลุม UI-01 ถึง UI-05 (CreateTicket, AttachmentSection, RequesterTicketDetail, MyTickets, RequesterSelector) รวม 17/17 test cases ผ่าน 100%
-> - **Playwright End-to-End Tests:** ไฟล์ `e2e/lab-02/requester-ticket-flow.spec.ts` ทดสอบครบถ้วนตาม scenario E2E-01 ครอบคลุมทั้ง flow การเลือก Requester Context, validation ไฟล์แนบ, การสร้าง Ticket, ดูรายละเอียด, อัปโหลดและ soft-remove ไฟล์แนบ พร้อมตรวจสอบ Data Isolation เมื่อสลับ Requester
-> - **Documentation & Build:** อัปเดต `docs/lab-02/tests.md` ระบุ Requirement Traceability Matrix (AC-01 ถึง AC-09), Responsive Checklist และผลการทดสอบครบถ้วน คำสั่ง `npm run build` ผ่านสมบูรณ์ทั้งฝั่ง Server และ Client
-> 
-> **ข้อเสนอแนะเพิ่มเติม (Minor Recommendation):**
-> 1. ใน `package.json` ส่วน root อาจเพิ่ม script `"install:e2e": "playwright install chromium"` เพื่อความสะดวกของผู้พัฒนาในการ setup สภาพแวดล้อม E2E testing ครั้งแรก
-
-### Partner's response (PR #31 for partner lmaybelgracel):
-> เพิ่ม script install:e2e ให้แล้วนะ ตอนนี้ setup Chromium ครั้งแรกได้ด้วย npm run install:e2e และลองตรวจด้วย --dry-run แล้วเรียก Playwright ได้ถูกต้อง ขอบคุณสำหรับคำแนะนำ
-
-### My comment (PR #32 for partner lmaybelgracel):
-> ### สรุปผลการตรวจทาน:
-> - **UI Style & Zen Green Theme Contract:** Implement ธีมตรงตาม UI Specification ครบถ้วน Palette สีถูกต้อง (`#006B3C`, `#0B7A46`, `#EAF6EF`, `#F5F7F6`, `#F0F4F2`, `#B71C1C`) Surface Card และ Read-only fields แยกความแตกต่างชัดเจน พร้อม unit test ใน `UIStyle.test.tsx` (UI-06) ตรวจสอบ CSS และ Accessibility Contract ผ่านเรียบร้อย
-> - **Accessibility & Assistive Technology:** ช่องที่จำเป็นต้องกรอกมีเครื่องหมายดอกจันสีแดง `*` พร้อม `aria-required="true"` ครบถ้วน และมี Focus Ring สีเขียว (`#0B7A46`) เมื่อใช้งานด้วยแป้นพิมพ์
-> - **Responsive Viewport & Overflow:** มี `@media` breakpoints ครอบคลุม Desktop, Tablet และ Mobile (ปรับเป็น single-column layout, ปุ่ม touch-friendly สูงอย่างน้อย 44px) และใช้ `overflow-wrap: anywhere` จัดการชื่อไฟล์ยาว ไม่พบปัญหา Horizontal Page Overflow
-> - **Visual Evidence & Screenshots:** ชุดทดสอบ Playwright ใน `visual-evidence.spec.ts` (VIS-01) จับภาพหน้าจอ Responsive และ Modal Evidence บันทึกลงใน repository ครบถ้วนทุก viewport
-> - **Automated Tests & Build:** 
->   - Server Vitest: 33/33 passed (100%)
->   - Client Vitest: 21/21 passed (100%)
->   - Playwright E2E & Visual: 2/2 scenarios passed (100%)
->   - `npm run build` ผ่านสมบูรณ์ทั้ง Client และ Server
-> 
-> ### ข้อเสนอแนะเพิ่มเติมเล็กน้อย (Non-blocking):
-> 1. ใน `visual-evidence.spec.ts` Playwright จะ Save ภาพไปที่ `artifacts/lab-02/screenshots/` ในขณะที่ไฟล์รูปใน Repo อยู่ที่ `docs/lab-02/screenshots/` อาจพิจารณาเพิ่ม script ช่วยคัดลอกไฟล์รูปภาพเพื่อให้ภาพใน `docs/` อัปเดตตรงกับ artifacts เสมอเวลาคนอื่นมาสั่งรัน e2e test 
-> 2. ใน `lab2.css` breakpoint ปัจจุบันเริ่มที่ `767px` ในอนาคตอาจลองเช็กการแสดงผลบนหน้าจอขนาดเล็กมากๆ (เช่น `< 360px`) เพื่อความสมบูรณ์แบบยิ่งขึ้น
-
-### Partner's response (PR #32 for partner lmaybelgracel):
-> ขอบคุณสำหรับคำแนะนำนะ เราเพิ่ม responsive สำหรับหน้าจอเล็กกว่า 360px แล้ว แล้วก็เพิ่ม Playwright เช็กที่ขนาด 320×568 พร้อมภาพหลักฐานของหน้า My Tickets และ removal modal เรียบร้อย ไม่มี horizontal overflow ค่ะ  
-> ส่วนเรื่องพาธรูป เราเช็กอีกครั้งแล้ว ตอนนี้ทั้ง test, เอกสาร และรูปใน repo ใช้ artifacts/lab-02/screenshots/ ตรงกันทั้งหมด และไม่มีรูปอีกชุดอยู่ใน docs/lab-02/screenshots/ เลยยังไม่ได้เพิ่ม script copy เพื่อไม่ให้เกิดไฟล์ซ้ำค่ะ  
-> ผลทดสอบล่าสุด Client 21/21, Playwright 2/2 และ build ผ่านทั้งหมด ฝากตรวจอีกครั้งได้เลยนะ
-
-### My comment (PR #33 for partner lmaybelgracel):
-> เราได้ทำการรีวิว PR #33 และตรวจสอบเอกสารประกอบการส่งงานรวมถึงหลักฐานการทดสอบทั้ง 6 ฉบับเรียบร้อยแล้ว ผลการตรวจสอบเป็นไปตามข้อกำหนดของวิชา ดังนี้:
-> 
-> ### รายการการตรวจสอบ (Review Checklist Verification)
-> - [x] **ความถูกต้องของ reviewer.md:** ตรวจสอบแล้ว ข้อมูลถูกต้องและสอดคล้องกับประวัติบน GitHub จริง บันทึก Review ที่ได้รับ และ Review ที่ตรวจให้เพื่อนครบทั้ง 9 PRs พร้อมลิงก์หลักฐาน การตอบกลับ และการ Approve
-> - [x] **ความถูกต้องของ ai-use.md:** ตรวจสอบแล้ว ระบุการใช้งาน AI (Antigravity และ OpenAI Codex) ตรงตามจริง มีตาราง Prompts ที่คัดเลือกมา 10 รายการ พร้อมข้อความ Prompt จริง และ Reflection ที่สะท้อนการทำงานอย่างชัดเจน
-> - [x] **ความครบถ้วนของเอกสารทั้ง 6 ฉบับ:** ตรวจสอบแล้ว เอกสารหลักทั้ง 6 ฉบับ (ai-use.md, api-spec.md, reviewer.md, specification.md, tests.md, ui-spec.md) ในโฟลเดอร์ docs/lab-02/ มีเนื้อหาครบถ้วน สอดคล้องกันทุกไฟล์ และมีลิงก์อ้างอิงใน README.md อย่างถูกต้อง
-> - [x] **หลักฐาน ภาพ Screenshots และ README:** ตรวจสอบแล้ว ภาพ Screenshot ใน artifacts/lab-02/screenshots/ ครบถ้วนตาม UI Spec และขั้นตอนการตั้งค่า/รันทดสอบใน README.md ชัดเจน ปฏิบัติตามได้จริง
-> - [x] **ความสะอาดของ Repository:** ตรวจสอบแล้ว ไม่พบไฟล์ส่วนตัว ไฟล์ความลับ (.env) หรือไฟล์จากการทดสอบที่ไม่เกี่ยวข้องหลุดเข้ามา (ปฏิบัติตามกฎ .gitignore ถูกต้อง)
-> 
-> ### ผลการทดสอบและการ Build
-> - **Server Vitest:** ผ่าน 33/33 tests
-> - **Client Vitest:** ผ่าน 21/21 tests
-> - **Playwright E2E/Visual:** ผ่าน 5/5 tests
-> - **Production Builds:** บิวด์ผ่านเรียบร้อยทั้ง Client และ Server โดยไม่มีข้อผิดพลาด
-> 
-> เอกสารและหลักฐานครบถ้วนสมบูรณ์ตามเกณฑ์ Definition of Done ของ Lab 2 ทุกประการ
-
-### Partner's response (PR #33 for partner lmaybelgracel):
-> "Partner acknowledged feedback and merged PR into staging branch."
-
-### My comment (PR #34 for partner lmaybelgracel):
-> ตรวจสอบ PR #34 เรียบร้อยแล้ว ภาพรวมงานมีคุณภาพดีมาก ครอบคลุม FR-01–FR-13, BR-01–BR-11 และ AC-01–AC-09 ครบถ้วนตาม Specification Tests ผ่าน 100% ทุก Suite (API 26, UI 18, E2E 2) และ UI ปฏิบัติตาม Zen Green Design System อย่างสม่ำเสมอ
-> 
-> **จุดเด่นที่น่าชม:**
-> - Backend validation ครบ ทั้ง requester isActive, category/relatedSystem isActive, field length ตาม BR-08
-> - Atomic transaction ใน POST /api/tickets ทำงานถูกต้อง รวมถึง compensation cleanup เมื่อ transaction fail (BR-11)
-> - Ownership enforcement ทุก endpoint ตรวจ requesterId ก่อนคืนข้อมูล คืน 403 ถูกต้อง
-> - Frontend มี debounce 250ms + stale request cancellation และ form data retention (BR-09)
-> - Soft-removal UI แสดง strikethrough, "Removed" badge และ disabled download button ถูกต้องตาม UI-05
-
-### Partner's response (PR #34 for partner lmaybelgracel):
-> > ตรวจสอบ PR #34 เรียบร้อยแล้ว ภาพรวมงานมีคุณภาพดีมาก ครอบคลุม FR-01–FR-13, BR-01–BR-11 และ AC-01–AC-09 ครบถ้วนตาม Specification Tests ผ่าน 100% ทุก Suite (API 26, UI 18, E2E 2) และ UI ปฏิบัติตาม Zen Green Design System อย่างสม่ำเสมอ
+> > 1. **Strict Ownership Protection (`GET /api/tickets/:id`):** ตรวจเช็ก Header `x-requester-id` คืนค่า `403 Forbidden` หากพยายามเข้าถึงตั๋วของผู้ใช้อื่นตรงตาม BR-03 & AC-03 ได้เด็ดขาด
+> > 2. **Supertest Integration Coverage (`ticket-detail.api.test.ts`):** ทดสอบคลอบคลุมทั้งเคส 200 OK (เจ้าของตั๋วดูข้อมูลสำเร็จ), 403 Forbidden (บล็อกผู้ใช้อื่น) และ 404 Not Found (ตั๋วไม่มีในระบบ) ผลการเทสต์ผ่าน 100%
+> > 3. **Zen Green Read-Only UI Spec Compliance (`TicketDetailView.tsx`):** ถอดแบบจาก UI Spec 5.4 สวยงามมาก มี Banner สี Pale Green (#EAF6EF) "Read-Only Mode", ฟิลด์พื้นหลังสีเทา-เขียวอ่อน (#F0F4F2) แยกสถานะฟอร์มอ่านอย่างเดียวชัดเจน และปุ่ม "Back to My Tickets"
+> > 4. **Error Handling UI:** จัดการหน้าจอ Error State กรณี 403 Forbidden และ 404 Not Found ได้เป็นมิตรกับผู้ใช้งาน
 > > 
-> > **จุดเด่นที่น่าชม:**
-> > 
-> > * Backend validation ครบ ทั้ง requester isActive, category/relatedSystem isActive, field length ตาม BR-08
-> > * Atomic transaction ใน POST /api/tickets ทำงานถูกต้อง รวมถึง compensation cleanup เมื่อ transaction fail (BR-11)
-> > * Ownership enforcement ทุก endpoint ตรวจ requesterId ก่อนคืนข้อมูล คืน 403 ถูกต้อง
-> > * Frontend มี debounce 250ms + stale request cancellation และ form data retention (BR-09)
-> > * Soft-removal UI แสดง strikethrough, "Removed" badge และ disabled download button ถูกต้องตาม UI-05
+> > โค้ดสะอาด ปลอดภัยตามหลัก Security & Spec-Driven Development
 > 
-> ขอบคุณมาก สำหรับรีวิวที่ละเอียดมากๆ และคำแนะนำที่ดีตลอดทั้งสปรินต์นี้ ดีใจมากที่ผลการตรวจสอบครอบคลุมทั้ง Functional Requirements, Business Rules และ Acceptance Criteria ครบถ้วน รวมถึงผลการทดสอบผ่าน 100% ทุกส่วนค่ะ
+> ขอบคุณมากนะสำหรับคำรีวิวและการตรวจทานฟีเจอร์ Ticket Detail ทั้งในด้าน Security Access Control, HTTP Status Codes และ Read-Only UI อย่างละเอียด
+> 
+> ยินดีอย่างยิ่งที่ระบบการคัดกรองสิทธิ์ตาม BR-03/AC-03 (403 Forbidden), การจัดการเคส 404 Not Found และรูปแบบการแสดงผลแบบ Read-Only ตาม UI Spec 5.4 ถูกต้องสมบูรณ์ ฉันจะนำฟีเจอร์รายละเอียดตั๋วนี้ไปต่อยอดกับระบบการจัดการไฟล์แนบ (Attachment Lifecycle) ใน Issue 12 ถัดไป
+
+### My comment (PR #30 for partner phatthidawadi):
+> **Attachment Lifecycle (Upload, Download, Soft Removal)** สำหรับ Sprint 2 ได้สมบูรณ์และเป็นมาตรฐานสูงมาก
+> 
+> **จุดเด่นที่ประทับใจ:**
+> 1. **Strict File Upload Validation:** ใช้ Multer ควบคุมขนาดไฟล์ไม่เกิน 5MB (AC-05) และกรองไฟล์อันตราย (.exe, .bat, .cmd, .sh) คืนค่า 400 Bad Request ตาม AC-04 อย่างถูกต้อง
+> 2. **Soft Removal & 410 Gone Status:** ออกแบบกระบวนการ Soft Delete (`isRemoved: true`, `removedReason`, `removedAt`) ได้สมบูรณ์แบบ และคืนค่า **HTTP 410 Gone** เมื่อพยายามดาวน์โหลดไฟล์ที่ถูกลบไปแล้วตรงตาม BR-07 & AC-06
+> 3. **Supertest Integration Coverage (`attachments.api.test.ts`):** ทดสอบคลอบคลุมทั้งการ Upload 201 Created, การบล็อกไฟล์ .exe 400 Bad Request และการดาวน์โหลดไฟล์ที่ Soft-removed ได้รับ 410 Gone ผ่าน 100%
+> 4. **Zen Green UI & Removal Reason Modal Dialog:** มี Modal บังคับกรอกเหตุผลในการลบไฟล์ และแยกตารางไฟล์ที่ถูก Soft-removed พร้อม Badge "Download Disabled (410 Gone)" ชัดเจนอ่านง่ายตาม UI Spec 5.4
+> 
+> โค้ดปลอดภัย ครบถ้วนตาม Requirement และผ่านการทดสอบ 100%
+
+### Partner's response (PR #30 for partner phatthidawadi):
+> > **Attachment Lifecycle (Upload, Download, Soft Removal)** สำหรับ Sprint 2 ได้สมบูรณ์และเป็นมาตรฐานสูงมาก
+> > 
+> > **จุดเด่นที่ประทับใจ:**
+> > 
+> > 1. **Strict File Upload Validation:** ใช้ Multer ควบคุมขนาดไฟล์ไม่เกิน 5MB (AC-05) และกรองไฟล์อันตราย (.exe, .bat, .cmd, .sh) คืนค่า 400 Bad Request ตาม AC-04 อย่างถูกต้อง
+> > 2. **Soft Removal & 410 Gone Status:** ออกแบบกระบวนการ Soft Delete (`isRemoved: true`, `removedReason`, `removedAt`) ได้สมบูรณ์แบบ และคืนค่า **HTTP 410 Gone** เมื่อพยายามดาวน์โหลดไฟล์ที่ถูกลบไปแล้วตรงตาม BR-07 & AC-06
+> > 3. **Supertest Integration Coverage (`attachments.api.test.ts`):** ทดสอบคลอบคลุมทั้งการ Upload 201 Created, การบล็อกไฟล์ .exe 400 Bad Request และการดาวน์โหลดไฟล์ที่ Soft-removed ได้รับ 410 Gone ผ่าน 100%
+> > 4. **Zen Green UI & Removal Reason Modal Dialog:** มี Modal บังคับกรอกเหตุผลในการลบไฟล์ และแยกตารางไฟล์ที่ถูก Soft-removed พร้อม Badge "Download Disabled (410 Gone)" ชัดเจนอ่านง่ายตาม UI Spec 5.4
+> > 
+> > โค้ดปลอดภัย ครบถ้วนตาม Requirement และผ่านการทดสอบ 100%
+> 
+> ขอบคุณมากครับสำหรับคำรีวิวและการตรวจทานฟีเจอร์ Attachment Lifecycle ทั้งในด้าน Security Validation, Soft Delete และ HTTP 410 Gone Status Code อย่างถี่ถ้วน
+> 
+> ยินดีอย่างยิ่งที่การปฏิเสธไฟล์อันตราย (.exe) ตาม AC-04, การจำกัดขนาดไฟล์ไม่เกิน 5MB ตาม AC-05, กระบวนการบันทึกเหตุผล Soft Removal และการแสดงผลบนหน้าจอตาม UI Spec 5.4 ถูกต้องครบถ้วน ฉันจะนำโค้ดไปสู่ขั้นตอนการทดสอบ E2E Testing และ Staging Integration ใน Issue 13 ถัดไป
+
+### My comment (PR #31 for partner phatthidawadi):
+> **E2E Testing, Quality Assurance Summary (`reviewer.md`)** และ **AI Usage Log (`ai-use.md`)** ส่งท้าย Sprint 2 ได้สมบูรณ์และเป็นระเบียบมาก
+> 
+> **จุดเด่นที่ประทับใจ:**
+> 1. **Automated E2E User Journey (`E2EUserJourney.test.tsx`):** เขียน Vitest + RTL ทดสอบ User Flow ตั้งแต่การเลือก Requester, แสดงชื่อบน Header, นำทางสร้างตั๋ว, กรอกฟอร์ม จนถึงการสร้างตั๋วและรับ Ticket Number (`TKT-2026-000101`) ผ่าน 100%
+> 2. **QA Verification Matrix & Review Log (`reviewer.md`):** สรุปตารางการทดสอบ AC-01 ถึง AC-08, ประวัติการรีวิว PR #23 - PR #30, สถิติทดสอบ 25 Test Scenarios ใน 15 ไฟล์ และเช็กลิสต์ Definition of Done ไว้อย่างสมบูรณ์
+> 3. **AI Usage Audit Trail (`ai-use.md`):** บันทึกการใช้งาน AI, Prompt History, และขั้นตอนการตรวจสอบความปลอดภัยของ Human Auditor ไว้อย่างละเอียดและโปร่งใส
+> 
+> งานเรียบร้อย เอกสารครบถ้วนตาม Definition of Done ของวิชา
+
+### Partner's response (PR #31 for partner phatthidawadi):
+> > **E2E Testing, Quality Assurance Summary (`reviewer.md`)** และ **AI Usage Log (`ai-use.md`)** ส่งท้าย Sprint 2 ได้สมบูรณ์และเป็นระเบียบมาก
+> > 
+> > **จุดเด่นที่ประทับใจ:**
+> > 
+> > 1. **Automated E2E User Journey (`E2EUserJourney.test.tsx`):** เขียน Vitest + RTL ทดสอบ User Flow ตั้งแต่การเลือก Requester, แสดงชื่อบน Header, นำทางสร้างตั๋ว, กรอกฟอร์ม จนถึงการสร้างตั๋วและรับ Ticket Number (`TKT-2026-000101`) ผ่าน 100%
+> > 2. **QA Verification Matrix & Review Log (`reviewer.md`):** สรุปตารางการทดสอบ AC-01 ถึง AC-08, ประวัติการรีวิว PR #23 - PR #30, สถิติทดสอบ 25 Test Scenarios ใน 15 ไฟล์ และเช็กลิสต์ Definition of Done ไว้อย่างสมบูรณ์
+> > 3. **AI Usage Audit Trail (`ai-use.md`):** บันทึกการใช้งาน AI, Prompt History, และขั้นตอนการตรวจสอบความปลอดภัยของ Human Auditor ไว้อย่างละเอียดและโปร่งใส
+> > 
+> > งานเรียบร้อย เอกสารครบถ้วนตาม Definition of Done ของวิชา
+> 
+> ขอบคุณมากสำหรับคำรีวิวและการตรวจทานสรุปภาพรวมทั้งหมดของ Sprint 2 
+> 
+> ยินดีอย่างยิ่งที่ผลการทดสอบ E2E User Journey, เอกสาร QA Summary (reviewer.md) และ AI Audit Trail (ai-use.md) ครบถ้วนตามมาตรฐานและ Definition of Done ของรายวิชา
+> 
+> หลังจากเพื่อนกด Approve และ Merge PR #31 แล้ว ฉันจะทำการรวม branch `lab2-staging` เข้าสู่ `main` เพื่อเสร็จสิ้น Sprint 2 (Lab 2) อย่างสมบูรณ์ ขอบคุณสำหรับคำรีวิวและความช่วยเหลือตลอดทั้ง Sprint
+
+### My comment (PR #36 for partner phatthidawadi):
+> ### Reviewer Comment (PR #36 - Issue 14: Sprint 2 Peer Reviewer Documentation)
+> จัดทำเอกสาร **Sprint 2 Peer Review Record (`docs/lab-02/reviewer.md`)** ได้สมบูรณ์ ละเอียด และเป็นระเบียบมาก
+> **จุดเด่นที่ประทับใจ:**
+> 1. **ครบถ้วนตามมาตรฐาน Lab 1:** โครงสร้างเอกสารตรงตามรูปแบบ `docs/lab-01/reviewer.md` มีตารางสรุป PRs ลิงก์ตรงไปยัง GitHub PR ทั้งฝั่ง Authored PRs และ Partner PRs
+> 2. **บันทึกประวัติการรีวิวถูกต้อง 100%:** รวบรวมข้อความรีวิว คำแนะนำ และคำตอบกลับ (Responses) ทั้งหมดของ PR #23 ถึง PR #31 ได้อย่างแม่นยำตรงตามข้อเท็จจริง
+> 3. **บันทึกการรีวิวให้พาร์ทเนอร์ครบถ้วน:** แสดงผลการตรวจทานและคำตอบกลับของพาร์ทเนอร์ (@lmaybelgracel) สำหรับ PR #23 ถึง PR #32 ไว้อย่างเป็นระบบ
+> เอกสารครบถ้วนสมบูรณ์ตามข้อกำหนดของวิชา
+> 
+> ### Reviewer Final Approval (PR #36 - Issue 14: Sprint 2 Peer Reviewer Documentation)
+> 
+> ตรวจสอบการอัปเดตไฟล์ `reviewer.md` และ `ai-use.md` ล่าสุดเรียบร้อยแล้ว
+> 
+> **จุดเด่นที่ตรวจสอบ:**
+> - เอกสาร `reviewer.md` บันทึกประวัติการรีวิว คำแนะนำ และคำตอบกลับของ PRs #23-#36 ครบถ้วน 100%
+> - เอกสาร `ai-use.md` ระบุ Prompt History ครบ 10 ข้อ พร้อม Reflection ประสบการณ์การทำงานร่วมกับ AI Agent ได้อย่างเป็นระบบ
+> - ไฟล์หลักฐานภาพถ่ายหน้าจอ Responsive UI ในไดเรกทอรี `artifacts/lab-02/screenshots/` จัดเก็บครบถ้วนทุกขนาด Viewport
+> 
+> เอกสารและไฟล์ส่งมอบทั้งหมดสมบูรณ์แบบตามข้อกำหนดของวิชา **APPROVED พร้อม Merge เข้าสู่ `lab2-staging` และรวมเข้า `main` เพื่อปิดการส่งงาน Lab 2 ได้เลย
+
+### Partner's response (PR #36 for partner phatthidawadi):
+> ขอบคุณมากสำหรับการตรวจทานและการรีวิวเอกสาร Sprint 2 Peer Review Record (docs/lab-02/reviewer.md) อย่างละเอียด ยินดีอย่างยิ่งที่โครงสร้างเอกสาร การรวบรวมประวัติการรีวิวของจริงสำหรับ PR #23 - PR #31 และตารางสรุปการตรวจทานร่วมกับพาร์ทเนอร์ (@lmaybelgracel) ครบถ้วนถูกต้องตรงตามข้อกำหนดของรายวิชา หลังจากกด Approve และ Merge PR #36 นี้เข้าสู่ lab2-staging แล้ว ฉันจะทำการรวมสาขา lab2-staging เข้าสู่ main เพื่อเสร็จสิ้น Sprint 2 (Lab 2) อย่างสมบูรณ์ ขอบคุณสำหรับการตรวจทานและความช่วยเหลือตลอดทั้ง Sprint
+
+### My comment (PR #37 for partner phatthidawadi):
+> ### Reviewer Final Release Approval (PR #37 - Release Sprint 2 (Lab 2): Requester Support Ticketing MVP)
+> 
+> ตรวจสอบโค้ดระบบ เอกสารข้อกำหนด แผนการทดสอบ ภาพถ่ายหน้าจอหลักฐาน และผลการทดสอบอัตโนมัติใน Release PR #37 เรียบร้อยแล้ว
+> 
+> **สรุปการตรวจสอบรุ่นส่งมอบ (Sprint 2 Release Checklist):**
+> 1. **Core Workflows:** ระบบเลือก Requester Context, สร้างตั๋ว (TKT-YYYY-XXXXXX), My Tickets (Search/Filter/Sort/Paginate/Responsive Card), Ticket Detail Read-Only (403 Forbidden Protection) และ Attachment Lifecycle (Whitelist <=5MB, Soft Removal Modal, 410 Gone) ทำงานถูกต้องสมบูรณ์ 100%
+> 2. **Design System & Responsive:** ถอดแบบ Zen Green Theme (#006B3C, #0B7A46, #EAF6EF, #F0F4F2) และแสดงผลบน Desktop, Tablet, Mobile โดยไม่มี Horizontal Overflow ตาม UI Spec
+> 3. **Automated Test Coverage:** ผลการรัน Unit, Supertest API, Vitest RTL UI และ Playwright E2E ผ่าน 100% (38/38 test cases)
+> 4. **Documentation & Evidence:** เอกสารใน `docs/lab-02/` และภาพหลักฐานใน `artifacts/lab-02/screenshots/` ครบถ้วนตรงตาม Definition of Done ของรายวิชา
+> 
+> งานประณีต โค้ดมีคุณภาพสูง และสมบูรณ์แบบ **APPROVED! สามารถกด Merge Pull Request เข้าสู่สาขาหลัก `main` ได้เลย**
+
+### Partner's response (PR #37 for partner phatthidawadi):
+> > ### Reviewer Final Release Approval (PR #37 - Release Sprint 2 (Lab 2): Requester Support Ticketing MVP)
+> > ตรวจสอบโค้ดระบบ เอกสารข้อกำหนด แผนการทดสอบ ภาพถ่ายหน้าจอหลักฐาน และผลการทดสอบอัตโนมัติใน Release PR #37 เรียบร้อยแล้ว
+> > 
+> > **สรุปการตรวจสอบรุ่นส่งมอบ (Sprint 2 Release Checklist):**
+> > 
+> > 1. **Core Workflows:** ระบบเลือก Requester Context, สร้างตั๋ว (TKT-YYYY-XXXXXX), My Tickets (Search/Filter/Sort/Paginate/Responsive Card), Ticket Detail Read-Only (403 Forbidden Protection) และ Attachment Lifecycle (Whitelist <=5MB, Soft Removal Modal, 410 Gone) ทำงานถูกต้องสมบูรณ์ 100%
+> > 2. **Design System & Responsive:** ถอดแบบ Zen Green Theme (#006B3C, #0B7A46, #EAF6EF, #F0F4F2) และแสดงผลบน Desktop, Tablet, Mobile โดยไม่มี Horizontal Overflow ตาม UI Spec
+> > 3. **Automated Test Coverage:** ผลการรัน Unit, Supertest API, Vitest RTL UI และ Playwright E2E ผ่าน 100% (38/38 test cases)
+> > 4. **Documentation & Evidence:** เอกสารใน `docs/lab-02/` และภาพหลักฐานใน `artifacts/lab-02/screenshots/` ครบถ้วนตรงตาม Definition of Done ของรายวิชา
+> > 
+> > งานประณีต โค้ดมีคุณภาพสูง และสมบูรณ์แบบ **APPROVED! สามารถกด Merge Pull Request เข้าสู่สาขาหลัก `main` ได้เลย**
+> 
+> ขอบคุณมากสำหรับคำรีวิวและการตรวจทาน Release PR #37 รวมถึงการตรวจสอบระบบและเอกสารตลอดทั้ง Sprint 2 (Lab 2) อย่างละเอียด
+> 
+> ยินดีอย่างยิ่งที่ผลการทดสอบทั้ง 38/38 test cases, โครงสร้างโค้ด, Zen Green Theme และเอกสารประกอบการส่งมอบทั้งหมดเป็นไปตามข้อกำหนด Definition of Done ของรายวิชาอย่างสมบูรณ์
+> 
+> ฉันจะทำการกด Merge PR #37 นี้เพื่อรวมสาขา lab2-staging เข้าสู่ main เป็นอันเสร็จสิ้น Sprint 2 ครับ ขอบคุณสำหรับความช่วยเหลือและการทำงานร่วมกันตลอดทั้ง Sprint
 
