@@ -35,7 +35,7 @@
 - **AI Action / Outcome**: Built `TicketDetailView.tsx` operations panel enforcing the 8-status state machine, preventing illegal transitions, and rendering confidential Internal Notes (Amber `#FEF3C7`) distinct from Public Comments.
 
 ### Prompt 6: Administrator User Management & Safety Protections
-- **Context / Goal**: Implement user provisioning, role assignments, password resets, and safety rules (BR-07, BR-08, BR-09).
+- **Context / Goal**: Implement user provisioning, role assignments, password resets, and safety rules (BR-17, BR-18, BR-19).
 - **User Input**: "ทำ Administrator User Management ทั้งหน้าจอและ API พร้อมกฎป้องกัน Admin ปิดบัญชีตัวเอง"
 - **AI Action / Outcome**: Implemented `UserManagementView.tsx` with Create/Edit/Reset modals, self-deactivation prevention, and last-active-admin guard (`422 Unprocessable Entity`).
 

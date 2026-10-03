@@ -76,7 +76,7 @@ test.describe("E2E-03: Administrator User Directory, Provisioning, Safety Guards
     await expect(page.locator('[data-testid="user-table"]')).toContainText("IT Staff");
   });
 
-  test("AC-11 / BR-07: enforces self-protection rules (prevents self-deactivation and self-demotion)", async ({ page }) => {
+  test("AC-11 / BR-17: enforces self-protection rules (prevents self-deactivation and self-demotion)", async ({ page }) => {
     // Search for admin user
     await page.fill('[data-testid="user-search-input"]', adminEmail);
     await page.waitForTimeout(400);

@@ -400,7 +400,7 @@
 ### Reviewer comment I received (PR #65):
 
 > ### ผลการรีวิว PR [#65](https://github.com/chanya06/toktickit/pull/65): REQUEST CHANGES / RECOMMEND IMPROVEMENTS
-> ระบบความปลอดภัย การควบคุมสิทธิ์ Router-level RBAC และ Safety Rules (BR-07, BR-08, BR-09) ทำงานได้ถูกต้องและรัดกุมมาก แต่จากการตรวจสอบความเข้ากันได้ของข้อมูลอย่างละเอียด พบจุดที่ควรปรับปรุงแก้ไขก่อนทำการ Merge ดังนี้:
+> ระบบความปลอดภัย การควบคุมสิทธิ์ Router-level RBAC และ Safety Rules (BR-17, BR-18, BR-19) ทำงานได้ถูกต้องและรัดกุมมาก แต่จากการตรวจสอบความเข้ากันได้ของข้อมูลอย่างละเอียด พบจุดที่ควรปรับปรุงแก้ไขก่อนทำการ Merge ดังนี้:
 > **ประเด็นที่ต้องปรับปรุงแก้ไข:**
 > 1. **ความไม่สอดคล้องของฟิลด์ชื่อในโมเดล User (name vs fullName):**
 >    - ใน Prisma schema มีทั้ง `fullName String` และ `name String?` (เพื่อความเข้ากันได้ย้อนหลังกับโค้ด Lab 2)
@@ -691,7 +691,7 @@
 > ### 🌟 จุดเด่นที่ทำได้ดีมาก (Key Strengths)
 > 1. **Specification & Scope (`specification.md`)**: กำหนด FR-01..26, BR-01..19 และระบุ Explicit Exclusions ไว้ชัดเจน ช่วยป้องกัน Scope Creep ได้ดี
 > 2. **RBAC & Data Protection (`api-spec.md`)**: ออกแบบระบบจัดการสิทธิ์รัดกุม โดยเฉพาะการแยก **Internal Notes (Amber `#FFF8E1` 🔒)** ออกจาก **Public Comments** และระบุชัดเจนว่า `GET /api/tickets/:id` ของ Requester จะไม่ส่ง `internalNotes` ออกไปเด็ดขาด
-> 3. **Admin Safety Guards**: มีกฎ BR-18 และ BR-19 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`)
+> 3. **Admin Safety Guards**: มีกฎ BR-17 และ BR-18 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`) พร้อม BR-19 ป้องกันการลบข้อมูลถาวร (Soft Deactivation Only)
 > 4. **Test Traceability (`tests.md`)**: วางแผนเคสทดสอบ 35 เคส ครอบคลุม Unit, API Integration และ Playwright E2E โดยเชื่อมโยง 1-to-1 กับ Acceptance Criteria (AC-01..12) ชัดเจน
 > 5. **AI Use & Reflection (`ai-use.md`)**: บันทึก Prompt และการสะท้อนคิดเกี่ยวกับ Spec-Driven Development ได้ตรงตามเกณฑ์
 > 
@@ -712,7 +712,7 @@
 > > ### 🌟 จุดเด่นที่ทำได้ดีมาก (Key Strengths)
 > > 1. **Specification & Scope (`specification.md`)**: กำหนด FR-01..26, BR-01..19 และระบุ Explicit Exclusions ไว้ชัดเจน ช่วยป้องกัน Scope Creep ได้ดี
 > > 2. **RBAC & Data Protection (`api-spec.md`)**: ออกแบบระบบจัดการสิทธิ์รัดกุม โดยเฉพาะการแยก **Internal Notes (Amber `#FFF8E1` 🔒)** ออกจาก **Public Comments** และระบุชัดเจนว่า `GET /api/tickets/:id` ของ Requester จะไม่ส่ง `internalNotes` ออกไปเด็ดขาด
-> > 3. **Admin Safety Guards**: มีกฎ BR-18 และ BR-19 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`)
+> > 3. **Admin Safety Guards**: มีกฎ BR-17 และ BR-18 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`) พร้อม BR-19 ป้องกันการลบข้อมูลถาวร (Soft Deactivation Only)
 > > 4. **Test Traceability (`tests.md`)**: วางแผนเคสทดสอบ 35 เคส ครอบคลุม Unit, API Integration และ Playwright E2E โดยเชื่อมโยง 1-to-1 กับ Acceptance Criteria (AC-01..12) ชัดเจน
 > > 5. **AI Use & Reflection (`ai-use.md`)**: บันทึก Prompt และการสะท้อนคิดเกี่ยวกับ Spec-Driven Development ได้ตรงตามเกณฑ์
 > > 
@@ -954,7 +954,7 @@
 >    - ต้องแก้ทั้งใน `admin.ts` comments และ `AdminUserManagement.tsx` UI labels
 > 
 > 2. **[Bug] ลำดับ Guard Logic ใน PATCH `/api/admin/users/:id`:**
->    - ควรตรวจ Self-Deactivation Guard (BR-18) ก่อน Last Admin Protection (BR-19)
+>    - ควรตรวจ Self-Deactivation Guard (BR-17) ก่อน Last Admin Protection (BR-18)
 >    - เพื่อให้ Error Message ตรงกับสถานการณ์จริง
 > 
 > 3. **[Code Smell] Missing Type Check สำหรับ `nameToUse`:**
@@ -973,7 +973,7 @@
 > >    * ต้องแก้ทั้งใน `admin.ts` comments และ `AdminUserManagement.tsx` UI labels
 > > 2. **[Bug] ลำดับ Guard Logic ใน PATCH `/api/admin/users/:id`:**
 > >    
-> >    * ควรตรวจ Self-Deactivation Guard (BR-18) ก่อน Last Admin Protection (BR-19)
+> >    * ควรตรวจ Self-Deactivation Guard (BR-17) ก่อน Last Admin Protection (BR-18)
 > >    * เพื่อให้ Error Message ตรงกับสถานการณ์จริง
 > > 3. **[Code Smell] Missing Type Check สำหรับ `nameToUse`:**
 > >    
@@ -983,7 +983,7 @@
 > 
 > เราได้นำไปแก้ไขเรียบร้อยแล้วใน commit `bbf1124` ดังนี้
 > 1. **Business Rule Reference:** อัปเดตเลขอ้างอิงเป็นหมวด Administrator Governance Rules (BR-17, BR-18, BR-19) ตาม Spec Section 5.4 ครบทั้งใน `admin.ts`, `AdminUserManagement.tsx` (UI labels), เอกสาร `reviewer.md` และ Test Suites ทั้งหมดแล้ว
-> 2. **Guard Logic Order:** สลับลำดับการตรวจเช็กใน `PATCH /api/admin/users/:id` โดยนำ Self-Deactivation Guard (BR-18) ขึ้นมาตรวจก่อน Last Admin Protection (BR-19) ทำให้ Error Message แสดงผลตรงกับการกระทำของแอดมินแล้ว
+> 2. **Guard Logic Order:** สลับลำดับการตรวจเช็กใน `PATCH /api/admin/users/:id` โดยนำ Self-Deactivation Guard (BR-17) ขึ้นมาตรวจก่อน Last Admin Protection (BR-18) ทำให้ Error Message แสดงผลตรงกับการกระทำของแอดมินแล้ว
 > 3. **Type Checking:** เสริม Type Guard `typeof rawName === 'string'` ทั้งใน POST และ PATCH ป้องกัน `TypeError` จากการเรียก `.trim()` คืนค่า 400 Bad Request ได้อย่างถูกต้อง
 > 4. **Test & Build Verification:** รันเทสต์ Server ผ่านครบทั้ง 84 เคส และ Client ผ่านครบทั้ง 56 เคส รวมถึง Build ผ่านเรียบร้อย
 > 
@@ -994,8 +994,8 @@
 
 > ขอบคุณสำหรับการแก้ไขอย่างรวดเร็วและครบถ้วนใน commit bbf1124 ตรวจสอบโค้ดซ้ำเรียบร้อยแล้ว:
 > 
-> Business Rule Reference: อัปเดตเลขอ้างอิงเป็นหมวด BR-16 ถึง BR-19 (Administrator Governance Rules) ครบถ้วนถูกต้องทั้งใน Codebase, UI Tooltips, เอกสาร และ Test Suites แล้ว
-> Guard Logic Order: สลับลำดับการตรวจเช็กใน PATCH /api/admin/users/:id ได้อย่างเหมาะสม นำ Self-Deactivation Guard (BR-18) ขึ้นมาก่อน Last Admin Protection (BR-19) ทำให้ Error Message สื่อสารตรงตามการกระทำของแอดมินชัดเจน
+> Business Rule Reference: อัปเดตเลขอ้างอิงเป็นหมวด BR-17 ถึง BR-19 (Administrator Governance Rules) ครบถ้วนถูกต้องทั้งใน Codebase, UI Tooltips, เอกสาร และ Test Suites แล้ว
+> Guard Logic Order: สลับลำดับการตรวจเช็กใน PATCH /api/admin/users/:id ได้อย่างเหมาะสม นำ Self-Deactivation Guard (BR-17) ขึ้นมาก่อน Last Admin Protection (BR-18) ทำให้ Error Message สื่อสารตรงตามการกระทำของแอดมินชัดเจน
 > Defensive Type Checking: เสริม Type Guard typeof rawName === 'string' ทั้งใน POST และ PATCH ได้รัดกุม ป้องกัน Runtime TypeError จากการเรียก .trim() และตอบกลับ 400 Bad Request ได้อย่างถูกต้อง พร้อมมี Test Case ครอบคลุมทั้งสองจุด
 > Test & Build Verification: Server Tests (84 เคส) และ Client Tests (56 เคส) รวมถึง Build ผ่าน 100% เรียบร้อย
 > โค้ดมีคุณภาพสูงและพร้อมสำหรับการใช้งานแล้ว

@@ -263,7 +263,7 @@ describe("Administrator User Management & Safety Validations (Issue 26 / API-10.
   // 3. PATCH /api/admin/users/:id — Safety Validations (API-12, API-13)
   // ===========================================================================
   describe("PATCH /api/admin/users/:id & Safety Rules (API-12, API-13)", () => {
-    it("API-12: rejects Administrator self-deactivation with 422 Unprocessable Entity (BR-07 / AC-11 / FR-19)", async () => {
+    it("API-12: rejects Administrator self-deactivation with 422 Unprocessable Entity (BR-17 / AC-11 / FR-19)", async () => {
       const res = await request(app)
         .patch(`/api/admin/users/${adminUserId}`)
         .set("Authorization", `Bearer ${adminToken}`)
@@ -275,7 +275,7 @@ describe("Administrator User Management & Safety Validations (Issue 26 / API-10.
       expect(res.body.error).toContain("cannot deactivate their own account");
     });
 
-    it("API-13: rejects deactivating or demoting the sole active Administrator with 422 (BR-08 / AC-12 / FR-20)", async () => {
+    it("API-13: rejects deactivating or demoting the sole active Administrator with 422 (BR-18 / AC-12 / FR-20)", async () => {
       // Ensure only 1 active admin exists in DB before this test
       const otherAdmins = await prisma.user.findMany({
         where: {

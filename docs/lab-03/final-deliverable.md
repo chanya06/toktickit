@@ -416,7 +416,7 @@ All 12 feature branches plus the final release integration PR were formally revi
 ### Reviewer comment I received (PR #65):
 
 > ### ผลการรีวิว PR [#65](https://github.com/chanya06/toktickit/pull/65): REQUEST CHANGES / RECOMMEND IMPROVEMENTS
-> ระบบความปลอดภัย การควบคุมสิทธิ์ Router-level RBAC และ Safety Rules (BR-07, BR-08, BR-09) ทำงานได้ถูกต้องและรัดกุมมาก แต่จากการตรวจสอบความเข้ากันได้ของข้อมูลอย่างละเอียด พบจุดที่ควรปรับปรุงแก้ไขก่อนทำการ Merge ดังนี้:
+> ระบบความปลอดภัย การควบคุมสิทธิ์ Router-level RBAC และ Safety Rules (BR-17, BR-18, BR-19) ทำงานได้ถูกต้องและรัดกุมมาก แต่จากการตรวจสอบความเข้ากันได้ของข้อมูลอย่างละเอียด พบจุดที่ควรปรับปรุงแก้ไขก่อนทำการ Merge ดังนี้:
 > **ประเด็นที่ต้องปรับปรุงแก้ไข:**
 > 1. **ความไม่สอดคล้องของฟิลด์ชื่อในโมเดล User (name vs fullName):**
 >    - ใน Prisma schema มีทั้ง `fullName String` และ `name String?` (เพื่อความเข้ากันได้ย้อนหลังกับโค้ด Lab 2)
@@ -708,7 +708,7 @@ All 12 feature branches plus the final release integration PR were formally revi
 > ### 🌟 จุดเด่นที่ทำได้ดีมาก (Key Strengths)
 > 1. **Specification & Scope (`specification.md`)**: กำหนด FR-01..26, BR-01..19 และระบุ Explicit Exclusions ไว้ชัดเจน ช่วยป้องกัน Scope Creep ได้ดี
 > 2. **RBAC & Data Protection (`api-spec.md`)**: ออกแบบระบบจัดการสิทธิ์รัดกุม โดยเฉพาะการแยก **Internal Notes (Amber `#FFF8E1` 🔒)** ออกจาก **Public Comments** และระบุชัดเจนว่า `GET /api/tickets/:id` ของ Requester จะไม่ส่ง `internalNotes` ออกไปเด็ดขาด
-> 3. **Admin Safety Guards**: มีกฎ BR-18 และ BR-19 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`)
+> 3. **Admin Safety Guards**: มีกฎ BR-17 และ BR-18 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`) พร้อม BR-19 ป้องกันการลบข้อมูลถาวร (Soft Deactivation Only)
 > 4. **Test Traceability (`tests.md`)**: วางแผนเคสทดสอบ 35 เคส ครอบคลุม Unit, API Integration และ Playwright E2E โดยเชื่อมโยง 1-to-1 กับ Acceptance Criteria (AC-01..12) ชัดเจน
 > 5. **AI Use & Reflection (`ai-use.md`)**: บันทึก Prompt และการสะท้อนคิดเกี่ยวกับ Spec-Driven Development ได้ตรงตามเกณฑ์
 > 
@@ -729,7 +729,7 @@ All 12 feature branches plus the final release integration PR were formally revi
 > > ### 🌟 จุดเด่นที่ทำได้ดีมาก (Key Strengths)
 > > 1. **Specification & Scope (`specification.md`)**: กำหนด FR-01..26, BR-01..19 และระบุ Explicit Exclusions ไว้ชัดเจน ช่วยป้องกัน Scope Creep ได้ดี
 > > 2. **RBAC & Data Protection (`api-spec.md`)**: ออกแบบระบบจัดการสิทธิ์รัดกุม โดยเฉพาะการแยก **Internal Notes (Amber `#FFF8E1` 🔒)** ออกจาก **Public Comments** และระบุชัดเจนว่า `GET /api/tickets/:id` ของ Requester จะไม่ส่ง `internalNotes` ออกไปเด็ดขาด
-> > 3. **Admin Safety Guards**: มีกฎ BR-18 และ BR-19 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`)
+> > 3. **Admin Safety Guards**: มีกฎ BR-17 และ BR-18 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`) พร้อม BR-19 ป้องกันการลบข้อมูลถาวร (Soft Deactivation Only)
 > > 4. **Test Traceability (`tests.md`)**: วางแผนเคสทดสอบ 35 เคส ครอบคลุม Unit, API Integration และ Playwright E2E โดยเชื่อมโยง 1-to-1 กับ Acceptance Criteria (AC-01..12) ชัดเจน
 > > 5. **AI Use & Reflection (`ai-use.md`)**: บันทึก Prompt และการสะท้อนคิดเกี่ยวกับ Spec-Driven Development ได้ตรงตามเกณฑ์
 > > 
@@ -971,7 +971,7 @@ All 12 feature branches plus the final release integration PR were formally revi
 >    - ต้องแก้ทั้งใน `admin.ts` comments และ `AdminUserManagement.tsx` UI labels
 > 
 > 2. **[Bug] ลำดับ Guard Logic ใน PATCH `/api/admin/users/:id`:**
->    - ควรตรวจ Self-Deactivation Guard (BR-18) ก่อน Last Admin Protection (BR-19)
+>    - ควรตรวจ Self-Deactivation Guard (BR-17) ก่อน Last Admin Protection (BR-18)
 >    - เพื่อให้ Error Message ตรงกับสถานการณ์จริง
 > 
 > 3. **[Code Smell] Missing Type Check สำหรับ `nameToUse`:**
@@ -990,7 +990,7 @@ All 12 feature branches plus the final release integration PR were formally revi
 > >    * ต้องแก้ทั้งใน `admin.ts` comments และ `AdminUserManagement.tsx` UI labels
 > > 2. **[Bug] ลำดับ Guard Logic ใน PATCH `/api/admin/users/:id`:**
 > >    
-> >    * ควรตรวจ Self-Deactivation Guard (BR-18) ก่อน Last Admin Protection (BR-19)
+> >    * ควรตรวจ Self-Deactivation Guard (BR-17) ก่อน Last Admin Protection (BR-18)
 > >    * เพื่อให้ Error Message ตรงกับสถานการณ์จริง
 > > 3. **[Code Smell] Missing Type Check สำหรับ `nameToUse`:**
 > >    
@@ -1000,7 +1000,7 @@ All 12 feature branches plus the final release integration PR were formally revi
 > 
 > เราได้นำไปแก้ไขเรียบร้อยแล้วใน commit `bbf1124` ดังนี้
 > 1. **Business Rule Reference:** อัปเดตเลขอ้างอิงเป็นหมวด Administrator Governance Rules (BR-17, BR-18, BR-19) ตาม Spec Section 5.4 ครบทั้งใน `admin.ts`, `AdminUserManagement.tsx` (UI labels), เอกสาร `reviewer.md` และ Test Suites ทั้งหมดแล้ว
-> 2. **Guard Logic Order:** สลับลำดับการตรวจเช็กใน `PATCH /api/admin/users/:id` โดยนำ Self-Deactivation Guard (BR-18) ขึ้นมาตรวจก่อน Last Admin Protection (BR-19) ทำให้ Error Message แสดงผลตรงกับการกระทำของแอดมินแล้ว
+> 2. **Guard Logic Order:** สลับลำดับการตรวจเช็กใน `PATCH /api/admin/users/:id` โดยนำ Self-Deactivation Guard (BR-17) ขึ้นมาตรวจก่อน Last Admin Protection (BR-18) ทำให้ Error Message แสดงผลตรงกับการกระทำของแอดมินแล้ว
 > 3. **Type Checking:** เสริม Type Guard `typeof rawName === 'string'` ทั้งใน POST และ PATCH ป้องกัน `TypeError` จากการเรียก `.trim()` คืนค่า 400 Bad Request ได้อย่างถูกต้อง
 > 4. **Test & Build Verification:** รันเทสต์ Server ผ่านครบทั้ง 84 เคส และ Client ผ่านครบทั้ง 56 เคส รวมถึง Build ผ่านเรียบร้อย
 > 
@@ -1011,8 +1011,8 @@ All 12 feature branches plus the final release integration PR were formally revi
 
 > ขอบคุณสำหรับการแก้ไขอย่างรวดเร็วและครบถ้วนใน commit bbf1124 ตรวจสอบโค้ดซ้ำเรียบร้อยแล้ว:
 > 
-> Business Rule Reference: อัปเดตเลขอ้างอิงเป็นหมวด BR-16 ถึง BR-19 (Administrator Governance Rules) ครบถ้วนถูกต้องทั้งใน Codebase, UI Tooltips, เอกสาร และ Test Suites แล้ว
-> Guard Logic Order: สลับลำดับการตรวจเช็กใน PATCH /api/admin/users/:id ได้อย่างเหมาะสม นำ Self-Deactivation Guard (BR-18) ขึ้นมาก่อน Last Admin Protection (BR-19) ทำให้ Error Message สื่อสารตรงตามการกระทำของแอดมินชัดเจน
+> Business Rule Reference: อัปเดตเลขอ้างอิงเป็นหมวด BR-17 ถึง BR-19 (Administrator Governance Rules) ครบถ้วนถูกต้องทั้งใน Codebase, UI Tooltips, เอกสาร และ Test Suites แล้ว
+> Guard Logic Order: สลับลำดับการตรวจเช็กใน PATCH /api/admin/users/:id ได้อย่างเหมาะสม นำ Self-Deactivation Guard (BR-17) ขึ้นมาก่อน Last Admin Protection (BR-18) ทำให้ Error Message สื่อสารตรงตามการกระทำของแอดมินชัดเจน
 > Defensive Type Checking: เสริม Type Guard typeof rawName === 'string' ทั้งใน POST และ PATCH ได้รัดกุม ป้องกัน Runtime TypeError จากการเรียก .trim() และตอบกลับ 400 Bad Request ได้อย่างถูกต้อง พร้อมมี Test Case ครอบคลุมทั้งสองจุด
 > Test & Build Verification: Server Tests (84 เคส) และ Client Tests (56 เคส) รวมถึง Build ผ่าน 100% เรียบร้อย
 > โค้ดมีคุณภาพสูงและพร้อมสำหรับการใช้งานแล้ว
@@ -1101,17 +1101,26 @@ The complete engineering specification is documented under [`docs/lab-03/specifi
 - **Communications Channel (`FR-13..FR-14`)**: Public comments visible to all authenticated roles; confidential Internal Notes visible strictly to IT Staff and Administrators.
 - **Administrator Directory (`FR-15..FR-20`)**: User management table, user provisioning, account modification, password resets, self-deactivation guard, and last-active-admin guard.
 
-### 2.3 Mandatory Business Rules (`BR-01..BR-18`)
-- **`BR-01`**: Minimum password length of 8 characters requiring uppercase, lowercase, number, and special character.
+### 2.3 Mandatory Business Rules (`BR-01..BR-19`)
+- **`BR-01`**: Only active users (`isActive: true`) with valid password hashes can authenticate.
 - **`BR-02`**: Immediate redirection to password change if `mustChangePassword === true`.
-- **`BR-03`**: Soft-deactivated accounts (`isActive: false`) are rejected at login with `401 Unauthorized`.
-- **`BR-04`**: Requesters can only access tickets they own; cross-requester access returns `403 Forbidden`.
-- **`BR-05`**: Ticket claiming is restricted to active IT Staff and Administrator accounts.
-- **`BR-06`**: Permitted status transitions strictly enforced via state machine; illegal transitions return `400 Bad Request`.
-- **`BR-07`**: Internal Notes are confidential; Requesters requesting internal notes return `403 Forbidden`.
-- **`BR-08`**: Administrators cannot deactivate their own active account (`422 Unprocessable Entity`).
-- **`BR-09`**: Deactivating the last active Administrator in the system is strictly prohibited (`422 Unprocessable Entity`).
-- **`BR-10`**: Users cannot be deleted from the database to preserve historical ticket audit trails.
+- **`BR-03`**: Requester identity is determined exclusively by the authenticated session on the backend.
+- **`BR-04`**: Passwords must be hashed using `bcrypt` (salt rounds >= 10); plaintext storage is forbidden.
+- **`BR-05`**: User email addresses must be unique (case-insensitive).
+- **`BR-06`**: Single role assignment per user from: `REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`.
+- **`BR-07`**: Requested Priority is submitted by the Requester and is immutable after creation.
+- **`BR-08`**: IT Priority defaults to Requested Priority on creation, editable only by IT Staff or Administrators.
+- **`BR-09`**: Ticket Owner must be an active user with `IT_STAFF` or `ADMINISTRATOR` role.
+- **`BR-10`**: Permitted Ticket Status values: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`. Requesters cannot directly set status to `RESOLVED` or `CLOSED`.
+- **`BR-11`**: Status Transition Matrix with permitted roles strictly enforced by backend state machine.
+- **`BR-12`**: Requester Problem Resolution Indication sets `isResolutionIndicated: true` without directly closing ticket.
+- **`BR-13`**: Public Comments are visible to all 3 roles (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`).
+- **`BR-14`**: Internal Notes are confidential, visible strictly to `IT_STAFF` and `ADMINISTRATOR`; Requesters receive `403 Forbidden`.
+- **`BR-15`**: Comments and Internal Notes are append-only.
+- **`BR-16`**: Comment and Note validation (trimmed, 2-2000 chars, session author metadata recorded).
+- **`BR-17`**: Self-Deactivation Guard: Administrator cannot deactivate or demote their own active account (`422 Unprocessable Entity`).
+- **`BR-18`**: Last Active Admin Guard: Deactivating or demoting the sole remaining active Administrator is rejected (`422 Unprocessable Entity`).
+- **`BR-19`**: Soft Deactivation Only: Accounts are soft-deactivated (`isActive: false`); hard deletion is prohibited.
 
 ### 2.4 Acceptance Criteria (`AC-01..AC-12`) & Definition of Done
 100% of Acceptance Criteria (`AC-01..AC-12`) and Definition of Done items are fulfilled and verified:
@@ -1140,18 +1149,18 @@ TokTickIT Lab 3 implements a comprehensive 5-tier test pyramid:
 
 | AC ID | Acceptance Criterion Summary | Validating Automated Test Files | Pass Status |
 | :--- | :--- | :--- | :--- |
-| **AC-01** | Active user credentials login & JWT session issuance | `auth.api.test.ts`, `Login.test.tsx`, `authentication.spec.ts` | Pass |
-| **AC-02** | Mandatory password rotation guard blocks app screens | `auth.api.test.ts`, `ChangePassword.test.tsx`, `authentication.spec.ts` | Pass |
-| **AC-03** | Requester ticket ownership session authorization | `requester-resolution.api.test.ts`, `authorization.api.test.ts`, `RequesterResolution.test.tsx` | Pass |
-| **AC-04** | Requester blocked from Internal Notes (403 Forbidden) | `authorization.api.test.ts`, `comments-notes.api.test.ts` | Pass |
-| **AC-05** | IT Staff Ticket Queue filter, search, sort, pagination | `staff-queue.api.test.ts`, `StaffTicketQueue.test.tsx`, `staff-ticket-flow.spec.ts` | Pass |
-| **AC-06** | Ticket claim & assignment to active staff/admin | `staff-ticket-detail.api.test.ts`, `StaffTicketDetail.test.tsx`, `staff-ticket-flow.spec.ts` | Pass |
-| **AC-07** | Status transition matrix & role enforcement | `staff-ticket-detail.api.test.ts`, `StaffTicketDetail.test.tsx`, `staff-ticket-flow.spec.ts` | Pass |
-| **AC-08** | Internal Notes author metadata & role visibility | `comments-notes.api.test.ts`, `CommentsNotes.test.tsx`, `staff-ticket-flow.spec.ts` | Pass |
-| **AC-09** | Administrator User Management directory & filters | `users-admin.api.test.ts`, `UserManagement.test.tsx`, `user-administration.spec.ts` | Pass |
-| **AC-10** | Admin create user with mustChangePassword: true | `users-admin.api.test.ts`, `UserManagement.test.tsx`, `user-administration.spec.ts` | Pass |
-| **AC-11** | Admin self-deactivation guard (422 Unprocessable) | `users-admin.api.test.ts`, `UserManagement.test.tsx`, `user-administration.spec.ts` | Pass |
-| **AC-12** | Last active Administrator deactivation guard | `users-admin.api.test.ts`, `UserManagement.test.tsx` | Pass |
+| **AC-01** | Active user credentials login & JWT session issuance | `server/tests/lab-03/auth.api.test.ts`, `client/tests/lab-03/Login.test.tsx`, `e2e/lab-03/authentication.spec.ts` | Pass |
+| **AC-02** | Mandatory password rotation guard blocks app screens | `server/tests/lab-03/auth.api.test.ts`, `client/tests/lab-03/ChangePassword.test.tsx`, `e2e/lab-03/authentication.spec.ts` | Pass |
+| **AC-03** | Requester ticket ownership session authorization (BR-12) | `server/tests/lab-03/requester-resolution.api.test.ts`, `server/tests/lab-03/authorization.api.test.ts`, `client/tests/lab-03/RequesterResolution.test.tsx` | Pass |
+| **AC-04** | Requester blocked from Internal Notes (403 Forbidden) (BR-14) | `server/tests/lab-03/authorization.api.test.ts`, `server/tests/lab-03/comments-notes.api.test.ts` | Pass |
+| **AC-05** | IT Staff Ticket Queue filter, search, sort, pagination | `server/tests/lab-03/staff-queue.api.test.ts`, `client/tests/lab-03/StaffTicketQueue.test.tsx`, `client/tests/lab-03/Pagination.test.tsx`, `e2e/lab-03/staff-ticket-flow.spec.ts` | Pass |
+| **AC-06** | Ticket claim & assignment to active staff/admin (BR-09) | `server/tests/lab-03/staff-ticket-detail.api.test.ts`, `client/tests/lab-03/StaffTicketDetail.test.tsx`, `e2e/lab-03/staff-ticket-flow.spec.ts` | Pass |
+| **AC-07** | Status transition matrix & role enforcement (BR-11) | `server/tests/lab-03/staff-ticket-detail.api.test.ts`, `client/tests/lab-03/StaffTicketDetail.test.tsx`, `e2e/lab-03/staff-ticket-flow.spec.ts` | Pass |
+| **AC-08** | Internal Notes author metadata & role visibility (BR-13..16) | `server/tests/lab-03/comments-notes.api.test.ts`, `client/tests/lab-03/CommentsNotes.test.tsx`, `e2e/lab-03/staff-ticket-flow.spec.ts` | Pass |
+| **AC-09** | Administrator User Management directory & filters | `server/tests/lab-03/users-admin.api.test.ts`, `client/tests/lab-03/UserManagement.test.tsx`, `client/tests/lab-03/AppRoleNav.test.tsx`, `e2e/lab-03/user-administration.spec.ts` | Pass |
+| **AC-10** | Admin create user with mustChangePassword: true | `server/tests/lab-03/users-admin.api.test.ts`, `client/tests/lab-03/UserManagement.test.tsx`, `e2e/lab-03/user-administration.spec.ts` | Pass |
+| **AC-11** | Admin self-deactivation guard (`BR-17` / 422 Unprocessable) | `server/tests/lab-03/users-admin.api.test.ts`, `client/tests/lab-03/UserManagement.test.tsx`, `e2e/lab-03/user-administration.spec.ts` | Pass |
+| **AC-12** | Last active Administrator deactivation guard (`BR-18` / 422 Unprocessable) | `server/tests/lab-03/users-admin.api.test.ts`, `client/tests/lab-03/UserManagement.test.tsx` | Pass |
 
 ### 3.3 Execution Results Summary
 - **Server Vitest & Supertest**: 149 / 149 passed (`npm run test:server`)
@@ -1279,8 +1288,9 @@ Screen 1 provides secure email/password authentication using bcrypt password has
 - **Edit User Modal**: Updates user name, department, role, and toggles active/deactivated status.
 - **Reset Password Modal**: Sets a new temporary password forcing password rotation on next login.
 - **Enforced Safety Guards**:
-  - **Self-Deactivation Guard (`BR-08`)**: Active Administrator cannot deactivate their own account (`422 Unprocessable Entity`).
-  - **Last Active Admin Guard (`BR-09`)**: Server prevents deactivation of the last remaining active Administrator (`422 Unprocessable Entity`).
+  - **Self-Deactivation Guard (`BR-17`)**: Active Administrator cannot deactivate or demote their own account (`422 Unprocessable Entity`).
+  - **Last Active Admin Guard (`BR-18`)**: Server prevents deactivation or demotion of the last remaining active Administrator (`422 Unprocessable Entity`).
+  - **Soft Deactivation Only (`BR-19`)**: Accounts are never deleted from the database to preserve historical ticket audit trails.
 
 ### 8.2 Responsive Screenshots — Screen 5: User Management
 

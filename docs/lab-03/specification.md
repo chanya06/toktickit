@@ -75,25 +75,20 @@ The IT department requires TokTickIT to transition from a development testing mo
 
 ## 5. Business Rules
 
-### Authentication & Authorization
+### 5.1 Authentication & Authorization
 - **BR-01**: Only active users (`isActive: true`) with valid password hashes can authenticate.
 - **BR-02**: Users with `mustChangePassword: true` are blocked from all API endpoints except `/api/auth/change-password`, `/api/auth/logout`, and `/api/auth/me`.
 - **BR-03**: Requester identity is determined exclusively by the authenticated session on the backend. Any `requesterId` supplied in client request bodies is ignored.
 - **BR-04**: Passwords must be hashed using `bcrypt` (salt rounds >= 10) before database storage. Plaintext passwords must never be stored or logged.
 - **BR-05**: User emails must be unique (case-insensitive).
-
-### Administrator Safety & User Rules
 - **BR-06**: Each user account is assigned exactly one role from: `REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`.
-- **BR-07**: An Administrator cannot deactivate their own active session (`userId === session.userId`).
-- **BR-08**: The system must enforce that at least one active user with `ADMINISTRATOR` role exists at all times.
-- **BR-09**: User deletion is forbidden. Disabling accounts must be executed via soft deactivation (`isActive: false`).
 
-### Ticket Ownership, Priority & Status
-- **BR-10**: A Ticket has one primary Ticket Owner (`ownerId`), who must be an active user with `IT_STAFF` or `ADMINISTRATOR` role. Ownership may initially be `null` (unassigned).
-- **BR-11**: Requested Priority is submitted by the Requester and is immutable after creation. IT Priority defaults to Requested Priority on creation, but can later be modified only by IT Staff or Administrators.
-- **BR-12**: Permitted Ticket Status values: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`.
-- **BR-13**: Requesters cannot directly set status to `RESOLVED` or `CLOSED`. Only IT Staff or Administrators can execute formal resolution/closure.
-- **BR-14**: Status Transition Matrix with Permitted Roles:
+### 5.2 Ticket Ownership, Priority & Status
+- **BR-07**: Requested Priority is submitted by the Requester and is immutable after creation.
+- **BR-08**: IT Priority defaults to Requested Priority on creation, but can later be modified only by IT Staff or Administrators.
+- **BR-09**: A Ticket has one primary Ticket Owner (`ownerId`), who must be an active user with `IT_STAFF` or `ADMINISTRATOR` role. Ownership may initially be `null` (unassigned).
+- **BR-10**: Permitted Ticket Status values: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`. Requesters cannot directly set status to `RESOLVED` or `CLOSED`.
+- **BR-11**: Status Transition Matrix with Permitted Roles:
   - `NEW` -> `OPEN`: Permitted for `IT_STAFF`, `ADMINISTRATOR` (when claiming/opening ticket).
   - `NEW` -> `CANCELLED`: Permitted for `REQUESTER` (owning ticket), `IT_STAFF`, `ADMINISTRATOR`.
   - `OPEN` -> `IN_PROGRESS`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
@@ -113,13 +108,18 @@ The IT department requires TokTickIT to transition from a development testing mo
   - `REOPENED` -> `RESOLVED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
   - `REOPENED` -> `CANCELLED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
   - `CANCELLED` -> `OPEN`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+- **BR-12**: Requester Resolution Indication (`POST /api/tickets/:id/resolve-indication`) sets `isResolutionIndicated: true` and logs a Public Comment. It does not directly mutate `status` to `RESOLVED` or `CLOSED`.
 
-### Comments & Notes
-- **BR-15**: Public Comments are visible to all 3 roles (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`).
-- **BR-16**: Internal Notes are visible ONLY to `IT_STAFF` and `ADMINISTRATOR` roles. Requesters fetching or posting Internal Notes receive `403 Forbidden` without revealing note existence.
-- **BR-17**: Comments and Internal Notes are append-only. Editing and deleting entries are forbidden.
-- **BR-18**: Comment and Note content must be non-empty, trimmed, min 2 chars, max 2000 chars. Author ID and timestamp (`createdAt`) are recorded from the backend session.
-- **BR-19**: Requester Resolution Indication (`POST /api/tickets/:id/resolve-indication`) sets `isResolutionIndicated: true` and logs a Public Comment. It does not directly mutate `status` to `RESOLVED` or `CLOSED`.
+### 5.3 Comments & Internal Notes
+- **BR-13**: Public Comments are visible to all 3 roles (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`).
+- **BR-14**: Internal Notes are visible ONLY to `IT_STAFF` and `ADMINISTRATOR` roles. Requesters fetching or posting Internal Notes receive `403 Forbidden` without revealing note existence.
+- **BR-15**: Comments and Internal Notes are append-only. Editing and deleting entries are forbidden.
+- **BR-16**: Comment and Note content must be non-empty, trimmed, min 2 chars, max 2000 chars. Author ID and timestamp (`createdAt`) are recorded from the backend session.
+
+### 5.4 Administrator Governance & Safety Rules
+- **BR-17**: An Administrator cannot deactivate or demote their own active session (`userId === session.userId` rejected with `422 Unprocessable Entity`).
+- **BR-18**: The system must enforce that at least one active user with `ADMINISTRATOR` role exists at all times. Deactivating or demoting the last active Administrator is rejected with `422 Unprocessable Entity`.
+- **BR-19**: User deletion is forbidden. Disabling accounts must be executed via soft deactivation (`isActive: false`) to preserve historical ticket audit trails.
 
 ---
 

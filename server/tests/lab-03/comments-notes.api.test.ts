@@ -372,9 +372,9 @@ describe("Public Comments & Private Internal Notes (API-05, API-09 / Issue 25)",
   });
 
   // ===========================================================================
-  // 3. SECURITY & INTEGRITY (BR-17, Auth & Session Guards)
+  // 3. SECURITY & INTEGRITY (BR-15, Auth & Session Guards)
   // ===========================================================================
-  describe("Security & Integrity Guards (BR-17, Auth)", () => {
+  describe("Security & Integrity Guards (BR-15, Auth)", () => {
     it("rejects unauthenticated requests with 401 Unauthorized", async () => {
       const ticket = await createTestTicket();
 
@@ -396,7 +396,7 @@ describe("Public Comments & Private Internal Notes (API-05, API-09 / Issue 25)",
       expect(res.body.code).toBe("MUST_CHANGE_PASSWORD");
     });
 
-    it("enforces append-only integrity (BR-17): PUT / DELETE requests return 404 or 405", async () => {
+    it("enforces append-only integrity (BR-15): PUT / DELETE requests return 404 or 405", async () => {
       const ticket = await createTestTicket();
 
       const resPut = await request(app)

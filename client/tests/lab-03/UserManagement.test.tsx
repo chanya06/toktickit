@@ -348,9 +348,9 @@ describe("UserManagementView Component (Issue 27 / FR-15..20 / AC-09..12)", () =
   });
 
   // ---------------------------------------------------------------------------
-  // 6. Edit User Modal & Self-Deactivation Safety (BR-07 / AC-11)
+  // 6. Edit User Modal & Self-Deactivation Safety (BR-17 / AC-11)
   // ---------------------------------------------------------------------------
-  it("disables deactivation toggle and shows warning when editing own account (BR-07 / AC-11)", async () => {
+  it("disables deactivation toggle and shows warning when editing own account (BR-17 / AC-11)", async () => {
     renderWithAuth();
 
     await act(async () => {
@@ -441,7 +441,7 @@ describe("UserManagementView Component (Issue 27 / FR-15..20 / AC-09..12)", () =
     expect(screen.getByTestId("success-toast")).toHaveTextContent('User "Super Admin Updated" updated successfully.');
   });
 
-  it("displays server 422 error when deactivating the last active administrator (BR-08 / AC-12)", async () => {
+  it("displays server 422 error when deactivating the last active administrator (BR-18 / AC-12)", async () => {
     const error422 = new Error("Cannot deactivate or demote the last active Administrator");
     (error422 as any).status = 422;
     vi.mocked(api.updateAdminUser).mockRejectedValue(error422);

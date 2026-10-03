@@ -363,7 +363,7 @@ usersRouter.patch("/:id", async (req: Request, res: Response) => {
     }
 
     // -------------------------------------------------------------------------
-    // SAFETY RULE 1: Self-deactivation prevention (BR-07 / AC-11 / FR-19)
+    // SAFETY RULE 1: Self-deactivation prevention (BR-17 / AC-11 / FR-19)
     // -------------------------------------------------------------------------
     if (req.user!.id === targetId && nextIsActive === false) {
       return res.status(422).json({
@@ -372,7 +372,7 @@ usersRouter.patch("/:id", async (req: Request, res: Response) => {
     }
 
     // -------------------------------------------------------------------------
-    // SAFETY RULE 2: Sole active administrator protection (BR-08 / AC-12 / FR-20)
+    // SAFETY RULE 2: Sole active administrator protection (BR-18 / AC-12 / FR-20)
     // -------------------------------------------------------------------------
     const isTargetCurrentlyActiveAdmin =
       targetUser.role === Role.ADMINISTRATOR && targetUser.isActive === true;

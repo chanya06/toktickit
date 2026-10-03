@@ -957,9 +957,9 @@ function EditUserModal({ user, currentUserId, onClose, onSuccess }: EditUserModa
       return;
     }
 
-    // Client-side Safety Check for Self-Deactivation (BR-07 / AC-11)
+    // Client-side Safety Check for Self-Deactivation (BR-17 / AC-11)
     if (isSelf && !isActive) {
-      setErrorMessage("Safety Rule BR-07: You cannot deactivate your own account.");
+      setErrorMessage("Safety Rule BR-17: You cannot deactivate your own account.");
       return;
     }
 
@@ -1017,7 +1017,7 @@ function EditUserModal({ user, currentUserId, onClose, onSuccess }: EditUserModa
 
             {/* Body */}
             <div className="modal-body p-4">
-              {/* Self Warning (BR-07) */}
+              {/* Self Warning (BR-17) */}
               {isSelf && (
                 <div
                   className="alert alert-warning border-0 small d-flex align-items-start gap-2 mb-3"
@@ -1039,12 +1039,12 @@ function EditUserModal({ user, currentUserId, onClose, onSuccess }: EditUserModa
                     <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
                   <div>
-                    <strong>Self-Protection Rule (BR-07 / AC-11):</strong> You are currently logged in as this Administrator. Disabling your own account is prohibited to ensure uninterrupted system access.
+                    <strong>Self-Protection Rule (BR-17 / AC-11):</strong> You are currently logged in as this Administrator. Disabling your own account is prohibited to ensure uninterrupted system access.
                   </div>
                 </div>
               )}
 
-              {/* Admin Safety Reminder (BR-08) */}
+              {/* Admin Safety Reminder (BR-18) */}
               {user.role === "ADMINISTRATOR" && !isSelf && (
                 <div
                   className="alert alert-info border-0 small d-flex align-items-start gap-2 mb-3"
@@ -1065,7 +1065,7 @@ function EditUserModal({ user, currentUserId, onClose, onSuccess }: EditUserModa
                     <line x1="12" y1="8" x2="12.01" y2="8" />
                   </svg>
                   <div>
-                    <strong>Last Administrator Protection (BR-08 / AC-12):</strong> TokTickIT requires at least one active Administrator at all times. Attempting to deactivate or demote the sole remaining Administrator will be rejected.
+                    <strong>Last Administrator Protection (BR-18 / AC-12):</strong> TokTickIT requires at least one active Administrator at all times. Attempting to deactivate or demote the sole remaining Administrator will be rejected.
                   </div>
                 </div>
               )}

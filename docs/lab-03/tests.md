@@ -15,9 +15,9 @@
 | **API-09** | API | AC-08 / FR-14 | Creating & fetching Internal Notes by IT Staff | 201 Created; notes returned for IT Staff/Admin | `server/tests/lab-03/comments-notes.api.test.ts` | Pass |
 | **API-10** | API | AC-09 / FR-15 | Admin User list retrieval with search & role filter | Paginated user list returned | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
 | **API-11** | API | AC-10 / FR-16 | Admin User creation with initial password | User created with `mustChangePassword: true` | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
-| **API-12** | API | AC-11 / FR-19 | Admin self-deactivation attempt | Rejection (422 Unprocessable Entity) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
-| **API-13** | API | AC-12 / FR-20 | Last active Admin removal attempt | Rejection (422 Unprocessable Entity) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
-| **API-14** | API | FR-09 / BR-19 | Requester "Problem Appears Resolved" endpoint | Sets `isResolutionIndicated: true` & posts comment | `server/tests/lab-03/requester-resolution.api.test.ts`<br>`client/tests/lab-03/RequesterResolution.test.tsx` | Pass |
+| **API-12** | API | AC-11 / FR-19 (BR-17) | Admin self-deactivation attempt | Rejection (422 Unprocessable Entity) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
+| **API-13** | API | AC-12 / FR-20 (BR-18) | Last active Admin removal attempt | Rejection (422 Unprocessable Entity) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
+| **API-14** | API | FR-09 / BR-12 | Requester "Problem Appears Resolved" endpoint | Sets `isResolutionIndicated: true` & posts comment | `server/tests/lab-03/requester-resolution.api.test.ts`<br>`client/tests/lab-03/RequesterResolution.test.tsx` | Pass |
 | **UI-01** | UI | AC-01 / FR-01 | Login Form rendering and validation | Busy state, inline validation errors | `client/tests/lab-03/Login.test.tsx` | Pass |
 | **UI-02** | UI | AC-02 / FR-03 | Change Password screen requirements checklist | Checks uppercase, number, special char | `client/tests/lab-03/ChangePassword.test.tsx` | Pass |
 | **UI-03** | UI | AC-05 / FR-10 | IT Staff Ticket Queue controls & badges | Filters, sorting, role/status badges | `client/tests/lab-03/StaffTicketQueue.test.tsx` | Pass |
@@ -36,18 +36,20 @@
 - `authorization.api.test.ts`: Role-based route protection, session isolation.
 - `requester-resolution.api.test.ts`: Requester resolution indication endpoint, PublicComment logging, status validation, atomic transaction.
 - `staff-queue.api.test.ts`: Filtering by category/status/IT priority, search, sorting, pagination.
-- `staff-ticket-detail.api.test.ts`: Claiming, assigning, IT priority change, status transition matrix validation.
-- `comments-notes.api.test.ts`: Public Comments vs Internal Notes security visibility checks.
-- `users-admin.api.test.ts`: Admin CRUD operations (API-10..13), fullName/name sync, department support, password reset, and safety validation (self-deactivation & last admin check).
+- `staff-ticket-detail.api.test.ts`: Claiming, assigning, IT priority change, status transition matrix validation (BR-11).
+- `comments-notes.api.test.ts`: Public Comments vs Internal Notes security visibility checks (BR-13..BR-16).
+- `users-admin.api.test.ts`: Admin CRUD operations (API-10..13), fullName/name sync, department support, password reset, and safety validation (self-deactivation BR-17 & last admin check BR-18, soft deactivation BR-19).
 
 ### Frontend UI Component Tests (`client/tests/lab-03/`)
+- `AppRoleNav.test.tsx`: Role-based initial tabs routing and navigation bar isolation (User Management tab hidden from IT Staff and Requester).
 - `Login.test.tsx`: Login form validation, error state rendering, busy state.
 - `ChangePassword.test.tsx`: Password criteria validation, submit handlers.
-- `RequesterResolution.test.tsx`: Resolution indication action button, confirmation modal with notes, status banner and badge.
+- `Pagination.test.tsx`: Page calculation, boundary handling, and page jump actions.
+- `RequesterResolution.test.tsx`: Resolution indication action button, confirmation modal with notes, status banner and badge (BR-12).
 - `StaffTicketQueue.test.tsx`: Search input, filter drawer, column sorting, pagination interaction.
-- `StaffTicketDetail.test.tsx`: Ticket claim, owner reassignment, IT Priority update, BR-14 status matrix enforcement, Public Comments vs Internal Notes.
-- `CommentsNotes.test.tsx`: Public Comments tab rendering, comment posting, Internal Notes amber callout, requester security isolation.
-- `UserManagement.test.tsx`: Administrator user directory table, debounced search, role filtering, pagination, Create User modal with password checklist, Edit User modal with self-deactivation & last admin safety protection (BR-07, BR-08), and Reset Initial Password modal (FR-18).
+- `StaffTicketDetail.test.tsx`: Ticket claim, owner reassignment, IT Priority update, status transition matrix enforcement (BR-11), Public Comments vs Internal Notes.
+- `CommentsNotes.test.tsx`: Public Comments tab rendering, comment posting, Internal Notes amber callout, requester security isolation (BR-13, BR-14).
+- `UserManagement.test.tsx`: Administrator user directory table, debounced search, role filtering, pagination, Create User modal with password checklist, Edit User modal with self-deactivation & last admin safety protection (BR-17, BR-18), and Reset Initial Password modal (FR-18).
 
 ### End-to-End Tests (`e2e/lab-03/`)
 - `authentication.spec.ts`: Full E2E flow from login to mandatory password change.
