@@ -609,7 +609,362 @@
 
 | PR | Branch | Reviewer verdict |
 | :--- | :--- | :--- |
-| *To be updated during peer reviews* | - | - |
+| [titayaaa/toktickit#52](https://github.com/titayaaa/toktickit/pull/52) | `feature/17-spec-and-tests` | Approved |
+| [titayaaa/toktickit#53](https://github.com/titayaaa/toktickit/pull/53) | `feature/18-db-and-seed` | Approved with changes requested & resolved |
+| [titayaaa/toktickit#54](https://github.com/titayaaa/toktickit/pull/54) | `feature/19-auth-api` | Approved with comments |
+| [titayaaa/toktickit#55](https://github.com/titayaaa/toktickit/pull/55) | `feature/20-login-ui` | Approved |
+| [titayaaa/toktickit#56](https://github.com/titayaaa/toktickit/pull/56) | `feature/21-staff-queue-api` | Approved |
+| [titayaaa/toktickit#57](https://github.com/titayaaa/toktickit/pull/57) | `feature/22-staff-queue-ui` | Approved |
+| [titayaaa/toktickit#58](https://github.com/titayaaa/toktickit/pull/58) | `feature/23-ticket-ops-api` | Approved |
+| [titayaaa/toktickit#59](https://github.com/titayaaa/toktickit/pull/59) | `feature/24-ticket-ops-ui` | Approved with changes requested & resolved |
+| [titayaaa/toktickit#60](https://github.com/titayaaa/toktickit/pull/60) | `feature/25-admin-user-management` | Approved with changes requested & resolved |
+| [titayaaa/toktickit#61](https://github.com/titayaaa/toktickit/pull/61) | `feature/26-e2e-and-release` | Approved |
+| [titayaaa/toktickit#62](https://github.com/titayaaa/toktickit/pull/62) | `lab3-staging` | Approved |
 
+---
 
+### My comment (PR #52 for partner @titayaaa):
+
+> ## 🟢 Peer Review: Approved (PR #52)
+> 
+> ตรวจทานเอกสาร Sprint 3 Engineering Contract & Specifications ใน `docs/lab-03/` เรียบร้อย เอกสารทำออกมาได้ละเอียด ครบถ้วน และครอบคลุมตามข้อกำหนดใน Lab 3
+> 
+> ### 🌟 จุดเด่นที่ทำได้ดีมาก (Key Strengths)
+> 1. **Specification & Scope (`specification.md`)**: กำหนด FR-01..26, BR-01..19 และระบุ Explicit Exclusions ไว้ชัดเจน ช่วยป้องกัน Scope Creep ได้ดี
+> 2. **RBAC & Data Protection (`api-spec.md`)**: ออกแบบระบบจัดการสิทธิ์รัดกุม โดยเฉพาะการแยก **Internal Notes (Amber `#FFF8E1` 🔒)** ออกจาก **Public Comments** และระบุชัดเจนว่า `GET /api/tickets/:id` ของ Requester จะไม่ส่ง `internalNotes` ออกไปเด็ดขาด
+> 3. **Admin Safety Guards**: มีกฎ BR-18 และ BR-19 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`)
+> 4. **Test Traceability (`tests.md`)**: วางแผนเคสทดสอบ 35 เคส ครอบคลุม Unit, API Integration และ Playwright E2E โดยเชื่อมโยง 1-to-1 กับ Acceptance Criteria (AC-01..12) ชัดเจน
+> 5. **AI Use & Reflection (`ai-use.md`)**: บันทึก Prompt และการสะท้อนคิดเกี่ยวกับ Spec-Driven Development ได้ตรงตามเกณฑ์
+> 
+> ---
+> 
+> ### 💡 ข้อเสนอแนะเล็กน้อยก่อน Merge (Minor Suggestions)
+> 1. **เพิ่มหัวข้อ `Assumptions and Decisions`**: เพื่อให้ตรงตามตารางข้อกำหนดใน Handout (หน้า 13) เสนอให้เพิ่มหัวข้อ `10. Assumptions and Decisions` ใน `specification.md` (เช่น เรื่องการเลือกใช้ bcrypt, การเก็บ Session ด้วย HTTP-only cookie, และการ default ค่า `itPriority = requestedPriority`)
+> 2. **Clarification เรื่อง Reopen Ticket**: หากตั๋วถูกเปิดใหม่อีกครั้ง (`RESOLVED` -> `REOPENED` -> `IN_PROGRESS`) อาจระบุเพิ่มเติมใน Spec ว่า `resolutionSummary` จะถูกคงไว้เป็นประวัติ หรือถูกเคลียร์ค่าเป็น `null` จนกว่าจะ Resolve อีกครั้ง
+> 3. **อัปเดต PR Link ใน `reviewer.md`**: บรรทัดที่ 9 สามารถอัปเดตจาก `[PR # (Pending Open)]` เป็น `[PR #52](https://github.com/titayaaa/toktickit/pull/52)`
+> 
+> 
+
+### Partner's response (PR #52 for partner @titayaaa):
+
+> > ## 🟢 Peer Review: Approved (PR #52)
+> > ตรวจทานเอกสาร Sprint 3 Engineering Contract & Specifications ใน `docs/lab-03/` เรียบร้อย เอกสารทำออกมาได้ละเอียด ครบถ้วน และครอบคลุมตามข้อกำหนดใน Lab 3
+> > 
+> > ### 🌟 จุดเด่นที่ทำได้ดีมาก (Key Strengths)
+> > 1. **Specification & Scope (`specification.md`)**: กำหนด FR-01..26, BR-01..19 และระบุ Explicit Exclusions ไว้ชัดเจน ช่วยป้องกัน Scope Creep ได้ดี
+> > 2. **RBAC & Data Protection (`api-spec.md`)**: ออกแบบระบบจัดการสิทธิ์รัดกุม โดยเฉพาะการแยก **Internal Notes (Amber `#FFF8E1` 🔒)** ออกจาก **Public Comments** และระบุชัดเจนว่า `GET /api/tickets/:id` ของ Requester จะไม่ส่ง `internalNotes` ออกไปเด็ดขาด
+> > 3. **Admin Safety Guards**: มีกฎ BR-18 และ BR-19 ป้องกัน Admin ปิดใช้งานบัญชีตนเอง (Self-deactivation) และป้องกันการปลด Admin คนสุดท้ายของระบบ (`422 Unprocessable Entity`)
+> > 4. **Test Traceability (`tests.md`)**: วางแผนเคสทดสอบ 35 เคส ครอบคลุม Unit, API Integration และ Playwright E2E โดยเชื่อมโยง 1-to-1 กับ Acceptance Criteria (AC-01..12) ชัดเจน
+> > 5. **AI Use & Reflection (`ai-use.md`)**: บันทึก Prompt และการสะท้อนคิดเกี่ยวกับ Spec-Driven Development ได้ตรงตามเกณฑ์
+> > 
+> > ### 💡 ข้อเสนอแนะเล็กน้อยก่อน Merge (Minor Suggestions)
+> > 1. **เพิ่มหัวข้อ `Assumptions and Decisions`**: เพื่อให้ตรงตามตารางข้อกำหนดใน Handout (หน้า 13) เสนอให้เพิ่มหัวข้อ `10. Assumptions and Decisions` ใน `specification.md` (เช่น เรื่องการเลือกใช้ bcrypt, การเก็บ Session ด้วย HTTP-only cookie, และการ default ค่า `itPriority = requestedPriority`)
+> > 2. **Clarification เรื่อง Reopen Ticket**: หากตั๋วถูกเปิดใหม่อีกครั้ง (`RESOLVED` -> `REOPENED` -> `IN_PROGRESS`) อาจระบุเพิ่มเติมใน Spec ว่า `resolutionSummary` จะถูกคงไว้เป็นประวัติ หรือถูกเคลียร์ค่าเป็น `null` จนกว่าจะ Resolve อีกครั้ง
+> > 3. **อัปเดต PR Link ใน `reviewer.md`**: บรรทัดที่ 9 สามารถอัปเดตจาก `[PR # (Pending Open)]` เป็น `[PR #52](https://github.com/titayaaa/toktickit/pull/52)`
+> 
+> ขอบคุณสำหรับคำแนะนำน้า เราได้อัปเดตเพิ่ม Section 10 Assumptions and Decisions, ชี้แจงเรื่อง Reopen ticket และอัปเดต PR #52 ลงใน reviewer.md ให้เรียบร้อยแล้ว
+
+---
+
+### My comment (PR #53 for partner @titayaaa):
+
+> ## 🔍 Peer Review: Feedback & Recommendations (PR #53)
+> 
+> โครงสร้าง Prisma Schema และการเตรียม User Seed Data สำหรับ Lab 3 ทำออกมาได้ดีมาก มีการรักษา Backward Compatibility ของ Enum และ Model เดิมของ Lab 2 ไว้อย่างรอบคอบ
+> 
+> มีข้อเสนอแนะ 3 ประเด็นสำคัญที่แนะนำให้ปรับปรุงเพิ่มเติมก่อน Merge:
+> 
+> 1. **Backfill `userId` และ `itPriority` สำหรับตั๋วเดิม**: 
+>    ใน `seed.ts` แนะนำให้เพิ่มการอัปเดตตั๋วเดิมจาก Lab 2 โดยผูก `ticket.userId` เข้ากับ `user.id` ตามอีเมลของ Requester และตั้งค่าเริ่มต้นให้ `itPriority = requestedPriority` ตามกฎ BR-07 เพื่อป้องกันไม่ให้ `ticket.requester` เป็น `null`
+> 2. **Seed ข้อมูล Ticket, Public Comments และ Internal Notes**: 
+>    ตาม Handout Section 5.3 กำหนดให้มีตัวอย่าง Realistic Tickets, Public Comments และ Internal Notes ใน Seed Data ด้วย แนะนำให้เพิ่มข้อมูลตัวอย่างเหล่านี้ใน `seed.ts`
+> 3. **Commit Prisma Migration File**: 
+>    อย่าลืมรัน `npx prisma migrate dev --name lab3_users_and_workflow` เพื่อสร้างและ Commit ไฟล์ Migration ลงใน `server/prisma/migrations/` ให้ครบถ้วน
+
+### Partner's response (PR #53 for partner @titayaaa):
+
+> > ## 🔍 Peer Review: Feedback & Recommendations (PR #53)
+> > โครงสร้าง Prisma Schema และการเตรียม User Seed Data สำหรับ Lab 3 ทำออกมาได้ดีมาก มีการรักษา Backward Compatibility ของ Enum และ Model เดิมของ Lab 2 ไว้อย่างรอบคอบ
+> > 
+> > มีข้อเสนอแนะ 3 ประเด็นสำคัญที่แนะนำให้ปรับปรุงเพิ่มเติมก่อน Merge:
+> > 
+> > 1. **Backfill `userId` และ `itPriority` สำหรับตั๋วเดิม**:
+> >    ใน `seed.ts` แนะนำให้เพิ่มการอัปเดตตั๋วเดิมจาก Lab 2 โดยผูก `ticket.userId` เข้ากับ `user.id` ตามอีเมลของ Requester และตั้งค่าเริ่มต้นให้ `itPriority = requestedPriority` ตามกฎ BR-07 เพื่อป้องกันไม่ให้ `ticket.requester` เป็น `null`
+> > 2. **Seed ข้อมูล Ticket, Public Comments และ Internal Notes**:
+> >    ตาม Handout Section 5.3 กำหนดให้มีตัวอย่าง Realistic Tickets, Public Comments และ Internal Notes ใน Seed Data ด้วย แนะนำให้เพิ่มข้อมูลตัวอย่างเหล่านี้ใน `seed.ts`
+> > 3. **Commit Prisma Migration File**:
+> >    อย่าลืมรัน `npx prisma migrate dev --name lab3_users_and_workflow` เพื่อสร้างและ Commit ไฟล์ Migration ลงใน `server/prisma/migrations/` ให้ครบถ้วน
+> 
+> เราได้เพิ่ม Backfill userId & itPriority, เพิ่มข้อมูลตัวอย่าง Ticket/Public Comments/Internal Notes, และ commit ไฟล์ Prisma Migration ลง server/prisma/migrations/ ให้เรียบร้อยแล้ว รบกวนตรวจอีกครั้งให้หน่อยน้า
+
+### My follow-up / approval (PR #53 for partner @titayaaa):
+
+> ## 🟢 Peer Review: Approved (PR #53)
+> 
+> ตรวจทานการแก้ไขและเพิ่มเติมใน PR #53 เรียบร้อยแล้ว:
+> 
+> 1. **Backfill Complete**: เพิ่มการเชื่อมโยง `userId` ให้ตั๋วเดิมจาก Lab 2 และตั้งค่า `itPriority = requestedPriority` ตามกฎ BR-07 เรียบร้อย
+> 2. **Realistic Seed Data**: เพิ่มตัวอย่างตั๋วสถานะ `IN_PROGRESS` และ `RESOLVED` พร้อมตัวอย่าง Public Comments และ Internal Notes ครบตามเกณฑ์ Handout Section 5.3
+> 3. **Prisma Migration**: เพิ่มไฟล์ SQL migration ใน `server/prisma/migrations/20260917000000_lab3_users_and_workflow/` เรียบร้อย เป็น Idempotent ปลอดภัย
+> 4. **Test Coverage**: เพิ่มการตรวจสอบความถูกต้องของการ Backfill และ Relation ของ Comments/Notes ใน `db-seed.test.ts` อย่างรัดกุม
+
+---
+
+### My comment (PR #54 for partner @titayaaa):
+
+> ## 🟢 Peer Review: Approved (PR #54)
+> 
+> ตรวจทานโค้ดและชุดทดสอบของ Issue 19 (Authentication & Authorization Backend API) เรียบร้อยแล้ว
+> 
+> ### 🌟 จุดเด่นที่ทำได้ดี:
+> 1. **Security Design**: ป้องกัน Account Enumeration โดยคืนค่า 401 ข้อความเดียวกันสำหรับบัญชีที่ไม่มีอยู่หรือถูกปิดการใช้งาน (`isActive = false`)
+> 2. **Password Complexity & Hashing**: ใช้ `bcrypt` 10 rounds และ Regex ตรวจสอบความซับซ้อนตามกฎ BR-04 ครบถ้วน พร้อมเช็คห้ามตั้งรหัสผ่านซ้ำเดิม
+> 3. **Flexible Middleware**: รองรับทั้ง HTTP-only Cookie และ Bearer Token Header พร้อมมี Guard บล็อกผู้ใช้ที่ต้องเปลี่ยนรหัสผ่าน (`mustChangePassword = true`) ตามกฎ BR-02
+> 4. **Comprehensive Tests**: มี Test Coverage ทั้งกรณี Login, Logout, Change Password, Inactive Users, และ Role-based Access Control ทั้ง 3 บทบาท (12 tests)
+> 
+> ### 💡 ข้อเสนอแนะเล็กน้อย:
+> - อัปเดตลิงก์ PR ใน `docs/lab-03/reviewer.md` จาก Placeholder เป็น `[PR #54](https://github.com/titayaaa/toktickit/pull/54)`
+> 
+> 
+
+### Partner's response (PR #54 for partner @titayaaa):
+
+> > ## 🟢 Peer Review: Approved (PR #54)
+> > ตรวจทานโค้ดและชุดทดสอบของ Issue 19 (Authentication & Authorization Backend API) เรียบร้อยแล้ว
+> > 
+> > ### 🌟 จุดเด่นที่ทำได้ดี:
+> > 1. **Security Design**: ป้องกัน Account Enumeration โดยคืนค่า 401 ข้อความเดียวกันสำหรับบัญชีที่ไม่มีอยู่หรือถูกปิดการใช้งาน (`isActive = false`)
+> > 2. **Password Complexity & Hashing**: ใช้ `bcrypt` 10 rounds และ Regex ตรวจสอบความซับซ้อนตามกฎ BR-04 ครบถ้วน พร้อมเช็คห้ามตั้งรหัสผ่านซ้ำเดิม
+> > 3. **Flexible Middleware**: รองรับทั้ง HTTP-only Cookie และ Bearer Token Header พร้อมมี Guard บล็อกผู้ใช้ที่ต้องเปลี่ยนรหัสผ่าน (`mustChangePassword = true`) ตามกฎ BR-02
+> > 4. **Comprehensive Tests**: มี Test Coverage ทั้งกรณี Login, Logout, Change Password, Inactive Users, และ Role-based Access Control ทั้ง 3 บทบาท (12 tests)
+> > 
+> > ### 💡 ข้อเสนอแนะเล็กน้อย:
+> > * อัปเดตลิงก์ PR ใน `docs/lab-03/reviewer.md` จาก Placeholder เป็น `[PR #54](https://github.com/titayaaa/toktickit/pull/54)`
+> 
+> เราอัปเดตลิงก์ PR #54 ลงใน reviewer.md เรียบร้อยแล้วน้า ฝากเข้ามาเช็กแล้วกดปุ่ม Merge รวมเข้า lab3-staging ให้หน่อย ขอบคุณมาก
+
+---
+
+### My comment (PR #55 for partner @titayaaa):
+
+> ### Peer Review Comments
+> **Peer Review: Approved (PR #55)**
+> ตรวจทานโค้ดและทดสอบ UI ของ Issue 20 (Login & Mandatory Password Change UI) เรียบร้อยแล้ว
+> -จุดเด่น: สไตล์ Zen Green สอดคล้องตาม Tokens, Checklist ตรวจสอบความซับซ้อนของรหัสผ่านแบบเรียลไทม์ 4 ข้อ, Authentication Gate ดักจับหน้าจอ Login / Change Password / Main App ตาม Session ได้อย่างรัดกุม, มี Unit Test 7 เคสและไม่เกิด Regression ต่อ UI เดิมของ Lab 1 & 2
+> - บันทึกผลการตรวจทานเรียบร้อย โค้ดผ่านการตรวจโดยไม่มีข้อทักท้วงเพิ่มเติม
+
+---
+
+### My comment (PR #56 for partner @titayaaa):
+
+> ## 🟢 Peer Review: Approved (PR #56)
+> 
+> ตรวจทานโค้ดและชุดทดสอบของ Issue 21 (IT Staff Ticket Queue API & Query System) เรียบร้อยแล้ว
+> 
+> ### 🌟 จุดเด่นที่ทำได้ดี:
+> 1. **Query Capabilities**: รองรับการค้นหา (Search case-insensitive), กรองข้อมูลครอบคลุมทั้ง Category, Status (ทุก Enum), Priority, IT Priority, และ Owner Assignment (`unassigned`, `me`, numeric ID)
+> 2. **Weighted Priority Sorting**: ออกแบบการจัดเรียงตามระดับความสำคัญจริง (`URGENT > CRITICAL > HIGH > MEDIUM > LOW`) แทนการเรียงตามตัวอักษร
+> 3. **Backward Compatibility**: จัดการ Fallback ข้อมูล Requester ของตั๋วเดิมได้อย่างไร้รอยต่อ พร้อมแนบตัวนับ Comments, Notes, และ Attachments
+> 4. **Security & Validation**: มี Guard ตรวจสอบ Role และ Password Rotation อย่างรัดกุม พร้อมส่ง 400 Bad Request เมื่อ Query Parameters ไม่ถูกต้อง
+> 5. **Test Coverage**: ชุด Integration Tests 9 เคสใน `staff-queue.api.test.ts` ครอบคลุมทุก Scenario สำคัญ
+
+---
+
+### My comment (PR #57 for partner @titayaaa):
+
+> ## 🟢 Peer Review: Approved (PR #57)
+> 
+> ตรวจทานโค้ดและทดสอบ UI ของ Issue 22 (IT Staff Ticket Queue UI & Dashboard) เรียบร้อยแล้ว
+> 
+> ### 🌟 จุดเด่นที่ทำได้ดีมาก:
+> 1. **Zen Green UI & Responsive Representation**: 
+>    - แสดงผล Desktop/Tablet ด้วย High-Density Data Table พร้อม Monospace Ticket Link สีเขียว `#006B3C`
+>    - สลับเป็น Touch-friendly Card Stack อัตโนมัติบนจอมือถือ (`< 768px`) โดยไม่เกิดปัญหา Horizontal Overflow
+> 2. **Comprehensive Search & Filter Toolbar**: 
+>    - ค้นหาได้ทั้ง Ticket Number และ Summary
+>    - กรองได้ครบทั้ง Status, IT Priority, Category และปุ่มเลือก Assignment (`All`, `Unassigned`, `Assigned to Me`)
+>    - มีป้าย Active Filter Chips และปุ่ม "Clear All Filters" ที่ใช้งานสะดวก
+> 3. **Interactive Sorting & Smart Pagination**: 
+>    - หัวตารางคลิกเรียงลำดับได้ พร้อมลูกศรบอกทิศทาง `▲`/`▼`
+>    - Pagination ปรับ Limit ต่อหน้าได้ และมีระบบคำนวณ Windowing ไม่ทำให้ปุ่มหน้าล้นจอ
+> 4. **Role Gate บน App Shell**: 
+>    - แท็บ "Ticket Queue" ถูกซ่อนไม่ให้ Requester เห็น และแสดงเฉพาะ IT Staff กับ Admin พร้อมตั้งเป็นหน้าแรกให้อัตโนมัติ
+> 5. **Accessibility & Test Coverage**: 
+>    - รองรับมาตรฐาน WAI-ARIA (`aria-sort`, `role="search"`, `aria-label`)
+>    - Unit Tests 7 เคสใน `StaffTicketQueue.test.tsx` ผ่าน 100%
+> 
+
+---
+
+### My comment (PR #58 for partner @titayaaa):
+
+> ## 🟢 Peer Review: Approved (PR #58)
+> 
+> ตรวจทานโค้ดและชุดทดสอบของ Issue 23 (Ticket Operations, Ownership & Notes API) เรียบร้อยแล้ว
+> 
+> ### 🌟 จุดเด่นที่ทำได้ดีมาก:
+> 1. **State Transition Matrix & Resolution Guard (BR-09 & BR-11)**:
+>    - ควบคุมการเปลี่ยนสถานะตาม Matrix อย่างเคร่งครัด พร้อมดักไม่ให้เปลี่ยนสถานะของตั๋วที่เป็น Terminal (`CLOSED`, `CANCELLED`)
+>    - บล็อกการส่งสถานะ `RESOLVED` ผ่าน endpoint `/status` โดยบังคับให้ส่งผ่าน `/resolve` พร้อมกรอก `resolutionSummary` 3-500 ตัวอักษร
+> 2. **Claim & Assign Validations (FR-14, FR-15 & AC-07)**:
+>    - ระบบเคลมตั๋วปรับสถานะ `NEW` -> `OPEN` ให้อัตโนมัติเมื่อกำหนดผู้รับผิดชอบ
+>    - ระบบ Reassign ป้องกันไม่ให้มอบหมายงานให้ Requester หรือ Inactive User (คืนค่า 422) และรองรับการปลดผู้ดูแลด้วย `ownerId: null`
+> 3. **Internal Notes Confidentiality (BR-13 & AC-05)**:
+>    - ป้องกันสิทธิ์ทั้ง POST และ GET บน `/notes` ด้วยการคืนค่า 403 แก่ Requester
+>    - ใน `GET /api/tickets/:id` ไม่มีการ Include หรือ Disclose ข้อมูล Internal Notes ใน Payload อย่างเด็ดขาด
+> 4. **Requester Resolution Indication (BR-10 & AC-12)**:
+>    - รองรับให้ Requester แจ้งว่าปัญหาได้รับการแก้ไขแล้วผ่าน Public Comment โดยไม่เปลี่ยนสถานะตั๋วเองโดยพลการ
+> 5. **Comprehensive Test Suite**:
+>    - Integration Tests ครอบคลุม 29 เคสใน `ticket-operations.api.test.ts` ทดสอบทุก Scenario และ Constraint สำคัญ ผ่าน 100%
+> 
+
+---
+
+### My comment (PR #59 for partner @titayaaa):
+
+> ### ⚠️ Request Changes on PR #59
+> 
+> จากการตรวจทานโค้ดอย่างละเอียด พบจุดบกพร่องที่ต้องแก้ไขดังนี้:
+> 
+> 1. **[Critical] ตกหล่นสถานะ `PENDING` ใน `getAllowedNextStatuses`:**
+>    - ขาด `case 'PENDING': return ['IN_PROGRESS', 'WAITING_FOR_REQUESTER', 'RESOLVED', 'CANCELLED'];`
+>    - ขาด `'PENDING'` ในรายการถัดไปของ `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`
+>    - *ปัญหา:* ตั๋วที่เป็น `PENDING` จะติดเงื่อนไข `Terminal (No Changes)` ทำให้เปลี่ยนสถานะไม่ได้เลย
+> 
+> 2. **[Bug] ขาด Priority `CRITICAL` ใน `#it-priority-select`:**
+>    - เพิ่ม `<option value="CRITICAL">Critical</option>` ให้ครบ 5 ระดับตาม Prisma Schema
+> 
+> 3. **[Code Smell] แก้ไขการเรียก React Hook ใน `try/catch`:**
+>    - ย้าย `useAuth()` ออกจากบล็อก `try/catch` เพื่อไม่ให้ผิดกฎ React Rules of Hooks
+> 
+> 4. **[UX Polishing] แสดงชื่อ Status Transition ให้เป็น Title Case:**
+>    - แปลงชื่อสถานะใน dropdown เช่น `WAITING_FOR_REQUESTER` ให้แสดงเป็น `Waiting for Requester`
+> 
+
+### Partner's response (PR #59 for partner @titayaaa):
+
+> > ### ⚠️ Request Changes on PR #59
+> > จากการตรวจทานโค้ดอย่างละเอียด พบจุดบกพร่องที่ต้องแก้ไขดังนี้:
+> > 
+> > 1. **[Critical] ตกหล่นสถานะ `PENDING` ใน `getAllowedNextStatuses`:**
+> >    
+> >    * ขาด `case 'PENDING': return ['IN_PROGRESS', 'WAITING_FOR_REQUESTER', 'RESOLVED', 'CANCELLED'];`
+> >    * ขาด `'PENDING'` ในรายการถัดไปของ `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`
+> >    * _ปัญหา:_ ตั๋วที่เป็น `PENDING` จะติดเงื่อนไข `Terminal (No Changes)` ทำให้เปลี่ยนสถานะไม่ได้เลย
+> > 2. **[Bug] ขาด Priority `CRITICAL` ใน `#it-priority-select`:**
+> >    
+> >    * เพิ่ม `<option value="CRITICAL">Critical</option>` ให้ครบ 5 ระดับตาม Prisma Schema
+> > 3. **[Code Smell] แก้ไขการเรียก React Hook ใน `try/catch`:**
+> >    
+> >    * ย้าย `useAuth()` ออกจากบล็อก `try/catch` เพื่อไม่ให้ผิดกฎ React Rules of Hooks
+> > 4. **[UX Polishing] แสดงชื่อ Status Transition ให้เป็น Title Case:**
+> >    
+> >    * แปลงชื่อสถานะใน dropdown เช่น `WAITING_FOR_REQUESTER` ให้แสดงเป็น `Waiting for Requester`
+> 
+> ขอบคุณมากเลยน้าที่ช่วยตรวจให้อย่างละเอียด! เราแก้ครบทั้ง 4 จุดตามที่สะกิดมาให้เรียบร้อยแล้ว (Commit: `9d2e307`):
+> 
+> 1. **สถานะ `PENDING`:** เพิ่มเงื่อนไข `case 'PENDING'` และใส่ `'PENDING'` ในรายการสถานะถัดไปของ `OPEN`, `IN_PROGRESS`, และ `WAITING_FOR_REQUESTER` รวมถึงเพิ่มสี badge เรียบร้อย ไม่ติด terminal แล้ว
+> 2. **Priority `CRITICAL`:** เพิ่ม `<option value="CRITICAL">Critical</option>` ใน `#it-priority-select` ครบ 5 ระดับตาม Prisma Schema แล้วน้า
+> 3. **React Rules of Hooks:** ย้าย `useAuth()` ออกมาเรียกที่ Top-level ด้านบนสุด และทำ safe fallback ให้ AuthContext ปลอดภัยตามกฎ Hooks แล้ว
+> 4. **Title Case Status:** แปลงชื่อสถานะใน dropdown เช่น `Waiting for Requester`, `In Progress` เรียบร้อย ง่ายขึ้นเยอะเลย
+> 
+> เพิ่ม Unit Test `OP-08` ตรวจสอบครบทั้ง 4 ข้อ เทสต์ฝั่ง Client ผ่านหมด 49/49 เคส และบิลด์ผ่านฉลุยแล้วจ้า รบกวนดูอีกรอบให้หน่อยน้า ขอบคุณมากๆ เลยย
+
+### My follow-up / approval (PR #59 for partner @titayaaa):
+
+> > **Peer Review: Approved (PR #59)**
+> > ตรวจทานโค้ดที่แก้ไขเพิ่มเติมใน Commit `9d2e307` ของ Issue 24 (IT Staff Ticket Operations & Confidential Notes UI) เรียบร้อยแล้ว
+> > 1. **State Transition Matrix & PENDING Support:** จัดการ State Transition ครบถ้วน รวมถึง `PENDING` ทั้งขาเข้าและขาออก ไม่เกิดปัญหาตั๋วติด Terminal ค้างอีกต่อไป
+> > 2. **Complete Priority Options:** เพิ่มตัวเลือก `CRITICAL` ใน IT Priority Select ครบทั้ง 5 ระดับตาม Prisma Schema
+> > 3. **React Rules of Hooks Compliance:** ย้าย `useAuth()` ออกมาที่ Top-level พร้อมเสริม Fallback ปลอดภัยใน `AuthContext` ถูกต้องตาม Best Practices
+> > 4. **UI Polishing & Typography:** แปลงข้อความแสดงผลสถานะใน Dropdown เป็น Title Case สวยงาม สะอาดตา ตรงตามมาตรฐาน Zen Green Design System
+> > 5. **Test Verification:** Unit Tests ทั้ง 8 เคส (OP-01 ถึง OP-08) ครอบคลุมทุกฟังก์ชัน รวมเทสต์ฝั่ง Client ผ่านครบ 49/49 เคส
+> > โค้ดมีคุณภาพสูงและแก้ไขได้ครบถ้วนสมบูรณ์
+
+---
+
+### My comment (PR #60 for partner @titayaaa):
+
+> ### ⚠️ Request Changes on PR #60
+> 
+> ตรวจทานโค้ด Issue 25 (Administrator User Management API & UI) อย่างละเอียดแล้ว โครงสร้างและ Logic ทำได้ดีมาก แต่พบจุดที่ต้องแก้ไข:
+> 
+> 1. **[Critical] Business Rule Reference ผิดทั้งหมด:**
+>    - โค้ดอ้างอิง BR-07/BR-08/BR-09/BR-10 (Ticket Workflow Rules) 
+>      แต่ควรเป็น BR-17/BR-18/BR-19 (Administrator Governance Rules) ตาม Spec Section 5.4
+>    - ต้องแก้ทั้งใน `admin.ts` comments และ `AdminUserManagement.tsx` UI labels
+> 
+> 2. **[Bug] ลำดับ Guard Logic ใน PATCH `/api/admin/users/:id`:**
+>    - ควรตรวจ Self-Deactivation Guard (BR-18) ก่อน Last Admin Protection (BR-19)
+>    - เพื่อให้ Error Message ตรงกับสถานการณ์จริง
+> 
+> 3. **[Code Smell] Missing Type Check สำหรับ `nameToUse`:**
+>    - ถ้าส่ง `fullName` เป็นค่าที่ไม่ใช่ String → `.trim()` จะ throw TypeError → ได้ 500 แทน 400
+> 
+
+### Partner's response (PR #60 for partner @titayaaa):
+
+> > ### ⚠️ Request Changes on PR #60
+> > ตรวจทานโค้ด Issue 25 (Administrator User Management API & UI) อย่างละเอียดแล้ว โครงสร้างและ Logic ทำได้ดีมาก แต่พบจุดที่ต้องแก้ไข:
+> > 
+> > 1. **[Critical] Business Rule Reference ผิดทั้งหมด:**
+> >    
+> >    * โค้ดอ้างอิง BR-07/BR-08/BR-09/BR-10 (Ticket Workflow Rules)
+> >      แต่ควรเป็น BR-17/BR-18/BR-19 (Administrator Governance Rules) ตาม Spec Section 5.4
+> >    * ต้องแก้ทั้งใน `admin.ts` comments และ `AdminUserManagement.tsx` UI labels
+> > 2. **[Bug] ลำดับ Guard Logic ใน PATCH `/api/admin/users/:id`:**
+> >    
+> >    * ควรตรวจ Self-Deactivation Guard (BR-18) ก่อน Last Admin Protection (BR-19)
+> >    * เพื่อให้ Error Message ตรงกับสถานการณ์จริง
+> > 3. **[Code Smell] Missing Type Check สำหรับ `nameToUse`:**
+> >    
+> >    * ถ้าส่ง `fullName` เป็นค่าที่ไม่ใช่ String → `.trim()` จะ throw TypeError → ได้ 500 แทน 400
+> 
+> ขอบคุณมากเลยสำหรับคำแนะนำ ละเอียดและช่วยได้มากจริง ๆ
+> 
+> เราได้นำไปแก้ไขเรียบร้อยแล้วใน commit `bbf1124` ดังนี้
+> 1. **Business Rule Reference:** อัปเดตเลขอ้างอิงเป็นหมวด Administrator Governance Rules (BR-17, BR-18, BR-19) ตาม Spec Section 5.4 ครบทั้งใน `admin.ts`, `AdminUserManagement.tsx` (UI labels), เอกสาร `reviewer.md` และ Test Suites ทั้งหมดแล้ว
+> 2. **Guard Logic Order:** สลับลำดับการตรวจเช็กใน `PATCH /api/admin/users/:id` โดยนำ Self-Deactivation Guard (BR-18) ขึ้นมาตรวจก่อน Last Admin Protection (BR-19) ทำให้ Error Message แสดงผลตรงกับการกระทำของแอดมินแล้ว
+> 3. **Type Checking:** เสริม Type Guard `typeof rawName === 'string'` ทั้งใน POST และ PATCH ป้องกัน `TypeError` จากการเรียก `.trim()` คืนค่า 400 Bad Request ได้อย่างถูกต้อง
+> 4. **Test & Build Verification:** รันเทสต์ Server ผ่านครบทั้ง 84 เคส และ Client ผ่านครบทั้ง 56 เคส รวมถึง Build ผ่านเรียบร้อย
+> 
+> รบกวนช่วยตรวจทานอีกครั้งและ Merge ได้เลย ขอบคุณมากน้า
+> 
+
+### My follow-up / approval (PR #60 for partner @titayaaa):
+
+> ขอบคุณสำหรับการแก้ไขอย่างรวดเร็วและครบถ้วนใน commit bbf1124 ตรวจสอบโค้ดซ้ำเรียบร้อยแล้ว:
+> 
+> Business Rule Reference: อัปเดตเลขอ้างอิงเป็นหมวด BR-16 ถึง BR-19 (Administrator Governance Rules) ครบถ้วนถูกต้องทั้งใน Codebase, UI Tooltips, เอกสาร และ Test Suites แล้ว
+> Guard Logic Order: สลับลำดับการตรวจเช็กใน PATCH /api/admin/users/:id ได้อย่างเหมาะสม นำ Self-Deactivation Guard (BR-18) ขึ้นมาก่อน Last Admin Protection (BR-19) ทำให้ Error Message สื่อสารตรงตามการกระทำของแอดมินชัดเจน
+> Defensive Type Checking: เสริม Type Guard typeof rawName === 'string' ทั้งใน POST และ PATCH ได้รัดกุม ป้องกัน Runtime TypeError จากการเรียก .trim() และตอบกลับ 400 Bad Request ได้อย่างถูกต้อง พร้อมมี Test Case ครอบคลุมทั้งสองจุด
+> Test & Build Verification: Server Tests (84 เคส) และ Client Tests (56 เคส) รวมถึง Build ผ่าน 100% เรียบร้อย
+> โค้ดมีคุณภาพสูงและพร้อมสำหรับการใช้งานแล้ว
+
+---
+
+### My comment (PR #61 for partner @titayaaa):
+
+> ตรวจทานโค้ด ชุดทดสอบ และเอกสารใน PR #61 ครบถ้วนเรียบร้อยแล้วครับ ถือเป็นการปิด Sprint 3 ได้อย่างยอดเยี่ยมและสมบูรณ์แบบมาก:
+> 
+> E2E Testing Suite (Playwright): ครอบคลุม User Journeys สำคัญครบทุก Role (authentication, staff-ticket-flow, user-administration, visual-evidence) รันผ่านครบ 18/18 test configurations (100% pass) ทั้ง Desktop, Tablet และ Mobile
+> Responsive Visual Quality: ตรวจสอบผ่านเกณฑ์ expectNoHorizontalOverflow ไร้ปัญหาหน้าจอล้นในทุก Viewport มีการแก้ปัญหา Bootstrap Row Margin ด้วย mx-0 และ overflow-hidden ได้อย่างตรงจุด
+> Role-Based Navigation: จัดการ Redirect แท็บเริ่มต้นหลังล็อกอินได้เหมาะสม (Admin -> User Management, IT Staff -> Queue, Requester -> Create Ticket) ช่วยเพิ่ม UX ให้ผู้ใช้งานอย่างมาก
+> Backward Compatibility: ปรับ Scoped Middleware ใน tickets.ts ได้อย่างรัดกุม ทำให้ API และ Test Suites ย้อนหลังของ Lab 2 ทำงานร่วมกันได้อย่างราบรื่น
+> Evidence & Documentation: มี Screenshot ครบทั้ง 32 ภาพใน artifacts/lab-03/screenshots/, Traceability Matrix ใน tests.md อัปเดตครบ 35 รายการ และอัปเดตคู่มือใน README.md ชัดเจน
+> (มีจุดเล็กๆ ไม่กระทบการทำงาน: แผนผัง Repository Structure ใน README.md ยังสามารถเพิ่มโฟลเดอร์ของ lab-03 เข้าไปเพิ่มเติมให้ครบถ้วนได้ครับ)
+
+---
+
+### My comment (PR #62 for partner @titayaaa):
+
+> ตรวจทานความพร้อมของ PR #62 สำหรับการ Release รวมโค้ด Lab 3 เข้าสู่ main ครบถ้วนทุกมิติแล้ว
+> 
+> Git Integrity: Fast-forwardable merge ไม่มี Conflict โค้ดสะอาดพร้อมขึ้น Production
+> Security & Business Rules: ปฏิบัติตาม BR-01 ถึง BR-19 ครบถ้วน ทั้ง Authentication, Password Rotation, RBAC 3 บทบาท และความปลอดภัยในการจัดการผู้ใช้
+> UI/UX & Responsiveness: ผ่านเกณฑ์ Zero Horizontal Overflow ครบทั้ง 3 หน้าจอ พร้อม Screenshots 32 ภาพครบ 5 หมวดหมู่
+> Test & Build: ผลเทสต์ผ่าน 100% (Server 124/124, Client 56/56, E2E 18/18) และบิลด์ผ่านฉลุย
+> Documentation: เอกสารสเปก 6 ฉบับ และประวัติการรีวิวสองทิศทางใน reviewer.md ละเอียดครบถ้วนตามเกณฑ์ Lab 3
+
+---
 
