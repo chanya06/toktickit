@@ -22,6 +22,7 @@
   - `OPEN`: Green (`#DCFCE7` BG, `#15803D` Text)
   - `IN_PROGRESS`: Amber (`#FEF3C7` BG, `#B45309` Text)
   - `WAITING_FOR_REQUESTER`: Purple (`#F3E8FF` BG, `#6B21A8` Text)
+  - `PENDING`: Slate Grey (`#E2E8F0` BG, `#475569` Text)
   - `RESOLVED`: Emerald (`#D1FAE5` BG, `#065F46` Text)
   - `CLOSED`: Dark Slate (`#E2E8F0` BG, `#334155` Text)
   - `REOPENED`: Orange (`#FFEDD5` BG, `#C2410C` Text)

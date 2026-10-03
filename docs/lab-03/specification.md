@@ -271,14 +271,14 @@ See [api-spec.md](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/
 ---
 
 ## 10. Definition of Done
-- [ ] Database schema migrated and seeded with active/inactive users across 3 roles, tickets, comments, and notes.
-- [ ] Authentication API (`login`, `logout`, `me`, `change-password`) implemented and tested.
-- [ ] Requester regression verified: tickets and attachments protected by session-based authorization.
-- [ ] IT Staff Ticket Queue UI and API implemented with search, filtering, sorting, pagination.
-- [ ] IT Staff Ticket Detail UI implemented with claim/reassign, IT Priority, status transitions, Public Comments, and Internal Notes.
-- [ ] Administrator User Management UI and API implemented with search, filter, create user, edit user, set initial password, and safety rules.
-- [ ] All unit, integration, UI, authorization, and E2E tests passing.
-- [ ] Rendered documentation (`specification.md`, `ui-spec.md`, `api-spec.md`, `tests.md`, `reviewer.md`, `ai-use.md`) complete.
+- [x] Database schema migrated and seeded with active/inactive users across 3 roles, tickets, comments, and notes.
+- [x] Authentication API (`login`, `logout`, `me`, `change-password`) implemented and tested.
+- [x] Requester regression verified: tickets and attachments protected by session-based authorization.
+- [x] IT Staff Ticket Queue UI and API implemented with search, filtering, sorting, pagination.
+- [x] IT Staff Ticket Detail UI implemented with claim/reassign, IT Priority, status transitions, Public Comments, and Internal Notes.
+- [x] Administrator User Management UI and API implemented with search, filter, create user, edit user, set initial password, and safety rules.
+- [x] All unit, integration, UI, authorization, and E2E tests passing.
+- [x] Rendered documentation (`specification.md`, `ui-spec.md`, `api-spec.md`, `tests.md`, `reviewer.md`, `ai-use.md`) complete.
 
 ---
 
