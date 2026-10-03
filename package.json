@@ -6,7 +6,9 @@
   "scripts": {
     "test:server": "npm run test --prefix server",
     "test:client": "npm run test --prefix client",
-    "test:e2e": "npx playwright test"
+    "test:e2e": "npx playwright test",
+    "generate-pdf:lab2": "node scripts/generate-pdf.js",
+    "generate-pdf:lab3": "node scripts/generate-pdf-lab3.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1"
