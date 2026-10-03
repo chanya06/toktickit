@@ -22,6 +22,7 @@
 | [PR #65](https://github.com/chanya06/toktickit/pull/65) | `feature/26-admin-user-management` | Approved |
 | [PR #66](https://github.com/chanya06/toktickit/pull/66) | `feature/27-admin-user-management-ui` | Approved |
 | [PR #70](https://github.com/chanya06/toktickit/pull/70) | `feature/28-qa-automated-tests-release-integration` | Approved |
+| [PR #71](https://github.com/chanya06/toktickit/pull/71) | `lab3-staging` | In Review |
 
 ---
 
