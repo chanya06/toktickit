@@ -110,8 +110,10 @@ The Git commit graph confirms that all 12 sprint feature branches were merged in
 ```
 
 ### 1.4 GitHub Project & Kanban Board Evidence
-- **GitHub Project Board URL**: [https://github.com/users/chanya06/projects/1](https://github.com/users/chanya06/projects/1)
-- **Board Completion Status**: All 12 Sprint 3 engineering issues are tracked and moved to the **Done** column:
+- **GitHub Project Board URL**: [https://github.com/users/chanya06/projects/3](https://github.com/users/chanya06/projects/3)
+- **Board Completion Status**: All 12 Sprint 3 engineering issues are tracked and moved to the **Done** column (28 completed items across the repository lifecycle):
+
+![GitHub Project Kanban Board — TokTickIT Individual Sprints](../../artifacts/lab-03/screenshots/kanban/project-board.png)
 
 | Issue # | Issue Title / Scope | Primary Artifacts | Status |
 | :--- | :--- | :--- | :--- |
