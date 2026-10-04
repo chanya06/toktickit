@@ -112,7 +112,7 @@ async function main() {
     }
     a {
       color: #006B3C;
-      text-decoration: none;
+      text-decoration: underline;
       font-weight: 500;
     }
     code {

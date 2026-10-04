@@ -7,6 +7,7 @@
 | **Peer Reviewer** | Peer Reviewer (`lmaybelgracel`) |
 | **Partner Reviewed by Author** | `titayaaa` |
 | **Repository & Branch** | [`chanya06/toktickit`](https://github.com/chanya06/toktickit) — `main` branch |
+| **GitHub Project Board** | [Backlog · TokTickIT Individual Sprints (Board #3)](https://github.com/users/chanya06/projects/3) |
 | **Release PR** | [PR #71](https://github.com/chanya06/toktickit/pull/71) (`lab3-staging` -> `main` merged) |
 | **Final Test Metric** | **277 / 277 Automated Tests Passed (100% Pass)** (Server: 149, Client: 116, Playwright E2E: 12) |
 | **Build Status** | Clean Production Build (`tsc && vite build`) |
