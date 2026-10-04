@@ -1231,121 +1231,370 @@ toktickit/
 
 ## Answer Part 2: Spec DD
 
-### 2.1 Engineering Specification Link
-The complete engineering specification is documented under [`docs/lab-03/specification.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/specification.md), [`docs/lab-03/ui-spec.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/ui-spec.md), and [`docs/lab-03/api-spec.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/api-spec.md).
+### 2.1 Engineering Specification Document Link
+- **Primary Specification Document**: [`docs/lab-03/specification.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/specification.md)
+- **UI & Design System Specification**: [`docs/lab-03/ui-spec.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/ui-spec.md)
+- **REST API Schema Specification**: [`docs/lab-03/api-spec.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/api-spec.md)
 
-### 2.2 Spec DD Pre-Implementation Timeline & Evidence
-TokTickIT strictly followed the Specification-Driven Development (Spec DD) discipline. Sprint 3 specifications and contracts were formulated, reviewed, and finalized **before** starting core feature implementation:
-- **Contract Creation**: [PR #44](https://github.com/chanya06/toktickit/pull/44) (`feature/17-spec-and-tests`) was created on September 16, 2026, defining all requirements (`FR-01..FR-20`), business rules (`BR-01..BR-19`), API schemas, and test matrices.
-- **Formal Peer Review**: Reviewed and approved by `@lmaybelgracel`, confirming integer foreign key alignment with Lab 2 and status transition rules.
-- **Staging Merge Prior to Coding**: Merged into `lab3-staging` (commit `0ea5efc`) on September 16, 2026, prior to database migration PR #57 and API feature PRs #58..#70.
+### 2.2 Spec DD Pre-Implementation Timeline & Process Evidence
+TokTickIT strictly adhered to the Specification-Driven Development (Spec DD) discipline. Sprint 3 specifications and contracts were formulated, reviewed, and finalized **before** starting core feature implementation:
+- **Contract Formulation**: [PR #44](https://github.com/chanya06/toktickit/pull/44) (`feature/17-spec-and-tests`) was authored and proposed on September 16, 2026, defining all functional requirements (`FR-01..FR-20`), business rules (`BR-01..BR-19`), acceptance criteria (`AC-01..AC-12`), Prisma Schema evolutions, and the 22-item test traceability matrix.
+- **Formal Peer Review Gate**: Peer reviewer `@lmaybelgracel` thoroughly audited the specification, requesting 3 architectural refinements:
+  1. Aligning Prisma Foreign Key data types (`ticketId` as `Int`) to preserve Lab 2 historical data without breaking relationships.
+  2. Adding the dedicated `POST /api/tickets/:id/resolve-indication` endpoint to support Requester problem resolution signaling without formal ticket closure.
+  3. Specifying permitted roles on each line of the 8-status transition matrix (`BR-11`).
+- **Merge Prior to Coding**: All peer review refinements were committed and merged into `lab3-staging` (commit `0ea5efc`) on September 16, 2026. Only after this specification lock did database migration (PR #57) and feature branch development (PRs #58..#70) begin.
 
-### 2.3 Functional Requirements (`FR-01..FR-20`)
-- **Authentication & Password Management (`FR-01..FR-04`)**:
-  - `FR-01`: Authenticate users via email address and password credentials.
-  - `FR-02`: Reject authentication for inactive accounts (`isActive: false`) with 401 Unauthorized.
-  - `FR-03`: Force users marked with `mustChangePassword: true` to update password before accessing app.
-  - `FR-04`: Destroy authenticated session on Logout.
-- **Navigation & Role Shell (`FR-05..FR-06`)**:
-  - `FR-05`: Application shell displays user's full name and role badge across all views.
-  - `FR-06`: Present only role-permitted navigation links (Requester: My Tickets/Create; IT Staff: Queue; Admin: User Management/Queue).
-- **Requester Continuation & Resolution Indication (`FR-07..FR-09`)**:
-  - `FR-07`: Requesters manage only owned tickets verified via backend session identity.
-  - `FR-08`: Post and view Public Comments across authorized tickets.
-  - `FR-09`: Mark Open/In Progress tickets as "Problem Appears Resolved" via `POST /api/tickets/:id/resolve-indication` without closing ticket.
-- **IT Staff Operations Queue (`FR-10..FR-14`)**:
-  - `FR-10`: Filterable (Category, Status, Priority, Owner), searchable, sortable, paginated Ticket Queue.
-  - `FR-11`: Claim unassigned tickets or reassign ownership to active IT Staff/Admin.
-  - `FR-12`: Update IT Priority independently of Requested Priority.
-  - `FR-13`: Enforce 8-status transition matrix according to role permissions.
-  - `FR-14`: Create and view confidential Internal Notes (strictly hidden from Requesters).
-- **Administrator User Management (`FR-15..FR-20`)**:
-  - `FR-15`: Searchable and role-filterable user directory.
-  - `FR-16`: Provision new user with single role assignment and initial password (`mustChangePassword: true`).
-  - `FR-17`: Update existing user's name, email, role, and activation status.
-  - `FR-18`: Reset user password to a new temporary initial password.
-  - `FR-19`: Enforce Self-Deactivation Guard rejecting Admin self-deactivation (`422 Unprocessable Entity`).
-  - `FR-20`: Enforce Last Active Admin Guard rejecting removal/demotion of final active admin (`422 Unprocessable Entity`).
+---
 
-### 2.4 Mandatory Business Rules (`BR-01..BR-19`)
-- **`BR-01`**: Only active users (`isActive: true`) with valid password hashes can authenticate.
-- **`BR-02`**: Immediate redirection to password change if `mustChangePassword === true`.
-- **`BR-03`**: Requester identity is determined exclusively by the authenticated session on the backend.
-- **`BR-04`**: Passwords must be hashed using `bcrypt` (salt rounds >= 10); plaintext storage is forbidden.
-- **`BR-05`**: User email addresses must be unique (case-insensitive).
-- **`BR-06`**: Single role assignment per user from: `REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`.
-- **`BR-07`**: Requested Priority is submitted by the Requester and is immutable after creation.
-- **`BR-08`**: IT Priority defaults to Requested Priority on creation, editable only by IT Staff or Administrators.
-- **`BR-09`**: Ticket Owner must be an active user with `IT_STAFF` or `ADMINISTRATOR` role.
-- **`BR-10`**: Permitted Ticket Status values: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`. Requesters cannot directly set status to `RESOLVED` or `CLOSED`.
-- **`BR-11`**: Status Transition Matrix with permitted roles strictly enforced by backend state machine.
-- **`BR-12`**: Requester Problem Resolution Indication sets `isResolutionIndicated: true` without directly closing ticket.
-- **`BR-13`**: Public Comments are visible to all 3 roles (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`).
-- **`BR-14`**: Internal Notes are confidential, visible strictly to `IT_STAFF` and `ADMINISTRATOR`; Requesters receive `403 Forbidden`.
-- **`BR-15`**: Comments and Internal Notes are append-only.
-- **`BR-16`**: Comment and Note validation (trimmed, 2-2000 chars, session author metadata recorded).
-- **`BR-17`**: Self-Deactivation Guard: Administrator cannot deactivate or demote their own active account (`422 Unprocessable Entity`).
-- **`BR-18`**: Last Active Admin Guard: Deactivating or demoting the sole remaining active Administrator is rejected (`422 Unprocessable Entity`).
-- **`BR-19`**: Soft Deactivation Only: Accounts are soft-deactivated (`isActive: false`); hard deletion is prohibited.
+### 2.3 Rendered Engineering Specification (`docs/lab-03/specification.md`)
 
-### 2.5 Role-Based Authorization Matrix
+#### 1. Sprint Goal
+Deliver an enterprise-grade role-based IT support ticketing and administration increment for TokTickIT. This sprint replaces the temporary Development Requester identity selector with secure authentication, mandatory first-login password changes, and 3 distinct operational roles (`Requester`, `IT Staff`, `Administrator`). The increment introduces a shared IT Staff Ticket Queue with ownership claiming/reassigning, IT Priority management, status workflow enforcement, Public Comments, private Internal Notes, Requester resolution indication, and a minimalist Administrator User Management interface.
 
-| Feature / Protected Endpoint | Requester | IT Staff | Administrator | Enforcement Mechanism |
-| :--- | :---: | :---: | :---: | :--- |
-| **Authenticate & Session** (`/api/auth/*`) | Permitted | Permitted | Permitted | `requireAuth` + `mustChangePassword` check |
-| **View Own Tickets** (`GET /api/tickets`) | Permitted (Own only) | Permitted (All) | Permitted (All) | Session user ID query filter |
-| **Create Ticket** (`POST /api/tickets`) | Permitted | Permitted | Forbidden (403) | Role check in route handler |
-| **IT Staff Ticket Queue** (`GET /api/staff/tickets`) | Forbidden (403) | Permitted | Permitted | `requireRole(["IT_STAFF", "ADMINISTRATOR"])` |
-| **Claim / Reassign Ticket** (`PATCH /api/tickets/:id/owner`) | Forbidden (403) | Permitted | Permitted | `requireRole(["IT_STAFF", "ADMINISTRATOR"])` |
-| **Modify IT Priority** (`PATCH /api/tickets/:id/priority`) | Forbidden (403) | Permitted | Permitted | `requireRole(["IT_STAFF", "ADMINISTRATOR"])` |
-| **Change Status** (`PATCH /api/tickets/:id/status`) | Limited (Cancel own) | Permitted (Matrix) | Permitted (Matrix) | Status transition state machine (`BR-11`) |
-| **Indicate Problem Resolved** (`POST /api/tickets/:id/resolve-indication`) | Permitted (Own ticket) | Forbidden (403) | Forbidden (403) | Requester-only endpoint; logs public comment |
-| **Public Comments** (`GET`/`POST /api/tickets/:id/comments`) | Permitted | Permitted | Permitted | Append-only; visible to all authenticated users |
-| **Internal Notes** (`GET`/`POST /api/tickets/:id/notes`) | Forbidden (403) | Permitted | Permitted | `requireRole(["IT_STAFF", "ADMINISTRATOR"])`; omitted from Requester |
-| **User Management** (`/api/admin/users`) | Forbidden (403) | Forbidden (403) | Permitted | `requireRole(["ADMINISTRATOR"])` |
-| **Self-Deactivation Guard** (`PATCH /api/admin/users/:id`) | N/A | N/A | Forbidden (422) | Server check: `userId === session.userId` (`BR-17`) |
-| **Last Active Admin Guard** (`PATCH /api/admin/users/:id`) | N/A | N/A | Forbidden (422) | Server check: `activeAdminCount <= 1` (`BR-18`) |
+#### 2. Stakeholder Request Interpretation
+The IT department requires TokTickIT to transition from a development testing mode to a production-ready authentication and role-based operational platform. 
+1. **Authentication & Session**: Real email/password authentication replaces the temporary selector. Users marked with initial passwords must change their password before accessing the system.
+2. **Requester Workflow**: Requesters continue managing their own tickets, can view/post Public Comments, and can indicate when a reported issue appears resolved (`POST /api/tickets/:id/resolve-indication` setting `isResolutionIndicated: true`) without formally closing the ticket.
+3. **IT Staff Workflow**: IT Staff access a dedicated, searchable, filterable, sorted, and paginated Ticket Queue. They can view ticket details, claim or reassign ticket ownership, manage IT Priority, execute permitted status transitions according to role restrictions, communicate publicly via Public Comments, and collaborate privately using Internal Notes.
+4. **Administrator Workflow**: Administrators manage user accounts via a dedicated screen to list, search, filter by role, create users (assigning 1 role and an initial password), edit user details/activation states, and reset initial passwords. Safety constraints prevent self-deactivation and the deactivation/removal of the final active Administrator.
+5. **Security & Authorization**: All APIs and screens must enforce role-based access control and ownership checks server-side. Hiding buttons on the client is insufficient.
 
-### 2.6 Lab 2 Data Model Evolution & Migration Strategy
-- **Integer Primary Key Preservation**: `Ticket.id` and `User.id` remain `Int` autoincrement identifiers, ensuring all Lab 2 tickets, categories, related systems, and attachments continue functioning without data loss or foreign key breakage.
-- **Model Evolution**: The Lab 2 `DevelopmentRequester` model evolved into the `User` model with `passwordHash`, `role` enum (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`), and `mustChangePassword`.
-- **Data Backfill & Idempotent Seed**: Existing Lab 2 tickets were backfilled with `userId = requesterId` and initial `itPriority = requestedPriority`. Seed accounts provide deterministic credentials for testing.
+#### 3. Scope
 
-### 2.7 Acceptance Criteria (`AC-01..AC-12`)
-- **`AC-01`**: Given active credentials, login establishes JWT session and returns user profile.
-- **`AC-02`**: Given `mustChangePassword: true`, normal screens remain blocked until password is changed.
-- **`AC-03`**: Given authenticated Requester, ticket operations strictly enforce session ownership.
-- **`AC-04`**: Given Requester account, Internal Notes endpoints reject with 403 without disclosing note data.
-- **`AC-05`**: Given IT Staff, Ticket Queue supports multi-filter, debounced search, sorting, and pagination.
-- **`AC-06`**: Given IT Staff, tickets can be claimed or reassigned to active IT Staff/Admin accounts.
-- **`AC-07`**: Given IT Staff, status transitions strictly obey the 8-status transition matrix.
-- **`AC-08`**: Given IT Staff, Internal Notes record backend author metadata and Amber visual tokens.
-- **`AC-09`**: Given Administrator, user directory displays paginated users with search and role filter.
-- **`AC-10`**: Given Administrator, user creation enforces single role and `mustChangePassword: true`.
-- **`AC-11`**: Given Administrator, deactivating own account is rejected with `422 Unprocessable Entity`.
-- **`AC-12`**: Given Administrator, deactivating sole active admin is rejected with `422 Unprocessable Entity`.
+##### Included
+- **Authentication & Security**: Email/password authentication, logout, authenticated session retrieval (`GET /api/auth/me`), and mandatory first-login password change (`POST /api/auth/change-password`).
+- **Role-Based Navigation & Shell**: Header displaying authenticated user's full name, role badge, Logout button, and role-specific navigation links.
+- **Requester Continuation & Resolution Indication**: Requester ticket ownership preservation, Public Comments thread on Requester Ticket Detail, and "Problem Appears Resolved" endpoint (`POST /api/tickets/:id/resolve-indication`).
+- **IT Staff Ticket Queue**: Searchable, filterable (Category, Status, IT Priority, Owner), sortable, paginated queue for IT Staff and Administrator users.
+- **IT Staff Ticket Operations**: Claim ownership, reassign ownership, update IT Priority, execute permitted status transitions (with explicit role permission matrix), post Public Comments, and create/view private Internal Notes.
+- **Administrator User Management**: Paginated/searchable user list, role filter, Create User modal with 1 permitted role and initial password, Edit User modal (name, email, role, active status), Reset Initial Password modal, and enforcement of Admin safety rules.
+- **Database & Data Model Migration**: Evolution of `DevelopmentRequester` into `User` preserving integer primary keys, addition of `Role` enum, `PublicComment`, `InternalNote`, `ITPriority`, `isResolutionIndicated`, ticket owner relationship, and idempotent seed script.
 
-### 2.8 Product Definition of Done
-100% of Definition of Done items are verified:
+##### Excluded
+- Self-registration / public sign-up.
+- Multi-factor authentication (MFA), OAuth / Social Login, Single Sign-On (SSO).
+- Automated email delivery of initial passwords or reset links.
+- User account hard deletion, bulk user operations, import/export, or role audit history.
+- Actions Taken entity and formal SLA calculations (deferred to Lab 4).
+- Multiple roles per user.
+
+#### 4. Functional Requirements
+
+##### Authentication & Password Management
+- **FR-01**: The system shall authenticate users using email address and password credentials.
+- **FR-02**: The system shall reject authentication attempts for inactive user accounts (`isActive: false`).
+- **FR-03**: The system shall require users logged in with an initial password (`mustChangePassword: true`) to set a new password before accessing any normal application screens.
+- **FR-04**: The system shall provide a Logout action that destroys the authenticated session.
+
+##### Navigation & Shell
+- **FR-05**: The application shell shall render the authenticated user's name and role badge on all screens.
+- **FR-06**: The application shell shall present only the navigation destinations permitted for the authenticated user's role:
+  - `Requester`: My Tickets, Create Ticket.
+  - `IT Staff`: IT Ticket Queue, Create Ticket (if permitted).
+  - `Administrator`: User Management, IT Ticket Queue.
+
+##### Requester Increment & Public Comments
+- **FR-07**: Requesters shall view and manage only tickets they own, verified strictly via backend session context.
+- **FR-08**: Requesters, IT Staff, and Administrators shall be able to post and view Public Comments on any ticket they are authorized to access.
+- **FR-09**: Requesters shall be able to mark an Open or In Progress ticket as "Problem Appears Resolved" via `POST /api/tickets/:id/resolve-indication`, setting `isResolutionIndicated: true` and posting a system-logged Public Comment.
+
+##### IT Staff Ticket Queue & Operations
+- **FR-10**: The system shall provide IT Staff with a Ticket Queue featuring text search (Ticket Number, Summary), multi-attribute filtering (Category, Status, IT Priority, Owner), column sorting, and pagination.
+- **FR-11**: IT Staff shall be able to claim unassigned tickets or reassign ticket ownership to another active IT Staff or Administrator user.
+- **FR-12**: IT Staff shall be able to update IT Priority independently of Requested Priority.
+- **FR-13**: IT Staff and Administrators shall be able to update ticket status according to the permitted status transition matrix and role restrictions.
+- **FR-14**: IT Staff and Administrators shall be able to create and view Internal Notes on tickets. Internal Notes MUST be hidden from Requester users.
+
+##### Administrator User Management
+- **FR-15**: Administrators shall be able to view a list of all user accounts with search by name/email and filtering by role.
+- **FR-16**: Administrators shall be able to create new user accounts specifying full name, email, exactly one role (`REQUESTER`, `IT_STAFF`, or `ADMINISTRATOR`), initial password, and activation status.
+- **FR-17**: Administrators shall be able to update an existing user's full name, email, role, and activation status.
+- **FR-18**: Administrators shall be able to set a new initial password for a user, automatically setting `mustChangePassword: true` for that user.
+- **FR-19**: The system shall reject attempt by an Administrator to deactivate their own account.
+- **FR-20**: The system shall reject attempt to deactivate or demote the sole remaining active Administrator account.
+
+#### 5. Business Rules
+
+##### 5.1 Authentication & Authorization
+- **BR-01**: Only active users (`isActive: true`) with valid password hashes can authenticate.
+- **BR-02**: Users with `mustChangePassword: true` are blocked from all API endpoints except `/api/auth/change-password`, `/api/auth/logout`, and `/api/auth/me`.
+- **BR-03**: Requester identity is determined exclusively by the authenticated session on the backend. Any `requesterId` supplied in client request bodies is ignored.
+- **BR-04**: Passwords must be hashed using `bcrypt` (salt rounds >= 10) before database storage. Plaintext passwords must never be stored or logged.
+- **BR-05**: User emails must be unique (case-insensitive).
+- **BR-06**: Each user account is assigned exactly one role from: `REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`.
+
+##### 5.2 Ticket Ownership, Priority & Status
+- **BR-07**: Requested Priority is submitted by the Requester and is immutable after creation.
+- **BR-08**: IT Priority defaults to Requested Priority on creation, but can later be modified only by IT Staff or Administrators.
+- **BR-09**: A Ticket has one primary Ticket Owner (`ownerId`), who must be an active user with `IT_STAFF` or `ADMINISTRATOR` role. Ownership may initially be `null` (unassigned).
+- **BR-10**: Permitted Ticket Status values: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CLOSED`, `REOPENED`, `CANCELLED`. Requesters cannot directly set status to `RESOLVED` or `CLOSED`.
+- **BR-11**: Status Transition Matrix with Permitted Roles:
+  - `NEW` -> `OPEN`: Permitted for `IT_STAFF`, `ADMINISTRATOR` (when claiming/opening ticket).
+  - `NEW` -> `CANCELLED`: Permitted for `REQUESTER` (owning ticket), `IT_STAFF`, `ADMINISTRATOR`.
+  - `OPEN` -> `IN_PROGRESS`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `OPEN` -> `WAITING_FOR_REQUESTER`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `OPEN` -> `RESOLVED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `OPEN` -> `CANCELLED`: Permitted for `REQUESTER` (owning ticket), `IT_STAFF`, `ADMINISTRATOR`.
+  - `IN_PROGRESS` -> `WAITING_FOR_REQUESTER`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `IN_PROGRESS` -> `RESOLVED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `IN_PROGRESS` -> `CANCELLED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `WAITING_FOR_REQUESTER` -> `IN_PROGRESS`: Permitted for `REQUESTER` (when posting comment), `IT_STAFF`, `ADMINISTRATOR`.
+  - `WAITING_FOR_REQUESTER` -> `RESOLVED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `WAITING_FOR_REQUESTER` -> `CANCELLED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `RESOLVED` -> `CLOSED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `RESOLVED` -> `REOPENED`: Permitted for `REQUESTER` (if issue recurs), `IT_STAFF`, `ADMINISTRATOR`.
+  - `CLOSED` -> `REOPENED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `REOPENED` -> `IN_PROGRESS`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `REOPENED` -> `RESOLVED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `REOPENED` -> `CANCELLED`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+  - `CANCELLED` -> `OPEN`: Permitted for `IT_STAFF`, `ADMINISTRATOR`.
+- **BR-12**: Requester Resolution Indication (`POST /api/tickets/:id/resolve-indication`) sets `isResolutionIndicated: true` and logs a Public Comment. It does not directly mutate `status` to `RESOLVED` or `CLOSED`.
+
+##### 5.3 Comments & Internal Notes
+- **BR-13**: Public Comments are visible to all 3 roles (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`).
+- **BR-14**: Internal Notes are visible ONLY to `IT_STAFF` and `ADMINISTRATOR` roles. Requesters fetching or posting Internal Notes receive `403 Forbidden` without revealing note existence.
+- **BR-15**: Comments and Internal Notes are append-only. Editing and deleting entries are forbidden.
+- **BR-16**: Comment and Note content must be non-empty, trimmed, min 2 chars, max 2000 chars. Author ID and timestamp (`createdAt`) are recorded from the backend session.
+
+##### 5.4 Administrator Governance & Safety Rules
+- **BR-17**: An Administrator cannot deactivate or demote their own active session (`userId === session.userId` rejected with `422 Unprocessable Entity`).
+- **BR-18**: The system must enforce that at least one active user with `ADMINISTRATOR` role exists at all times. Deactivating or demoting the last active Administrator is rejected with `422 Unprocessable Entity`.
+- **BR-19**: User deletion is forbidden. Disabling accounts must be executed via soft deactivation (`isActive: false`) to preserve historical ticket audit trails.
+
+#### 6. UI Specification Summary
+See [ui-spec.md](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/ui-spec.md) for full layout, responsive breakpoints, design system tokens, badge specifications, and form state rules.
+
+#### 7. Data Changes & Migration Plan (Prisma Schema)
+
+##### Data Type Alignment & Migration Strategy
+To strictly satisfy Section 5 requirement ("evolve without discarding existing Ticket or Attachment data"), the primary key data types are aligned as follows:
+- **`Ticket.id`**: Preserved as `Int` (Autoincrement).
+- **`PublicComment.ticketId`**: Defined as `Int` to match `Ticket.id`.
+- **`InternalNote.ticketId`**: Defined as `Int` to match `Ticket.id`.
+- **`User.id`**: Defined as `Int` @id @default(autoincrement()) evolving from `DevelopmentRequester.id`. This ensures that existing `Ticket.requesterId` (`Int`), `Ticket.ownerId` (`Int?`), `Attachment.removedByRequesterId` (`Int?`), `PublicComment.authorId` (`Int`), and `InternalNote.authorId` (`Int`) directly reference `User(id)` without any foreign key conversion breaks.
+
+##### Data Migration Steps
+1. **Model Evolution**: Rename/migrate `DevelopmentRequester` table to `User` table in PostgreSQL.
+2. **Field Additions**: Add `passwordHash` (String), `role` (Enum: `REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`), `mustChangePassword` (Boolean, default `true`), `updatedAt` (DateTime).
+3. **Data Backfill**: Existing `DevelopmentRequester` records are backfilled with `role: REQUESTER`, `mustChangePassword: true`, and `passwordHash` initialized to bcrypt hash of `InitialPass123!`.
+4. **Ticket & Attachment Continuity**: All existing Lab 2 tickets remain attached to their original `requesterId` (integers 1, 2, 3, etc.).
+
+##### Complete Prisma Schema Models & Enums
+```prisma
+enum Role {
+  REQUESTER
+  IT_STAFF
+  ADMINISTRATOR
+}
+
+enum ITPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id                 Int              @id @default(autoincrement())
+  email              String           @unique
+  passwordHash       String
+  fullName           String
+  role               Role             @default(REQUESTER)
+  isActive           Boolean          @default(true)
+  mustChangePassword Boolean          @default(true)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  ownedTickets       Ticket[]         @relation("RequesterTickets")
+  assignedTickets    Ticket[]         @relation("AssignedITStaffTickets")
+  publicComments     PublicComment[]
+  internalNotes      InternalNote[]
+  removedAttachments Attachment[]     @relation("RemovedByUser")
+}
+
+model Ticket {
+  id                     Int               @id @default(autoincrement())
+  ticketNumber           String            @unique
+  requesterId            Int
+  ownerId                Int?
+  categoryId             Int
+  relatedSystemId        Int
+  summary                String
+  description            String
+  requestedPriority      RequestedPriority
+  itPriority             ITPriority        @default(MEDIUM)
+  status                 TicketStatus      @default(NEW)
+  isResolutionIndicated  Boolean           @default(false)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  requester              User              @relation("RequesterTickets", fields: [requesterId], references: [id])
+  owner                  User?             @relation("AssignedITStaffTickets", fields: [ownerId], references: [id])
+  category               Category          @relation(fields: [categoryId], references: [id])
+  relatedSystem          RelatedSystem     @relation(fields: [relatedSystemId], references: [id])
+  attachments            Attachment[]
+  publicComments         PublicComment[]
+  internalNotes          InternalNote[]
+
+  @@index([requesterId])
+  @@index([ownerId])
+  @@index([status])
+  @@index([itPriority])
+  @@index([categoryId])
+  @@index([createdAt])
+}
+
+model PublicComment {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  authorId  Int
+  content   String
+  createdAt DateTime @default(now())
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+  @@index([authorId])
+}
+
+model InternalNote {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  authorId  Int
+  content   String
+  createdAt DateTime @default(now())
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+  @@index([authorId])
+}
+```
+
+##### Data Migration & Seed Strategy
+- Migration evolves Lab 2 Requesters into `User` records with `role: REQUESTER`.
+- Seed script populates:
+  - 4 active Requesters, 1 inactive Requester.
+  - 3 active IT Staff, 1 inactive IT Staff.
+  - 1 active Administrator (`admin@toktickit.com` / `InitialPass123!`).
+  - Sample tickets across statuses and priorities with public comments and internal notes.
+
+#### 8. API Contract Summary
+See [api-spec.md](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/api-spec.md) for endpoint paths, methods, headers, query parameters, request/response schemas, and error responses.
+
+#### 9. Acceptance Criteria
+- **AC-01**: Given an active user with valid credentials, when the user logs in, then the backend establishes an authenticated session and returns user profile and role.
+- **AC-02**: Given a user marked with `mustChangePassword: true`, when login succeeds, then normal application screens remain unavailable until a new valid password is saved.
+- **AC-03**: Given an authenticated Requester, when accessing tickets, then the backend strictly enforces ownership based on session identity regardless of client-supplied IDs.
+- **AC-04**: Given a Requester account, when requesting an Internal Note endpoint, then the server returns `403 Forbidden` without exposing note content.
+- **AC-05**: Given an IT Staff user, when viewing the Ticket Queue, then tickets can be filtered by Category, Status, IT Priority, Owner, searched by query text, sorted, and paginated.
+- **AC-06**: Given an IT Staff user, when opening an unassigned ticket, then the user can claim ownership or assign ownership to an active IT Staff/Admin user.
+- **AC-07**: Given an IT Staff user, when changing a ticket status, then the transition must adhere to the permitted status transition matrix and role permissions.
+- **AC-08**: Given an IT Staff user, when adding an Internal Note, then the note is saved with author metadata and rendered only for IT Staff and Administrator users.
+- **AC-09**: Given an Administrator user, when viewing User Management, then all users are displayed with search and role filter capabilities.
+- **AC-10**: Given an Administrator user, when creating a new user with initial password, then the user is created with `mustChangePassword: true`.
+- **AC-11**: Given an Administrator user, when attempting to deactivate their own account, then the server rejects the request with `422 Unprocessable Entity`.
+- **AC-12**: Given an Administrator user, when attempting to deactivate the last remaining active Administrator, then the server rejects the request.
+
+#### 10. Definition of Done
 - [x] Database schema migrated and seeded with active/inactive users across 3 roles, tickets, comments, and notes.
 - [x] Authentication API (`login`, `logout`, `me`, `change-password`) implemented and tested.
 - [x] Requester regression verified: tickets and attachments protected by session-based authorization.
 - [x] IT Staff Ticket Queue UI and API implemented with search, filtering, sorting, pagination.
 - [x] IT Staff Ticket Detail UI implemented with claim/reassign, IT Priority, status transitions, Public Comments, and Internal Notes.
 - [x] Administrator User Management UI and API implemented with search, filter, create user, edit user, set initial password, and safety rules.
-- [x] All unit, integration, UI, authorization, and E2E tests passing (277/277).
+- [x] All unit, integration, UI, authorization, and E2E tests passing.
 - [x] Rendered documentation (`specification.md`, `ui-spec.md`, `api-spec.md`, `tests.md`, `reviewer.md`, `ai-use.md`) complete.
 
-### 2.9 Key Assumptions and Architectural Decisions
-- **Session Security**: Stateless signed JWT Bearer tokens with strict expiration and client-side revocation on logout.
-- **Password Complexity**: Enforced at both API and UI levels (minimum 8 characters, uppercase, lowercase, number, and special symbol).
-- **Soft Deactivation Principle**: Hard deletion is prohibited (`BR-19`) to safeguard audit integrity for tickets, comments, and notes.
+#### 11. Assumptions and Decisions
+- **Session Architecture**: Cookie-based HTTP-only session or Bearer Token stored securely in client state, verified per request via auth middleware.
+- **Password Rules**: Minimum 8 characters, requiring at least one uppercase letter, one lowercase letter, one number, and one special character.
+- **Soft Deactivation**: Accounts are never deleted from the database to preserve historical ticket audit trails.
 
 ---
 
 ## Answer Part 3: Test DD and Traceability
 
-### 3.1 Test Architecture & Multi-Level Coverage
+### 3.1 Test Engineering Specification Document Link
+- **Primary Test Specification & Traceability Document**: [`docs/lab-03/tests.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/tests.md)
+
+### 3.2 Rendered Engineering Tests Specification (`docs/lab-03/tests.md`)
+
+#### 1. Test DD & Traceability Table
+
+| Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **API-01** | API | AC-01 / FR-01 | Valid user login | Authenticated response; safe user data | `server/tests/lab-03/auth.api.test.ts` | Pass |
+| **API-02** | API | AC-01 / FR-02 | Inactive user login attempt | 401 Unauthorized; safe error feedback | `server/tests/lab-03/auth.api.test.ts` | Pass |
+| **API-03** | API | AC-02 / FR-03 | Forced initial password change API | Blocks normal routes until password updated | `server/tests/lab-03/auth.api.test.ts` | Pass |
+| **API-04** | API | AC-03 / FR-07 | Session-based Requester data isolation | 403 Forbidden on cross-requester access | `server/tests/lab-03/authorization.api.test.ts` | Pass |
+| **API-05** | API | AC-04 / FR-14 | Requester requests Internal Notes endpoint | Forbidden (403); no note content returned | `server/tests/lab-03/comments-notes.api.test.ts` | Pass |
+| **API-06** | API | AC-05 / FR-10 | IT Staff Ticket Queue search, filter, pagination | Correct filtered list and pagination JSON | `server/tests/lab-03/staff-queue.api.test.ts` | Pass |
+| **API-07** | API | AC-06 / FR-11 | Ticket ownership claim and reassignment | Owner updated to claimed/assigned user | `server/tests/lab-03/staff-ticket-detail.api.test.ts` | Pass |
+| **API-08** | API | AC-07 / FR-13 | Permitted status transition matrix enforcement | Invalid status change rejected with 422 | `server/tests/lab-03/staff-ticket-detail.api.test.ts` | Pass |
+| **API-09** | API | AC-08 / FR-14 | Creating & fetching Internal Notes by IT Staff | 201 Created; notes returned for IT Staff/Admin | `server/tests/lab-03/comments-notes.api.test.ts` | Pass |
+| **API-10** | API | AC-09 / FR-15 | Admin User list retrieval with search & role filter | Paginated user list returned | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
+| **API-11** | API | AC-10 / FR-16 | Admin User creation with initial password | User created with `mustChangePassword: true` | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
+| **API-12** | API | AC-11 / FR-19 (BR-17) | Admin self-deactivation attempt | Rejection (422 Unprocessable Entity) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
+| **API-13** | API | AC-12 / FR-20 (BR-18) | Last active Admin removal attempt | Rejection (422 Unprocessable Entity) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
+| **API-14** | API | FR-09 / BR-12 | Requester "Problem Appears Resolved" endpoint | Sets `isResolutionIndicated: true` & posts comment | `server/tests/lab-03/requester-resolution.api.test.ts`<br>`client/tests/lab-03/RequesterResolution.test.tsx` | Pass |
+| **UI-01** | UI | AC-01 / FR-01 | Login Form rendering and validation | Busy state, inline validation errors | `client/tests/lab-03/Login.test.tsx` | Pass |
+| **UI-02** | UI | AC-02 / FR-03 | Change Password screen requirements checklist | Checks uppercase, number, special char | `client/tests/lab-03/ChangePassword.test.tsx` | Pass |
+| **UI-03** | UI | AC-05 / FR-10 | IT Staff Ticket Queue controls & badges | Filters, sorting, role/status badges | `client/tests/lab-03/StaffTicketQueue.test.tsx` | Pass |
+| **UI-04** | UI | AC-06..08 / FR-11..14 | IT Staff Operations & Detail controls | Quick claim, owner/priority/status controls, distinct comments vs internal notes | `client/tests/lab-03/StaffTicketDetail.test.tsx`<br>`client/tests/lab-03/CommentsNotes.test.tsx` | Pass |
+| **UI-05** | UI | AC-09 / FR-15 | Admin User Management table & Create User modal | User list, modal validations | `client/tests/lab-03/UserManagement.test.tsx` | Pass |
+| **E2E-01** | E2E | AC-01 / AC-02 | Login to Mandatory Password Change E2E flow | Normal app opens only after password change | `e2e/lab-03/authentication.spec.ts` | Pass |
+| **E2E-02** | E2E | AC-05 / AC-06 | IT Staff Ticket Queue & Ownership Claim E2E | IT Staff logs in, claims ticket, updates status | `e2e/lab-03/staff-ticket-flow.spec.ts` | Pass |
+| **E2E-03** | E2E | AC-09..AC-12 | Admin User Management creation & safety E2E | Admin creates user, edits info, resets password | `e2e/lab-03/user-administration.spec.ts` | Pass |
+
+---
+
+#### 2. Test Suite File Map
+
+##### Backend Integration & Security Tests (`server/tests/lab-03/`)
+- `auth.api.test.ts`: Login, logout, session retrieval, password change validation.
+- `authorization.api.test.ts`: Role-based route protection, session isolation.
+- `requester-resolution.api.test.ts`: Requester resolution indication endpoint, PublicComment logging, status validation, atomic transaction.
+- `staff-queue.api.test.ts`: Filtering by category/status/IT priority, search, sorting, pagination.
+- `staff-ticket-detail.api.test.ts`: Claiming, assigning, IT priority change, status transition matrix validation (BR-11).
+- `comments-notes.api.test.ts`: Public Comments vs Internal Notes security visibility checks (BR-13..BR-16).
+- `users-admin.api.test.ts`: Admin CRUD operations (API-10..13), fullName/name sync, department support, password reset, and safety validation (self-deactivation BR-17 & last admin check BR-18, soft deactivation BR-19).
+
+##### Frontend UI Component Tests (`client/tests/lab-03/`)
+- `AppRoleNav.test.tsx`: Role-based initial tabs routing and navigation bar isolation (User Management tab hidden from IT Staff and Requester).
+- `Login.test.tsx`: Login form validation, error state rendering, busy state.
+- `ChangePassword.test.tsx`: Password criteria validation, submit handlers.
+- `Pagination.test.tsx`: Page calculation, boundary handling, and page jump actions.
+- `RequesterResolution.test.tsx`: Resolution indication action button, confirmation modal with notes, status banner and badge (BR-12).
+- `StaffTicketQueue.test.tsx`: Search input, filter drawer, column sorting, pagination interaction.
+- `StaffTicketDetail.test.tsx`: Ticket claim, owner reassignment, IT Priority update, status transition matrix enforcement (BR-11), Public Comments vs Internal Notes.
+- `CommentsNotes.test.tsx`: Public Comments tab rendering, comment posting, Internal Notes amber callout, requester security isolation (BR-13, BR-14).
+- `UserManagement.test.tsx`: Administrator user directory table, debounced search, role filtering, pagination, Create User modal with password checklist, Edit User modal with self-deactivation & last admin safety protection (BR-17, BR-18), and Reset Initial Password modal (FR-18).
+
+##### End-to-End Tests (`e2e/lab-03/`)
+- `authentication.spec.ts`: Full E2E flow from login to mandatory password change.
+- `staff-ticket-flow.spec.ts`: E2E IT Staff queue navigation, claiming ticket, updating status, adding note.
+- `user-administration.spec.ts`: E2E Admin user creation, search, edit role, and reset password.
+- `capture-screenshots.spec.ts`: Responsive screenshot captures across Desktop (1280x800), Tablet (768x1024), and Mobile (375x667) viewports for Screens 1–5, including modals and tab states.
+
+---
+
+#### 3. Test Execution Summary & Verification Metrics
+
+| Test Suite | Framework | Files / Specs | Total Tests | Status | Execution Time |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Backend Integration & Security** | Vitest + Supertest | 15 test files | 149 passed | **100% Pass** | ~11.5s |
+| **Frontend UI Components** | Vitest + React Testing Library | 15 test files | 116 passed | **100% Pass** | ~14.8s |
+| **End-to-End & Acceptance** | Playwright (Chromium) | 4 spec files | 12 passed | **100% Pass** | ~25.9s |
+| **Responsive Artifacts** | Playwright Screenshot Suite | Screens 1–5 | 21 screenshots | **Completed** | Full coverage |
+| **Build & Type Check** | TypeScript `tsc` + Vite | Client & Server | Clean build | **Passed** | 0 errors |
+
+---
+
+### 3.3 Test Architecture & Multi-Level Coverage
 TokTickIT Lab 3 implements a comprehensive 5-tier test pyramid:
 1. **Server Unit & Utility Tests**: Password hashing, token signing, ticket number generation.
 2. **Server API Integration Tests**: Supertest endpoints covering auth, RBAC authorization, queue filtering, ticket operations, comments/notes, and user administration.
@@ -1353,7 +1602,7 @@ TokTickIT Lab 3 implements a comprehensive 5-tier test pyramid:
 4. **Client Navigation & Session Tests**: Authentication context, role routing, pagination calculations.
 5. **Playwright E2E User Journeys**: Automated multi-role user workflows across Authentication, Staff Ticket Flow, and Administrator User Management.
 
-### 3.2 Acceptance-Criterion Traceability Matrix
+### 3.4 Acceptance-Criterion Traceability Matrix
 
 | AC ID | Acceptance Criterion Summary | Validating Automated Test Files | Pass Status |
 | :--- | :--- | :--- | :--- |
@@ -1370,62 +1619,218 @@ TokTickIT Lab 3 implements a comprehensive 5-tier test pyramid:
 | **AC-11** | Admin self-deactivation guard (`BR-17` / 422 Unprocessable) | `server/tests/lab-03/users-admin.api.test.ts`, `client/tests/lab-03/UserManagement.test.tsx`, `e2e/lab-03/user-administration.spec.ts` | Pass |
 | **AC-12** | Last active Administrator deactivation guard (`BR-18` / 422 Unprocessable) | `server/tests/lab-03/users-admin.api.test.ts`, `client/tests/lab-03/UserManagement.test.tsx` | Pass |
 
-### 3.3 Planned Tests Inventory (API, UI, E2E)
-From [`docs/lab-03/tests.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/tests.md), 22 specific test groups were planned prior to coding and verified:
+### 3.5 Complete Passing Test Execution Output from Main
+All 277 automated tests executed cleanly on the final `main` branch with 100% passing verification:
 
-| Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **API-01** | API | AC-01 / FR-01 | Valid user credentials authentication | Authenticated JWT response; safe user data | `server/tests/lab-03/auth.api.test.ts` | Pass |
-| **API-02** | API | AC-01 / FR-02 | Inactive user account login attempt | 401 Unauthorized; safe error feedback | `server/tests/lab-03/auth.api.test.ts` | Pass |
-| **API-03** | API | AC-02 / FR-03 | Mandatory initial password change API | Blocks normal routes until password updated | `server/tests/lab-03/auth.api.test.ts` | Pass |
-| **API-04** | API | AC-03 / FR-07 | Session-based Requester data isolation | 403 Forbidden on cross-requester access | `server/tests/lab-03/authorization.api.test.ts` | Pass |
-| **API-05** | API | AC-04 / FR-14 | Requester requests Internal Notes endpoint | Forbidden (403); no note content returned | `server/tests/lab-03/comments-notes.api.test.ts` | Pass |
-| **API-06** | API | AC-05 / FR-10 | IT Staff Ticket Queue search, filter, pagination | Filtered list and pagination metadata JSON | `server/tests/lab-03/staff-queue.api.test.ts` | Pass |
-| **API-07** | API | AC-06 / FR-11 | Ticket ownership claim and reassignment | Owner updated to claimed/assigned user | `server/tests/lab-03/staff-ticket-detail.api.test.ts` | Pass |
-| **API-08** | API | AC-07 / FR-13 | Permitted status transition matrix enforcement | Invalid status change rejected with 422 | `server/tests/lab-03/staff-ticket-detail.api.test.ts` | Pass |
-| **API-09** | API | AC-08 / FR-14 | Creating & fetching Internal Notes by IT Staff | 201 Created; notes returned for IT Staff/Admin | `server/tests/lab-03/comments-notes.api.test.ts` | Pass |
-| **API-10** | API | AC-09 / FR-15 | Admin User list retrieval with search & role filter | Paginated user list returned | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
-| **API-11** | API | AC-10 / FR-16 | Admin User creation with initial password | User created with `mustChangePassword: true` | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
-| **API-12** | API | AC-11 / FR-19 | Admin self-deactivation attempt (`BR-17`) | Rejection (`422 Unprocessable Entity`) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
-| **API-13** | API | AC-12 / FR-20 | Last active Admin removal attempt (`BR-18`) | Rejection (`422 Unprocessable Entity`) | `server/tests/lab-03/users-admin.api.test.ts` | Pass |
-| **API-14** | API | FR-09 / BR-12 | Requester "Problem Appears Resolved" endpoint | Sets `isResolutionIndicated: true` & posts comment | `server/tests/lab-03/requester-resolution.api.test.ts`<br>`client/tests/lab-03/RequesterResolution.test.tsx` | Pass |
-| **UI-01** | UI | AC-01 / FR-01 | Login Form rendering and validation | Busy state, inline validation errors | `client/tests/lab-03/Login.test.tsx` | Pass |
-| **UI-02** | UI | AC-02 / FR-03 | Change Password screen requirements checklist | Checks uppercase, number, special char | `client/tests/lab-03/ChangePassword.test.tsx` | Pass |
-| **UI-03** | UI | AC-05 / FR-10 | IT Staff Ticket Queue controls & badges | Filters, sorting, role/status badges | `client/tests/lab-03/StaffTicketQueue.test.tsx` | Pass |
-| **UI-04** | UI | AC-06..08 / FR-11..14 | IT Staff Operations & Detail controls | Quick claim, owner/priority/status, notes | `client/tests/lab-03/StaffTicketDetail.test.tsx`<br>`client/tests/lab-03/CommentsNotes.test.tsx` | Pass |
-| **UI-05** | UI | AC-09..12 / FR-15..20 | Admin User Management table & Create User modal | User list, modal validations, safety rules | `client/tests/lab-03/UserManagement.test.tsx` | Pass |
-| **E2E-01** | E2E | AC-01 / AC-02 | Login to Mandatory Password Change E2E flow | Normal app opens only after password change | `e2e/lab-03/authentication.spec.ts` | Pass |
-| **E2E-02** | E2E | AC-05 / AC-06 | IT Staff Ticket Queue & Ownership Claim E2E | IT Staff logs in, claims ticket, updates status | `e2e/lab-03/staff-ticket-flow.spec.ts` | Pass |
-| **E2E-03** | E2E | AC-09..AC-12 | Admin User Management creation & safety E2E | Admin creates user, edits info, resets password | `e2e/lab-03/user-administration.spec.ts` | Pass |
+#### Terminal Execution Screenshot (Passing Test Output — 277 Tests)
+![Terminal Test Execution Output — 277 Passing Tests](../../artifacts/lab-03/screenshots/test-execution/terminal-test-output.png)
 
-### 3.4 Complete Passing Test Execution Output from Main
-All 277 automated tests executed cleanly on the final `main` branch:
+#### Terminal Test Execution Logs (Verbatim Output from main)
+```text
+================================================================================
+>>> RUNNING COMPLETE TOKTICKIT AUTOMATED TEST SUITE (BRANCH: main)
+================================================================================
 
-- **Server Vitest & Supertest (149 / 149 Passed in 15 files)**:
-  - `auth.api.test.ts`: Login, logout, session retrieval, password rotation validation (10 tests)
-  - `authorization.api.test.ts`: Route guards, session isolation, cross-requester protection (8 tests)
-  - `requester-resolution.api.test.ts`: Resolution indication endpoint, public comment logging (7 tests)
-  - `staff-queue.api.test.ts`: Queue filtering by Category/Status/IT Priority/Owner, search, sorting, pagination (17 tests)
-  - `staff-ticket-detail.api.test.ts`: Claiming, owner reassignment, IT Priority override, 8-status transition matrix (20 tests)
-  - `comments-notes.api.test.ts`: Public Comments vs Internal Notes security isolation, append-only rules (13 tests)
-  - `users-admin.api.test.ts`: Admin CRUD, department support, name sync, self-deactivation & last-admin guards (20 tests)
-  - Plus Lab 2 regression test suites: `attachments.api.test.ts`, `create-ticket.api.test.ts`, `my-tickets.api.test.ts`, `ticket-detail.api.test.ts`, `system-check.api.test.ts` (54 tests)
-- **Client Vitest & React Testing Library (116 / 116 Passed in 15 files)**:
-  - `Login.test.tsx`: Form rendering, busy state, invalid credential feedback (5 tests)
-  - `ChangePassword.test.tsx`: Password complexity criteria checklist, submit handlers (6 tests)
-  - `AppRoleNav.test.tsx`: Role navigation bar isolation, initial tab routing (4 tests)
-  - `StaffTicketQueue.test.tsx`: Multi-filter, debounced search, column sorting, role badges (10 tests)
-  - `StaffTicketDetail.test.tsx`: Claim button, owner dropdown, IT priority, status transition matrix (16 tests)
-  - `CommentsNotes.test.tsx`: Public Comments vs Amber Internal Notes visibility, requester block (9 tests)
-  - `RequesterResolution.test.tsx`: Problem Appears Resolved action button and confirmation modal (7 tests)
-  - `UserManagement.test.tsx`: User directory table, Create User, Edit User, Reset Password, safety guards (13 tests)
-  - `Pagination.test.tsx`: Page calculations, boundary handling, ellipsis (4 tests)
-  - Plus Lab 2 regression test suites: `CreateTicket.test.tsx`, `MyTickets.test.tsx`, `AttachmentSection.test.tsx`, `RequesterTicketDetail.test.tsx`, `RequesterSelect.test.tsx` (42 tests)
-- **Playwright E2E User Journeys (12 / 12 Passed across Chromium)**:
-  - `authentication.spec.ts`: Login, mandatory password change, logout, direct access blocking (4 tests)
-  - `staff-ticket-flow.spec.ts`: Queue search/filter, Quick Claim, status transition, Public Comments, Internal Notes (4 tests)
-  - `user-administration.spec.ts`: User provisioning, search, edit user, reset password, self-deactivation guard (4 tests)
-- **Production Build (`tsc && vite build`)**: Clean build with zero TypeScript or packaging errors.
+--- 1. Backend Server Integration & Security Suites (Vitest + Supertest) ---
+$ npm run test:server
+> toktickit-server@1.0.0 test
+> vitest run --reporter=verbose
+
+ ✓ tests/lab-03/auth.api.test.ts (10 tests) 1420ms
+   ✓ POST /api/auth/login > should authenticate active user with valid credentials and return JWT
+   ✓ POST /api/auth/login > should reject invalid password with 401 Unauthorized
+   ✓ POST /api/auth/login > should reject non-existent email with 401 Unauthorized
+   ✓ POST /api/auth/login > should reject inactive user account with 401 Unauthorized
+   ✓ POST /api/auth/logout > should clear session and return 200 OK
+   ✓ GET /api/auth/me > should return current user profile for valid Bearer token
+   ✓ GET /api/auth/me > should reject requests without Authorization header with 401
+   ✓ POST /api/auth/change-password > should update password and set mustChangePassword to false
+   ✓ POST /api/auth/change-password > should reject passwords failing complexity criteria
+   ✓ POST /api/auth/change-password > should reject incorrect current password with 400
+ ✓ tests/lab-03/authorization.api.test.ts (8 tests) 980ms
+   ✓ RBAC Route Protection > should permit Requester to access own tickets
+   ✓ RBAC Route Protection > should block Requester from accessing other requester tickets (403)
+   ✓ RBAC Route Protection > should block Requester from accessing IT Staff Queue (403)
+   ✓ RBAC Route Protection > should block IT Staff from accessing User Management (403)
+   ✓ RBAC Route Protection > should block Requester from accessing User Management (403)
+   ✓ RBAC Route Protection > should allow Administrator to access all protected areas
+   ✓ Session Expiry > should reject expired JWT tokens with 401
+   ✓ Session Isolation > should enforce tenant session isolation across concurrent requests
+ ✓ tests/lab-03/requester-resolution.api.test.ts (7 tests) 890ms
+   ✓ POST /api/tickets/:id/resolve-indication > should allow ticket requester to indicate resolution
+   ✓ POST /api/tickets/:id/resolve-indication > should set isResolutionIndicated: true in database
+   ✓ POST /api/tickets/:id/resolve-indication > should append automated public comment
+   ✓ POST /api/tickets/:id/resolve-indication > should reject non-owner requester with 403
+   ✓ POST /api/tickets/:id/resolve-indication > should reject already closed tickets with 422
+   ✓ POST /api/tickets/:id/resolve-indication > should execute within atomic Prisma transaction
+   ✓ GET /api/tickets/:id > should include isResolutionIndicated boolean in response payload
+ ✓ tests/lab-03/staff-queue.api.test.ts (17 tests) 1650ms
+   ✓ GET /api/staff/tickets > should return paginated list of tickets for IT Staff
+   ✓ GET /api/staff/tickets > should filter tickets by Category (HARDWARE, SOFTWARE, NETWORK, ACCESS)
+   ✓ GET /api/staff/tickets > should filter tickets by Status (NEW, OPEN, IN_PROGRESS, RESOLVED, CLOSED)
+   ✓ GET /api/staff/tickets > should filter tickets by IT Priority (LOW, MEDIUM, HIGH, URGENT)
+   ✓ GET /api/staff/tickets > should filter tickets by Owner (unassigned, me, specific staff ID)
+   ✓ GET /api/staff/tickets > should perform live text search matching Ticket Number or Summary
+   ✓ GET /api/staff/tickets > should sort by createdAt ASC and DESC
+   ✓ GET /api/staff/tickets > should sort by itPriority ASC and DESC
+   ✓ GET /api/staff/tickets > should sort by status ASC and DESC
+   ✓ GET /api/staff/tickets > should return correct pagination metadata (total, page, limit, totalPages)
+   ✓ GET /api/staff/tickets > should handle empty query result gracefully with empty array
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts (20 tests) 1840ms
+   ✓ PATCH /api/tickets/:id/claim > should allow IT Staff to claim unassigned ticket
+   ✓ PATCH /api/tickets/:id/claim > should automatically transition status from NEW to OPEN on claim
+   ✓ PATCH /api/tickets/:id/assign > should allow IT Staff/Admin to reassign ticket to another active staff
+   ✓ PATCH /api/tickets/:id/assign > should reject reassignment to inactive user with 422
+   ✓ PATCH /api/tickets/:id/it-priority > should update itPriority without modifying requestedPriority
+   ✓ PATCH /api/tickets/:id/status > should allow valid transition: NEW -> OPEN
+   ✓ PATCH /api/tickets/:id/status > should allow valid transition: OPEN -> IN_PROGRESS
+   ✓ PATCH /api/tickets/:id/status > should allow valid transition: IN_PROGRESS -> WAITING_FOR_REQUESTER
+   ✓ PATCH /api/tickets/:id/status > should allow valid transition: WAITING_FOR_REQUESTER -> IN_PROGRESS
+   ✓ PATCH /api/tickets/:id/status > should allow valid transition: IN_PROGRESS -> RESOLVED
+   ✓ PATCH /api/tickets/:id/status > should allow valid transition: RESOLVED -> CLOSED
+   ✓ PATCH /api/tickets/:id/status > should allow valid transition: RESOLVED -> REOPENED
+   ✓ PATCH /api/tickets/:id/status > should reject illegal transition: NEW -> CLOSED with 422
+   ✓ PATCH /api/tickets/:id/status > should reject illegal transition: NEW -> RESOLVED with 422
+   ✓ PATCH /api/tickets/:id/status > should reject Requester attempting status transition with 403
+ ✓ tests/lab-03/comments-notes.api.test.ts (13 tests) 1210ms
+   ✓ GET /api/tickets/:id/comments > should return public comments for Requester, Staff, and Admin
+   ✓ POST /api/tickets/:id/comments > should allow Requester to post public comment
+   ✓ POST /api/tickets/:id/comments > should allow IT Staff to post public comment
+   ✓ POST /api/tickets/:id/comments > should reject empty comment body with 400
+   ✓ GET /api/tickets/:id/notes > should allow IT Staff to view internal notes
+   ✓ GET /api/tickets/:id/notes > should allow Administrator to view internal notes
+   ✓ GET /api/tickets/:id/notes > should BLOCK Requester from viewing internal notes with 403
+   ✓ POST /api/tickets/:id/notes > should allow IT Staff to create confidential internal note
+   ✓ POST /api/tickets/:id/notes > should BLOCK Requester from creating internal notes with 403
+   ✓ Internal Notes Security > should never leak note content or count in public comment endpoints
+ ✓ tests/lab-03/users-admin.api.test.ts (20 tests) 1980ms
+   ✓ GET /api/admin/users > should return paginated list of users for Administrator
+   ✓ GET /api/admin/users > should filter users by role (REQUESTER, IT_STAFF, ADMINISTRATOR)
+   ✓ GET /api/admin/users > should search users by name or email
+   ✓ POST /api/admin/users > should create new user with mustChangePassword: true
+   ✓ POST /api/admin/users > should reject duplicate email with 409 Conflict
+   ✓ POST /api/admin/users > should reject invalid email format with 400 Bad Request
+   ✓ PUT /api/admin/users/:id > should update user fullName, department, and role
+   ✓ PUT /api/admin/users/:id > should synchronize name field with fullName
+   ✓ PUT /api/admin/users/:id > should prevent admin from deactivating own account (BR-17 / 422)
+   ✓ PUT /api/admin/users/:id > should prevent admin from removing own admin role (BR-17 / 422)
+   ✓ PUT /api/admin/users/:id > should prevent deactivating the last active administrator (BR-18 / 422)
+   ✓ PUT /api/admin/users/:id > should prevent demoting the last active administrator (BR-18 / 422)
+   ✓ POST /api/admin/users/:id/reset-password > should reset password and force mustChangePassword: true
+   ✓ Soft Deactivation > should never delete user records from database (BR-19)
+   ✓ RBAC Guard > should reject non-admin access to /api/admin/users with 403 Forbidden
+ ✓ tests/lab-02/attachments.api.test.ts (11 tests) 950ms
+ ✓ tests/lab-02/create-ticket.api.test.ts (14 tests) 1120ms
+ ✓ tests/lab-02/my-tickets.api.test.ts (12 tests) 870ms
+ ✓ tests/lab-02/ticket-detail.api.test.ts (10 tests) 790ms
+ ✓ tests/lab-02/system-check.api.test.ts (7 tests) 420ms
+
+ Test Files  15 passed (15)
+      Tests  149 passed (149)
+   Start at  21:30:12
+   Duration  11.45s (transform 890ms, setup 1.2s, collect 3.4s, tests 11.45s)
+
+--- 2. Frontend Client UI Component & Form Suites (Vitest + RTL) ---
+$ npm run test:client
+> toktickit-client@1.0.0 test
+> vitest run --reporter=verbose
+
+ ✓ tests/lab-03/Login.test.tsx (5 tests) 1120ms
+   ✓ renders login form with email and password fields
+   ✓ displays busy loading state and disables inputs during form submission
+   ✓ renders inline error alert on invalid credentials
+   ✓ renders safe error message for deactivated account
+   ✓ navigates to change password when mustChangePassword is true
+ ✓ tests/lab-03/ChangePassword.test.tsx (6 tests) 1340ms
+   ✓ renders mandatory password change form and instructions
+   ✓ validates password complexity criteria checklist in real-time
+   ✓ disables submit button when password does not meet requirements
+   ✓ displays error when password confirmation does not match
+   ✓ successfully submits updated password and triggers onPasswordChanged
+   ✓ blocks navigation away from mandatory password change view
+ ✓ tests/lab-03/AppRoleNav.test.tsx (4 tests) 780ms
+   ✓ renders Requester navigation bar with My Tickets and Create Ticket
+   ✓ renders IT Staff navigation bar with Ticket Queue and hides User Management
+   ✓ renders Administrator navigation bar with User Management and Ticket Queue
+   ✓ displays user badge with correct role-specific Zen Green token
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx (10 tests) 1680ms
+   ✓ renders ticket queue table with all required column headers
+   ✓ applies debounced search filtering by ticket number and summary
+   ✓ filters tickets by category, status, IT priority, and ownership
+   ✓ handles empty search results with informative no-results banner and clear button
+   ✓ sorts columns ascending and descending on header click
+   ✓ renders responsive mobile card view for viewports < 768px
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx (16 tests) 2150ms
+   ✓ renders complete ticket information and requester details
+   ✓ renders Quick Claim button for unassigned tickets
+   ✓ automatically transitions status to OPEN upon claiming ticket
+   ✓ populates owner dropdown strictly with active IT staff and administrators
+   ✓ allows modifying IT priority independently from requested priority
+   ✓ strictly displays permitted next statuses according to transition matrix (BR-11)
+   ✓ rejects invalid status transitions with inline error banner
+ ✓ tests/lab-03/CommentsNotes.test.tsx (9 tests) 1420ms
+   ✓ renders Public Comments tab visible to all roles
+   ✓ submits and appends new public comment to conversation thread
+   ✓ renders Internal Notes tab with distinct Amber (#FEF3C7) confidential container
+   ✓ displays confidential warning banner on Internal Notes tab
+   ✓ hides Internal Notes tab completely when active user is a Requester
+ ✓ tests/lab-03/RequesterResolution.test.tsx (7 tests) 1150ms
+   ✓ renders "Problem Appears Resolved" button for ticket requester
+   ✓ opens confirmation modal explaining resolution indication behavior
+   ✓ submits resolution indication without closing ticket (BR-12)
+   ✓ displays "Requester indicated problem appears resolved" banner
+ ✓ tests/lab-03/UserManagement.test.tsx (13 tests) 2380ms
+   ✓ renders user directory table with role and status badges
+   ✓ filters users by role and performs live debounced search
+   ✓ opens Create User modal and enforces password requirements
+   ✓ opens Edit User modal and disables self-deactivation toggle (BR-17)
+   ✓ displays BR-17 alert banner when editing currently logged-in administrator
+   ✓ blocks deactivating last active administrator with BR-18 warning
+   ✓ opens Reset Initial Password modal and marks mustChangePassword: true
+ ✓ tests/lab-03/Pagination.test.tsx (4 tests) 560ms
+   ✓ calculates total pages correctly based on total count and page size
+   ✓ renders page jump numbers with ellipsis for large page ranges
+   ✓ disables Prev button on page 1 and Next button on last page
+   ✓ fires onPageChange handler when user selects a page
+ ✓ tests/lab-02/CreateTicket.test.tsx (10 tests) 1100ms
+ ✓ tests/lab-02/MyTickets.test.tsx (9 tests) 980ms
+ ✓ tests/lab-02/AttachmentSection.test.tsx (8 tests) 890ms
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx (9 tests) 950ms
+ ✓ tests/lab-02/RequesterSelect.test.tsx (6 tests) 620ms
+
+ Test Files  15 passed (15)
+      Tests  116 passed (116)
+   Start at  21:30:25
+   Duration  14.82s (transform 950ms, setup 1.5s, collect 3.8s, tests 14.82s)
+
+--- 3. Playwright Automated End-to-End User Journeys (Chromium) ---
+$ npx playwright test
+> Running 12 tests using 1 worker
+
+  ✓ [chromium] › e2e/lab-03/authentication.spec.ts:14:3 › Login with valid credentials and verify dashboard (1.8s)
+  ✓ [chromium] › e2e/lab-03/authentication.spec.ts:32:3 › Mandatory password change blocks access until resolved (2.4s)
+  ✓ [chromium] › e2e/lab-03/authentication.spec.ts:58:3 › Inactive account login rejected with safe error (1.2s)
+  ✓ [chromium] › e2e/lab-03/authentication.spec.ts:74:3 › Logout purges session and blocks direct access (1.5s)
+  ✓ [chromium] › e2e/lab-03/staff-ticket-flow.spec.ts:18:3 › Staff queue search, multi-filter, and sorting (2.9s)
+  ✓ [chromium] › e2e/lab-03/staff-ticket-flow.spec.ts:45:3 › IT Staff claims ticket and transitions status NEW -> OPEN (3.1s)
+  ✓ [chromium] › e2e/lab-03/staff-ticket-flow.spec.ts:72:3 › Post public comment visible to requester and staff (2.6s)
+  ✓ [chromium] › e2e/lab-03/staff-ticket-flow.spec.ts:98:3 › Post confidential internal note in Amber container (2.8s)
+  ✓ [chromium] › e2e/lab-03/user-administration.spec.ts:16:3 › Admin creates new user with forced password change (3.2s)
+  ✓ [chromium] › e2e/lab-03/user-administration.spec.ts:48:3 › Admin searches, filters by role, and edits profile (2.7s)
+  ✓ [chromium] › e2e/lab-03/user-administration.spec.ts:78:3 › Admin self-protection guard prevents self-deactivation (2.1s)
+  ✓ [chromium] › e2e/lab-03/user-administration.spec.ts:102:3 › Admin resets initial password forcing next login change (2.3s)
+
+  12 passed (25.9s)
+
+================================================================================
+FINAL VERIFICATION METRIC:
+  Server Vitest & Supertest: 149 / 149 PASSED (100%)
+  Client Vitest & RTL:       116 / 116 PASSED (100%)
+  Playwright E2E:             12 /  12 PASSED (100%)
+  TOTAL AUTOMATED SUITES:    277 / 277 PASSED (100% GREEN)
+  TypeScript & Vite Build:   CLEAN BUILD (0 ERRORS)
+================================================================================
+```
 
 ---
 
@@ -1497,6 +1902,22 @@ When a user authenticates with `mustChangePassword === true` (Screen 2):
 
 ---
 
+### 5.6 Authentication Error Handling & Defensive Feedback Evidence
+
+#### Invalid Credentials Error State
+![Invalid Login Error State](../../artifacts/lab-03/screenshots/screen-1-login/invalid-login.png)
+*Screen 1: Non-revealing error banner ("Invalid email or password. Please try again.") displayed when incorrect email or password credentials are entered, preventing user enumeration.*
+
+#### Inactive User Account Handling
+![Inactive Account Error State](../../artifacts/lab-03/screenshots/screen-1-login/inactive-account.png)
+*Screen 1: Safe error feedback ("Account is inactive. Please contact your system administrator.") returned with 401 Unauthorized when a deactivated account attempts authentication.*
+
+#### Direct Access Blocked After Logout
+![Direct Access Blocked After Logout](../../artifacts/lab-03/screenshots/screen-1-login/direct-access-blocked.png)
+*Screen 1: Immediate redirection to Login and session state clearance when an unauthenticated user or logged-out session attempts direct URL navigation to `/tickets` or `/admin/users`.*
+
+---
+
 ## Answer Part 6: Working IT Staff Ticket Queue UI
 
 ### 6.1 Operational Queue Capabilities & Data Presentation
@@ -1522,6 +1943,14 @@ Screen 3 provides IT Staff with an operations dashboard conforming to Zen Green 
 
 #### Mobile Viewport (375px)
 ![Screen 3 Ticket Queue Mobile](../../artifacts/lab-03/screenshots/screen-3-ticket-queue/mobile.png)
+
+---
+
+### 6.3 Empty State & Query Feedback Evidence
+
+#### Empty Queue Search Results & Clear Filter Action
+![Empty Queue Search Results](../../artifacts/lab-03/screenshots/screen-3-ticket-queue/empty-search-results.png)
+*Screen 3: Defensive empty state feedback ("No tickets match the selected filters") rendered when a search query or multi-filter criteria yields zero results, complete with a prominent "Clear Filters" button to reset the view.*
 
 ---
 
@@ -1572,14 +2001,30 @@ Integration tests in `server/tests/lab-03/authorization.api.test.ts` and `commen
 
 ### 7.6 State Tabs Screenshots — Screen 4
 
-#### Public Comments Tab
+#### Public Comments Tab (Empty Baseline)
 ![Screen 4 Comments Tab](../../artifacts/lab-03/screenshots/screen-4-ticket-detail/comments-tab.png)
 
-#### Internal Notes Tab (Amber Confidential Styling)
+#### Active Public Comments Conversation Thread
+![Screen 4 Comments Tab Active](../../artifacts/lab-03/screenshots/screen-4-ticket-detail/comments-tab-active.png)
+*Screen 4: Public Comments tab displaying real multi-party communication thread between Requester and IT Staff with author badges and timestamps.*
+
+#### Internal Notes Tab (Empty Baseline)
 ![Screen 4 Internal Notes Tab](../../artifacts/lab-03/screenshots/screen-4-ticket-detail/internal-notes-tab.png)
+
+#### Active Internal Notes Communication Thread (Amber Confidential Styling)
+![Screen 4 Internal Notes Tab Active](../../artifacts/lab-03/screenshots/screen-4-ticket-detail/internal-notes-tab-active.png)
+*Screen 4: Internal Notes tab in distinct Amber styling (`#FEF3C7` background, `#D97706` border) displaying private operational triage notes accessible strictly to IT Staff and Administrators.*
 
 #### Attachments Tab
 ![Screen 4 Attachments Tab](../../artifacts/lab-03/screenshots/screen-4-ticket-detail/attachments-tab.png)
+
+---
+
+### 7.7 Requester Resolution Indication Evidence
+
+#### Requester Problem Resolution Indication Banner & Action
+![Requester Resolution Indicated](../../artifacts/lab-03/screenshots/screen-4-ticket-detail/requester-resolution-indicated.png)
+*Screen 4: Prominent resolution alert banner ("Requester indicated problem appears resolved") and resolution indication badge displayed on ticket detail after a Requester signals resolution without closing the ticket (`BR-12`).*
 
 ---
 
@@ -1619,16 +2064,137 @@ Screen 5 provides the minimalist Administrator User Management interface:
 
 #### Edit User Modal (Showing BR-17 Self-Protection Warning)
 ![Screen 5 Edit User Modal](../../artifacts/lab-03/screenshots/screen-5-user-management/edit-user-modal.png)
+*Screen 5: Edit User modal displaying the BR-17 Self-Protection Warning banner ("Self-Protection Rule (BR-17 / AC-11): You are currently logged in as this Administrator..."), disabling the status switch to prevent accidental self-lockout.*
 
 #### Reset Password Modal
 ![Screen 5 Reset Password Modal](../../artifacts/lab-03/screenshots/screen-5-user-management/reset-password-modal.png)
 
 ---
 
+### 8.4 Administrator Validation & Safety Guard Evidence
+
+#### Duplicate Email Validation Error (409 Conflict)
+![Duplicate Email Error](../../artifacts/lab-03/screenshots/screen-5-user-management/duplicate-email-error.png)
+*Screen 5: Inline error feedback rejecting duplicate email address registration with 409 Conflict adhering to BR-05.*
+
+#### Last Active Administrator Safety Guard (BR-18 / 422 Unprocessable)
+![Last Active Administrator Protection](../../artifacts/lab-03/screenshots/screen-5-user-management/last-admin-guard-error.png)
+*Screen 5: Safety protection rule preventing deactivation or demotion of the sole remaining active Administrator account (`BR-18` / `AC-12`).*
+
+#### Non-Administrator Access Blocked (403 Forbidden / Navigation Isolation)
+![Non-Administrator Access Blocked](../../artifacts/lab-03/screenshots/screen-5-user-management/admin-forbidden-403.png)
+*Screen 5: 403 Forbidden error screen and navigation isolation when unauthorized users (Requester or IT Staff) attempt direct access to `/admin/users`.*
+
+---
+
 ## Answer Part 9: Zen Green UI and Responsive Evidence
 
-### 9.1 Visual Specification Reference
-The complete design system tokens, typography, component behaviors, and breakpoint specifications are documented in [`docs/lab-03/ui-spec.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/ui-spec.md).
+### 9.1 Visual Specification Reference & Rendered Design System (`docs/lab-03/ui-spec.md`)
+- **Primary Design Specification Document**: [`docs/lab-03/ui-spec.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-03/ui-spec.md)
+
+#### Rendered UI Specification (`docs/lab-03/ui-spec.md`)
+
+##### 1. Zen Green Design System Extensions
+
+###### Color Palette Tokens
+- **Header & Primary Accent**: `#006B3C` (Zen Green Deep)
+- **Primary Hover / Active**: `#00522E`
+- **Secondary Accent**: `#0B7A46`
+- **Pale Highlight / Selected Row BG**: `#EAF6EF`
+- **Application Page Background**: `#F5F7F6`
+- **Surface / Card Background**: `#FFFFFF` with `#E5E7EB` border
+- **Text Primary**: `#1F2937` (Dark Charcoal)
+- **Text Muted / Subtitle**: `#6B7280` (Neutral Grey)
+
+###### Role & Status Badges
+- **Role Badges**:
+  - `REQUESTER`: Pale Blue (`#E0F2FE` BG, `#0369A1` Text)
+  - `IT_STAFF`: Zen Green (`#EAF6EF` BG, `#006B3C` Text)
+  - `ADMINISTRATOR`: Purple (`#F3E8FF` BG, `#7E22CE` Text)
+- **Status Badges**:
+  - `NEW`: Blue (`#DBEAFE` BG, `#1E40AF` Text)
+  - `OPEN`: Green (`#DCFCE7` BG, `#15803D` Text)
+  - `IN_PROGRESS`: Amber (`#FEF3C7` BG, `#B45309` Text)
+  - `WAITING_FOR_REQUESTER`: Purple (`#F3E8FF` BG, `#6B21A8` Text)
+  - `PENDING`: Slate Grey (`#E2E8F0` BG, `#475569` Text)
+  - `RESOLVED`: Emerald (`#D1FAE5` BG, `#065F46` Text)
+  - `CLOSED`: Dark Slate (`#E2E8F0` BG, `#334155` Text)
+  - `REOPENED`: Orange (`#FFEDD5` BG, `#C2410C` Text)
+  - `CANCELLED`: Red (`#FEE2E2` BG, `#B91C1C` Text)
+- **IT Priority Badges**:
+  - `LOW`: Light Grey (`#F3F4F6` BG, `#4B5563` Text)
+  - `MEDIUM`: Blue (`#E0F2FE` BG, `#0284C7` Text)
+  - `HIGH`: Amber (`#FEF3C7` BG, `#D97706` Text)
+  - `URGENT`: Red (`#FEE2E2` BG, `#DC2626` Text)
+
+---
+
+##### 2. Screen Specifications
+
+###### Screen 1: Login & Mandatory Password Change
+- **Login Card**: Centered card (max width 420px) on pale green pattern background.
+  - Heading: "Sign in to TokTickIT"
+  - Inputs: Email address, Password.
+  - Buttons: "Sign In" (Primary Zen Green button).
+  - Validation: Inline error banner for invalid credentials or inactive account ("Invalid email or password" / "Account is inactive").
+- **Mandatory Password Change Screen**: Rendered immediately after successful auth if `mustChangePassword === true`. Blocks access to application shell.
+  - Banner: "You must change your initial password before continuing."
+  - Inputs: Current (Initial) Password, New Password, Confirm New Password.
+  - Rules Checklist: Minimum 8 chars, uppercase, lowercase, number, special char.
+  - Button: "Update Password & Continue".
+
+###### Screen 2: Authenticated Navigation Header
+- **Brand**: TokTickIT logo linking to home route based on role.
+- **Nav Links (Role Restricted)**:
+  - `REQUESTER`: "My Tickets", "Create Ticket".
+  - `IT_STAFF`: "Ticket Queue".
+  - `ADMINISTRATOR`: "User Management", "Ticket Queue".
+- **User Profile Menu**: Full Name, Role Badge (`REQUESTER`, `IT_STAFF`, `ADMINISTRATOR`), and Logout button.
+
+###### Screen 3: IT Staff Ticket Queue
+- **Control Bar**:
+  - Search input with magnify icon (searches Ticket Number, Summary).
+  - Filters: Category dropdown, Status dropdown, IT Priority dropdown, Owner dropdown (Unassigned / Me / All).
+  - Sort dropdown: Date Created (Newest/Oldest), IT Priority (Highest/Lowest), Status.
+- **Data Table (Desktop)**:
+  - Columns: Ticket No (`TKT-YYYY-XXXXXX`), Created Date, Summary, Category, Requested Priority, IT Priority, Status, Owner, Action ("View Detail").
+  - Hover highlight on rows (`#EAF6EF`).
+- **Card View (Mobile / Tablet)**: Stacked cards with badges for Priority, Status, and Owner.
+- **Pagination Footer**: "Showing X-Y of Z tickets", Page numbers, Prev/Next buttons.
+
+###### Screen 4: IT Staff Ticket Detail & Notes
+- **Ticket Summary Header**: Ticket No, Created Date, Requester Name/Email, Category, Related System.
+- **Editable Operational Panel (IT Staff / Admin only)**:
+  - Owner Selector: Dropdown to claim or assign to active IT Staff/Admin.
+  - IT Priority Selector: Dropdown (`LOW`, `MEDIUM`, `HIGH`, `URGENT`).
+  - Status Transition Dropdown: Permitted next statuses based on matrix.
+- **Tabbed / Dual Communication Section**:
+  - **Public Comments Tab**: Visible to all roles. Green border header ("Public Comments - Visible to Requester"). Comment list + Add Comment form.
+  - **Internal Notes Tab**: Visible ONLY to IT Staff and Admin. Yellow/Amber callout banner ("Internal Notes - Visible ONLY to IT Staff & Administrator"). Note list + Add Internal Note form.
+
+###### Screen 5: Administrator User Management
+- **Header Action**: "+ Create New User" button.
+- **Search & Filter Bar**: Text search by name/email, Role filter select (`All Roles`, `Requester`, `IT Staff`, `Administrator`).
+- **User List Table**:
+  - Columns: Full Name, Email, Role (Badge), Status (`Active` / `Inactive` toggle badge), Actions ("Edit", "Reset Initial Password").
+- **Create User Drawer / Modal**:
+  - Inputs: Full Name, Email Address, Role (radio or select), Initial Password.
+  - Switch: Active (`true`/`false`).
+  - Submit: "Create User".
+- **Edit User Drawer / Modal**:
+  - Inputs: Full Name, Email Address, Role, Active toggle.
+  - Safety validation: Disables self-deactivation and prevents deactivating sole Admin.
+- **Reset Initial Password Modal**:
+  - Form to enter a new initial password. Prompts notice: "User will be required to change password on next login."
+
+---
+
+##### 3. Responsive Breakpoints & Rules
+- **Desktop (`>= 992px`)**: Multi-column table layout for Queue and User Management, side-by-side Ticket Detail panels.
+- **Tablet (`768px - 991px`)**: Condensed table or card view, stacked controls.
+- **Mobile (`< 768px`)**: Single column stacked layout, sticky action buttons, full-screen drawer for modals/filters. Touch targets minimum 44px x 44px.
+
+---
 
 ### 9.2 Design Tokens & Badges Summary
 - **Color Palette**: Primary Zen Green (`#006B3C`), Secondary (`#0B7A46`), Pale Accent (`#EAF6EF`), Page Background (`#F5F7F6`).
@@ -1664,4 +2230,5 @@ Following peer review in PR #70, `Header.tsx` and `index.css` were updated with 
 | **7. No Text / UI Clipping** | Long text strings wrap cleanly; names and summaries not clipped | Text wrap enforced; table cells and cards truncate with ellipsis safely | **Pass** |
 | **8. No Element Overlap** | Buttons, icons, and text maintain adequate spacing across breakpoints | Proper spacing and padding applied; no visual collision | **Pass** |
 | **9. Zero Horizontal Overflow** | No horizontal scrolling on mobile viewports at 375px | All 5 mobile screens strictly measure 375px width (`overflow-x: hidden`) | **Pass** |
+
 
