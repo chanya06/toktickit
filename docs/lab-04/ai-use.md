@@ -75,6 +75,30 @@
 
 ---
 
+### Prompt 7: Issue 32 Actions Taken UI on Ticket Detail Screen & Responsive Cards
+- **User Intent**: Build the Actions Taken user interface panel on the Ticket Detail screen conforming to Zen Green design standards, supporting list/table view, create modal with dynamic validation, edit modal, status transition controls, read-only presentation for Requesters, and responsive mobile card transformation.
+- **AI Response Summary**:
+  - Extended `client/src/api.ts` with `ActionTaken` interfaces, `CreateActionTakenPayload`, `UpdateActionTakenPayload`, and API consumer functions (`fetchTicketActions`, `createTicketAction`, `updateTicketAction`, `transitionActionStatus`).
+  - Implemented `client/src/components/ActionsTakenSection.tsx` with Zen Green theme styling (`#006B3C`), status badges (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`), role badges, follow-up indicators, and touch targets (minimum 44x44px for mobile).
+  - Integrated dynamic validation into Create/Edit modal: required description (min 5 chars), conditional follow-up note (min 5 chars when toggle is enabled), and outcome requirement on `COMPLETED` status.
+  - Implemented terminal state protection (`COMPLETED` and `CANCELLED` actions are locked from further editing or status transitions).
+  - Embedded `ActionsTakenSection` into `client/src/components/TicketDetailView.tsx` located directly below Ticket Operations and above the communication tabs.
+  - Authored comprehensive React Testing Library suite `client/tests/lab-04/ActionsTaken.test.tsx` covering `UI-01`, `UI-02`, `UI-03`, optimistic locking conflict alerts, terminal state locking, and helper functions (15/15 tests passing).
+  - Maintained 100% pass across all 131 client tests (16 files) and 179 backend tests (17 files).
+
+---
+
+### Prompt 8: PR #83 Peer Review Defect Resolution & UI Error Highlighting Hardening
+- **User Intent**: Address 4 specific review feedback points from peer reviewer `@lmaybelgracel` on PR #83: allow selecting inactive assignees in dropdown to demonstrate HTTP 422 safe failure on UI, implement field-level inline error highlighting (`is-invalid` and inline feedback), document Review Round 4 in `reviewer.md`, and author an automated frontend test verifying inactive assignee rejection and error feedback.
+- **AI Response Summary**:
+  - Removed `disabled` attribute from inactive options in `#action-assignee` select inside `client/src/components/ActionsTakenSection.tsx` while keeping clear label indicators (e.g. `(Staff - Inactive)`), enabling full demonstration of `Answer Part 6` safe failures.
+  - Implemented field-level error state tracking (`modalErrorField`) bound to Bootstrap's `is-invalid` class and `<div className="invalid-feedback d-block">` on each modal form control (`actionDescription`, `followUpNote`, `result`, `assigneeId`, `actionDateTime`).
+  - Added automated test `"handles inactive assignee rejection with HTTP 422 and field-level error highlighting"` in `client/tests/lab-04/ActionsTaken.test.tsx` (16/16 tests passing).
+  - Documented Review Round 4 verbatim comments and author action plan in `docs/lab-04/reviewer.md`.
+  - Verified full test regression suite: 132 client tests (16 files) and 179 backend tests (17 files) passing 100%.
+
+---
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ### Specification-Agent Synergy

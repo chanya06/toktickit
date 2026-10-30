@@ -12,8 +12,8 @@
 | :--- | :--- | :--- | :--- | :--- |
 | [PR #72](https://github.com/chanya06/toktickit/pull/72) | `feature/29-spec-and-tests` | Sprint 4 Engineering Contract (`specification.md`, `tests.md`, `ui-spec.md`, `api-spec.md`) | Approved & Merged | Merged |
 | [PR #81](https://github.com/chanya06/toktickit/pull/81) | `feature/30-db-schema-actions-taken` | Prisma Schema for `ActionTaken`, Database Migration & Seed Data | Approved & Merged | Merged |
-| [PR #82](https://github.com/chanya06/toktickit/pull/82) | `feature/31-actions-taken-api` | Actions Taken REST API, Authorization & Concurrency | Changes Requested (Resolved) | In Review |
-| [PR # (Pending)] | `feature/32-actions-taken-ui` | Actions Taken UI on Ticket Detail Screen & Responsive Cards | Pending | Planned |
+| [PR #82](https://github.com/chanya06/toktickit/pull/82) | `feature/31-actions-taken-api` | Actions Taken REST API, Authorization & Concurrency | Approved & Merged | Merged |
+| [PR #83](https://github.com/chanya06/toktickit/pull/83) | `feature/32-actions-taken-ui` | Actions Taken UI on Ticket Detail Screen & Responsive Cards | Changes Requested (Resolved) | In Review |
 | [PR # (Pending)] | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Pending | Planned |
 | [PR # (Pending)] | `feature/34-dashboard-ui` | Role Dashboards UI (Metric Cards, Recent Lists, Quick Actions & Drill-down) | Pending | Planned |
 | [PR # (Pending)] | `feature/35-ticket-workflow-hardening` | Ticket Workflow Hardening, Resolution Gate & Stale Update Handling | Pending | Planned |
@@ -175,3 +175,54 @@
    - เพิ่มเคสทดสอบยืนยันคำสั่ง PUT บน Action สถานะ `CANCELLED` ได้รับ HTTP 422
    - เพิ่มเคสทดสอบยืนยันคำสั่ง PATCH เปลี่ยนสถานะจาก `PENDING` ข้ามไป `COMPLETED` ได้รับ HTTP 422
    - ทุกเคสทดสอบผ่าน 100% (รวม 26 tests ใน actions-taken.api.test.ts)
+
+
+---
+
+### Reviewer Comments on [PR #83](https://github.com/chanya06/toktickit/pull/83) (feature/32-actions-taken-ui)
+
+> **Reviewer:** `@lmaybelgracel` — **Verdict:** CHANGES REQUESTED  
+> จากการตรวจทานโค้ดส่วนติดต่อผู้ใช้ Actions Taken บนหน้าจอ Ticket Detail และชุดทดสอบใน PR #83 (สาขา feature/32-actions-taken-ui) เทียบกับเกณฑ์บังคับของอาจารย์ใน Handout Lab 4 (Sections 6, 8.3, 10 และ 14) พบข้อบกพร่องสำคัญ 4 จุดที่ต้องได้รับการแก้ไขก่อนการอนุมัติ:  
+> 
+> 1. **ข้อจำกัดในการสาธิตและทดสอบการปฏิเสธผู้รับมอบหมายที่ถูกระงับสิทธิ์ (Inactive-Assignee Rejection):**  
+>    - *เกณฑ์บังคับ:* Handout Section 14 (Answer Part 6: Working Actions Taken UI) กำหนดให้ต้องสาธิตการทำงานของ "inactive-assignee rejection, role restrictions, safe failures" บนหน้าจอ UI  
+>    - *ข้อผิดพลาด:* ใน ActionsTakenSection.tsx ตัวเลือกใน Dropdown มอบหมายงาน (#action-assignee) มีการใส่แอตทริบิวต์ disabled={assignee.isActive === false} ทำให้ผู้ใช้ไม่สามารถคลิกเลือกผู้ใช้ที่ถูกปิดใช้งานเพื่อทดสอบการตอบสนองความผิดพลาด HTTP 422 ของระบบได้  
+>    - *สิ่งที่ต้องแก้ไข:* ปลดแอตทริบิวต์ disabled ออก และแสดงป้ายกำกับให้ชัดเจน เช่น (Staff - Inactive) เพื่อให้สามารถคลิกเลือกส่งคำขอไปยังระบบ และเปิดให้ระบบแสดงการปฏิเสธ HTTP 422 Unprocessable Entity ตามเกณฑ์การประเมิน Answer Part 6  
+> 
+> 2. **การขาดการไฮไลต์ฟิลด์ที่เกิดข้อผิดพลาดแบบเฉพาะเจาะจง (Field-Level Inline Error Highlighting):**  
+>    - *เกณฑ์บังคับ:* Handout Section 14 (Answer Part 9) และ ui-spec.md กำหนดเรื่อง "validation placement, keyboard focus, and safe-failure feedback"  
+>    - *ข้อผิดพลาด:* เมื่อเกิด Validation Error หรือ API ส่งข้อผิดพลาดแบบระบุฟิลด์กลับมา (field: "followUpNote" หรือ field: "actionDescription") ใน Modal มีเพียงการแสดงกล่อง Alert ด้านบนรวมกันจุดเดียว แต่ไม่มีการทำขอบสีแดงหรือคลาส is-invalid ที่ตัว Input หรือ Textarea ของฟิลด์นั้นโดยตรง  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มการผูกคลาส is-invalid หรือขอบสีแดงที่ฟิลด์ที่ระบุ เพื่อความชัดเจนในการแก้ไขข้อมูลและสอดคล้องกับเกณฑ์ Accessibility และ UI Polish  
+> 
+> 3. **การขาดหัวข้อบันทึกการรีวิว PR #83 ในเอกสารกระบวนการวิศวกรรม (`docs/lab-04/reviewer.md`):**  
+>    - *เกณฑ์บังคับ:* Handout Section 14 (Answer Part 1: Git Use with Engineering Workflow) กำหนดให้เอกสาร reviewer.md ต้องปรากฏหลักฐานการรีวิวของทุก PR ประกอบด้วย ตัวตนผู้ตรวจ ลิงก์ PR ข้อคิดเห็น/ข้อบกพร่องที่พบ (Comments) การตอบกลับของผู้พัฒนา (Responses) และผลการอนุมัติ (Approvals)  
+>    - *ข้อผิดพลาด:* ใน docs/lab-04/reviewer.md มีเพียงการอัปเดตบรรทัด PR #83 ในตารางสรุปด้านบน แต่ยังไม่มีหัวข้อเนื้อหา Review Round 4: PR #83 (feature/32-actions-taken-ui)  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มหัวข้อ Review Round 4 สำหรับ PR #83 ใน reviewer.md บันทึกข้อเสนอแนะและเปิดพื้นที่ให้ผู้พัฒนาตอบกลับแผนการดำเนินงาน  
+> 
+> 4. **การขาดเคสทดสอบอัตโนมัติสำหรับ Inactive Assignee Rejection ในชุดทดสอบหน้าบ้าน (ActionsTaken.test.tsx):**  
+>    - *เกณฑ์บังคับ:* Handout Section 10 กำหนดให้ Acceptance Criteria และ Safe Failure ต้องได้รับการทดสอบอย่างครอบคลุม  
+>    - *ข้อผิดพลาด:* ใน client/tests/lab-04/ActionsTaken.test.tsx มีการจำลองผู้ใช้ { id: 99, fullName: "Inactive Staff", isActive: false } ไว้ใน mockAssignees แล้ว แต่ยังไม่มีเคสทดสอบที่ยืนยันพฤติกรรมเมื่อเลือกผู้ใช้ที่ถูกปิดใช้งานหรือการจัดการกับข้อผิดพลาด 422 ของ Assignee  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มเคสทดสอบอัตโนมัติใน ActionsTaken.test.tsx ยืนยันการแสดงผลแจ้งเตือนความผิดพลาดเมื่อเลือกผู้ใช้ที่ถูกระงับสิทธิ์  
+
+---
+
+### Author Response & Action Plan (`@chanya06`):
+ขอบคุณสำหรับผลการตรวจสอบส่วนติดต่อผู้ใช้ที่ละเอียดและครอบคลุม ได้ดำเนินการปรับปรุงแก้ไขในสาขา `feature/32-actions-taken-ui` ครบทั้ง 4 ประเด็นเรียบร้อยแล้ว:
+
+1. **ปลดล็อกตัวเลือก Inactive Assignee ให้สามารถเลือกเพื่อทดสอบ Safe Failure ได้ (`client/src/components/ActionsTakenSection.tsx`):**
+   - นำแอตทริบิวต์ `disabled={assignee.isActive === false}` ออกจากแท็ก `<option>` ใน Dropdown มอบหมายงาน (`#action-assignee`)
+   - แสดงป้ายกำกับชัดเจน เช่น `Alex Chen (Staff)` หรือ `Inactive Staff (Staff - Inactive)` เพื่อให้สามารถคลิกเลือกส่งคำขอได้จริง
+   - เมื่อส่งคำขอ ระบบจะส่ง HTTP 422 Unprocessable Entity กลับมาตามเกณฑ์ Handout Section 14 (Answer Part 6) เพื่อสาธิตกลไก Safe Failure บน UI ได้อย่างสมบูรณ์
+2. **เพิ่มการแสดงผลข้อผิดพลาดระดับฟิลด์ (Field-Level Inline Error Highlighting) ใน Modal (`client/src/components/ActionsTakenSection.tsx`):**
+   - เพิ่ม State `modalErrorField` สำหรับติดตามฟิลด์ที่เกิดข้อผิดพลาด (`"actionDescription" | "followUpNote" | "result" | "assigneeId" | "actionDateTime"`)
+   - ผูกคลาส `is-invalid` (ขอบสีแดงตามมาตรฐาน Bootstrap / WCAG AA) เข้ากับ Form Control ของฟิลด์นั้นโดยตรง
+   - เพิ่มบล็อก `<div className="invalid-feedback d-block">` ใต้ฟิลด์ที่เกิดข้อผิดพลาดเพื่อแสดงข้อความระบุสาเหตุแบบ Inline สอดคล้องกับเกณฑ์ Accessibility และ UI Polish
+   - มีการเคลียร์สถานะข้อผิดพลาดของฟิลด์โดยอัตโนมัติเมื่อผู้ใช้แก้ไขข้อมูลในฟิลด์นั้น
+3. **บันทึกหลักฐานการรีวิว PR #83 ใน `docs/lab-04/reviewer.md`:**
+   - เพิ่มเนื้อหา Review Round 4: PR #83 ใน `docs/lab-04/reviewer.md` ครบถ้วนตามเกณฑ์ Handout Section 14 (Answer Part 1)
+   - อัปเดตสถานะในตารางสรุปเป็น `Changes Requested (Resolved) | In Review`
+4. **เพิ่มเคสทดสอบอัตโนมัติสำหรับ Inactive Assignee Rejection ใน `client/tests/lab-04/ActionsTaken.test.tsx`:**
+   - เพิ่มเคสทดสอบ `"handles inactive assignee rejection with HTTP 422 and field-level error highlighting"`
+   - ทดสอบการเลือก Assignee ที่ถูกระงับสิทธิ์ (Option ไม่ถูก disable, สามารถเลือกได้)
+   - จำลอง API ตอบกลับด้วยรหัส HTTP 422 `{ error: "Assignee must be an active IT Staff or Administrator account", field: "assigneeId" }`
+   - ตรวจสอบว่า Dropdown มีคลาส `is-invalid` ขอบสีแดง และมีข้อความ Invalid Feedback แสดงผลแจ้งเตือนอย่างถูกต้อง (16/16 tests ใน ActionsTaken.test.tsx ผ่าน 100%)

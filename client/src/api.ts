@@ -725,6 +725,7 @@ export interface StaffAssignee {
   fullName: string;
   email: string;
   role: string;
+  isActive?: boolean;
 }
 
 export async function fetchStaffAssignees(signal?: AbortSignal): Promise<StaffAssignee[]> {
@@ -1091,3 +1092,148 @@ export async function resetAdminUserPassword(
 }
 
 
+
+// ---------------------------------------------------------------------------
+// Lab 4: Actions Taken APIs & Types (AC-01..05, BR-01..06)
+// ---------------------------------------------------------------------------
+
+export type ActionTakenStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+
+export interface ActionTakenUser {
+  id: number;
+  fullName: string;
+  email: string;
+  role: string;
+}
+
+export interface ActionTaken {
+  id: number;
+  ticketId: number;
+  actionDateTime: string;
+  actionDescription: string;
+  result?: string | null;
+  performedById: number;
+  assigneeId?: number | null;
+  status: ActionTakenStatus;
+  followUpRequired: boolean;
+  followUpNote?: string | null;
+  attachmentNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  performedBy?: ActionTakenUser | null;
+  assignee?: ActionTakenUser | null;
+}
+
+export interface CreateActionTakenPayload {
+  actionDescription: string;
+  actionDateTime?: string;
+  result?: string;
+  assigneeId?: number | null;
+  status?: ActionTakenStatus;
+  followUpRequired?: boolean;
+  followUpNote?: string;
+  attachmentNotes?: string;
+}
+
+export interface UpdateActionTakenPayload {
+  actionDescription?: string;
+  actionDateTime?: string;
+  result?: string;
+  assigneeId?: number | null;
+  status?: ActionTakenStatus;
+  followUpRequired?: boolean;
+  followUpNote?: string;
+  attachmentNotes?: string;
+  expectedUpdatedAt?: string;
+}
+
+export async function fetchTicketActions(
+  ticketId: number,
+  signal?: AbortSignal
+): Promise<ActionTaken[]> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/actions`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch actions taken");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function createTicketAction(
+  ticketId: number,
+  payload: CreateActionTakenPayload
+): Promise<ActionTaken> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/actions`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to create action taken");
+    (err as any).status = res.status;
+    (err as any).field = data.field;
+    throw err;
+  }
+  return data;
+}
+
+export async function updateTicketAction(
+  ticketId: number,
+  actionId: number,
+  payload: UpdateActionTakenPayload
+): Promise<ActionTaken> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/actions/${actionId}`, {
+    method: "PUT",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to update action taken");
+    (err as any).status = res.status;
+    (err as any).field = data.field;
+    throw err;
+  }
+  return data;
+}
+
+export async function transitionActionStatus(
+  ticketId: number,
+  actionId: number,
+  payload: { status: ActionTakenStatus; result?: string }
+): Promise<ActionTaken> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/actions/${actionId}/status`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to transition action status");
+    (err as any).status = res.status;
+    (err as any).field = data.field;
+    throw err;
+  }
+  return data;
+}
