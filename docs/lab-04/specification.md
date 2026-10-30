@@ -206,6 +206,9 @@ model ActionTaken {
 3. **Decision 3: Non-Destructive Nullable Legacy Support**:
    - *Rationale*: All newly introduced dashboard queries and ticket detail views use outer joins (`include: { actionsTaken: true }`), ensuring legacy tickets created during Labs 1–3 without Actions Taken continue to render and compute with zero errors or schema backfill corruption.
 
+4. **Decision 4: Application-Layer Enforcement of Conditional Follow-up Invariants over Database CHECK Constraints**:
+   - *Rationale*: The business rule requiring `followUpNote` when `followUpRequired = true` is intentionally enforced in the application/API layer rather than via a PostgreSQL `CHECK` constraint. Application-layer validation allows the API to return human-readable, field-targeted error responses (`400 Bad Request` with `{ field: "followUpNote", message: "..." }`) that directly drive accessible UI validation states, rather than generic database error codes (`23514 check_violation` / 500 error). Furthermore, Prisma schema syntax does not natively generate cross-database SQL `CHECK` constraints in its declarative schema, so keeping this domain invariant in the service layer maintains clean ORM portability and testability across test runners and in-memory mocks.
+
 ### 7.3 Migration Strategy, Rollback Procedure & Disaster Recovery Plan (Handout Section 5.2 Requirement)
 - **Forward Migration Execution**:
   ```bash

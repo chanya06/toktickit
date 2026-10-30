@@ -106,30 +106,96 @@ describe("Database Migration, Schema & Rollback Verification (MIGR-01 - Issue 30
     expect(staffUser).toBeDefined();
   });
 
-  it("MIGR-01d: verifies reverse rollback DDL syntax validity in a rollback-safe transaction", async () => {
-    // Execute rollback DDL inside a transaction that is rolled back immediately
-    // so staging tables are preserved while verifying the SQL DDL validity
-    await prisma.$transaction(async (tx) => {
-      // Create a temporary clone table to test the exact drop syntax
-      await tx.$executeRawUnsafe(`
-        CREATE TABLE IF NOT EXISTS "ActionTaken_RollbackTest" (
-          id SERIAL PRIMARY KEY,
-          "ticketId" INTEGER NOT NULL
-        );
-      `);
+  it("MIGR-01d: verifies reverse rollback DDL execution on complete schema with Foreign Keys and Enums", async () => {
+    // Find an existing ticket for foreign key linkage
+    const existingTicket = await prisma.ticket.findFirst();
+    expect(existingTicket).toBeDefined();
 
-      // Test DROP TABLE IF EXISTS CASCADE
-      await tx.$executeRawUnsafe(`
-        DROP TABLE IF EXISTS "ActionTaken_RollbackTest" CASCADE;
-      `);
-    });
+    // 1. Create a full-fidelity replica schema with complete enum and foreign keys matching migration.sql
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        CREATE TYPE "ActionTakenStatus_RollbackSim" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ActionTaken_RollbackSim" (
+        "id" SERIAL NOT NULL,
+        "ticketId" INTEGER NOT NULL,
+        "actionDateTime" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "actionDescription" TEXT NOT NULL,
+        "result" TEXT,
+        "performedById" INTEGER NOT NULL,
+        "assigneeId" INTEGER,
+        "status" "ActionTakenStatus_RollbackSim" NOT NULL DEFAULT 'COMPLETED',
+        "followUpRequired" BOOLEAN NOT NULL DEFAULT false,
+        "followUpNote" TEXT,
+        "attachmentNotes" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "ActionTaken_RollbackSim_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "ActionTaken_RollbackSim_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "Ticket"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "ActionTaken_RollbackSim_performedById_fkey" FOREIGN KEY ("performedById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+        CONSTRAINT "ActionTaken_RollbackSim_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE
+      );
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "ActionTaken_RollbackSim_ticketId_idx" ON "ActionTaken_RollbackSim"("ticketId");
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "ActionTaken_RollbackSim_performedById_idx" ON "ActionTaken_RollbackSim"("performedById");
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "ActionTaken_RollbackSim_assigneeId_idx" ON "ActionTaken_RollbackSim"("assigneeId");
+    `);
+
+    // 2. Insert data into the replica table to verify FK constraints are active
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO "ActionTaken_RollbackSim" ("ticketId", "actionDescription", "performedById", "assigneeId", "status")
+      VALUES (${existingTicket!.id}, 'Rollback simulation testing action entry', ${existingTicket!.requesterId}, NULL, 'PENDING');
+    `);
+
+    // Verify row was inserted
+    const insertedRows: Array<{ count: bigint }> = await prisma.$queryRawUnsafe(`
+      SELECT count(*) as count FROM "ActionTaken_RollbackSim";
+    `);
+    expect(Number(insertedRows[0].count)).toBe(1);
+
+    // 3. Execute the exact documented Down-Migration / Rollback DDL from Section 7.3
+    // DROP TABLE IF EXISTS "ActionTaken" CASCADE;
+    // DROP TYPE IF EXISTS "ActionTakenStatus";
+    await prisma.$executeRawUnsafe(`
+      DROP TABLE IF EXISTS "ActionTaken_RollbackSim" CASCADE;
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      DROP TYPE IF EXISTS "ActionTakenStatus_RollbackSim";
+    `);
+
+    // 4. Assert that table and enum type were dropped cleanly without leaving orphaned artifacts or constraint errors
+    const tableCheck: Array<{ table_name: string }> = await prisma.$queryRawUnsafe(`
+      SELECT table_name FROM information_schema.tables 
+      WHERE table_schema = 'public' AND table_name = 'ActionTaken_RollbackSim';
+    `);
+    expect(tableCheck.length).toBe(0);
+
+    const typeCheck: Array<{ typname: string }> = await prisma.$queryRawUnsafe(`
+      SELECT typname FROM pg_type WHERE typname = 'ActionTakenStatus_RollbackSim';
+    `);
+    expect(typeCheck.length).toBe(0);
   });
 
   afterAll(async () => {
-    // Cleanup any lingering test ticket
+    // Cleanup any lingering test ticket or simulation objects
     if (testTicketId) {
       await prisma.actionTaken.deleteMany({ where: { ticketId: testTicketId } });
       await prisma.ticket.deleteMany({ where: { id: testTicketId } });
     }
+    await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS "ActionTaken_RollbackSim" CASCADE;`);
+    await prisma.$executeRawUnsafe(`DROP TYPE IF EXISTS "ActionTakenStatus_RollbackSim";`);
   });
 });
