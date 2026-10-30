@@ -51,6 +51,19 @@
 
 ---
 
+### Prompt 5: Issue 31 Actions Taken Backend REST APIs, Authorization & Concurrency
+- **User Intent**: Implement the Actions Taken backend REST APIs under Issue 31 with strict role authorization, optimistic concurrency control (`409 Conflict`), follow-up validation guards, inactive assignee rejection (`422 Unprocessable Entity`), and terminal state lifecycle protection, verified by comprehensive automated tests (`API-01..06`).
+- **AI Response Summary**:
+  - Implemented `server/src/routes/actions.ts` mounted under `/api/tickets` in `server/src/app.ts`:
+    - `GET /api/tickets/:id/actions`: Role-scoped action retrieval (requesters restricted to owned tickets; IT staff/admin across all).
+    - `POST /api/tickets/:id/actions`: Authenticated creator binding (`performedById`), `actionDescription` validation (min 5 chars), conditional `followUpNote` enforcement, and active staff/admin `assigneeId` verification.
+    - `PUT /api/tickets/:id/actions/:actionId`: Optimistic concurrency check comparing `expectedUpdatedAt` against database timestamp returning `409 Conflict` on race conditions, with assignee and note validation.
+    - `PATCH /api/tickets/:id/actions/:actionId/status`: Status lifecycle transition enforcing terminal state protection (`COMPLETED` / `CANCELLED` cannot be reopened, returning `422`).
+  - Authored automated test suite `server/tests/lab-04/actions-taken.api.test.ts` covering 23 comprehensive tests (`API-01` through `API-06` + edge cases), with 100% pass rate.
+  - Verified full regression test suite: 176 backend tests passing across all 17 test files.
+
+---
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ### Specification-Agent Synergy
