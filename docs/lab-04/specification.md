@@ -169,13 +169,13 @@ enum ActionTakenStatus {
 }
 
 model ActionTaken {
-  id                String            @id @default(uuid())
+  id                Int               @id @default(autoincrement())
   ticketId          Int
   actionDateTime    DateTime          @default(now())
   actionDescription String            @db.Text
   result            String?           @db.Text
-  performedById     String
-  assigneeId        String?
+  performedById     Int
+  assigneeId        Int?
   status            ActionTakenStatus @default(COMPLETED)
   followUpRequired  Boolean           @default(false)
   followUpNote      String?           @db.Text

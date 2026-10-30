@@ -29,6 +29,17 @@
 
 ---
 
+### Prompt 3: Issue 30 Database Foundation, Migration & Idempotent Seeding
+- **User Intent**: Proceed with Issue 30 to implement the Prisma schema changes for Actions Taken (ActionTakenStatus enum and ActionTaken model), create and execute the database migration, implement idempotent seed data with realistic tickets spanning zero, one, and multiple actions across all statuses, and verify with automated migration tests.
+- **AI Response Summary**:
+  - Implemented `ActionTakenStatus` enum (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`) and `ActionTaken` model in `server/prisma/schema.prisma` with integer foreign key alignment to `Ticket(id)` and `User(id)`.
+  - Created migration `20261030000000_lab4_actions_taken` and deployed cleanly to PostgreSQL database.
+  - Updated `server/prisma/seed.ts` with 6 realistic tickets covering all required variations: 0 actions (unassigned queue), 1 action (pending RF survey / waiting for requester), and multiple actions (in-progress battery swap / resolved LDAP VPN certificate).
+  - Authored automated integration test suite `server/tests/lab-04/migration-rollback.test.ts` (`MIGR-01`) verifying foreign keys, cascading deletions, legacy ticket compatibility, and rollback DDL safety (100% passing).
+  - Maintained full regression safety across all 153 backend tests and 116 frontend tests.
+
+---
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ### Specification-Agent Synergy
