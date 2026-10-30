@@ -20,6 +20,10 @@
 | **UI-04** | UI | AC-06 / FR-08 | Requester Dashboard metric cards & drill-down links | Metric values render; clicking card navigates to queue | `client/tests/lab-04/RequesterDashboard.test.tsx` | Planned |
 | **UI-05** | UI | AC-08 / FR-10 | IT Staff Dashboard cards, urgent list, and quick actions | Unassigned, My Assigned, priority breakdown render | `client/tests/lab-04/StaffDashboard.test.tsx` | Planned |
 | **UI-06** | UI | AC-10 / FR-12 | Ticket Resolution Gate advisory banner & controls | Banner shows requester report; status dropdown restricted | `client/tests/lab-04/TicketWorkflow.test.tsx` | Planned |
+| **STYLE-01** | Style | AC-12 / FR-16 | Responsive layout: Zero horizontal overflow at 375px mobile viewport | No horizontal scrolling (`overflow-x: hidden`), width strictly 375px | `client/tests/lab-04/ResponsiveLayout.test.tsx` | Planned |
+| **A11Y-01** | A11Y | AC-12 / FR-16 | Accessibility: Visible focus rings (`#006B3C`), keyboard tab navigation & ARIA labels | WCAG AA compliance; focus outlines visible on all interactive controls | `client/tests/lab-04/Accessibility.test.tsx` | Planned |
+| **PERF-01** | Perf | AC-06..08 / FR-07..09 | Performance-Smoke: Dashboard metric aggregation & query latency benchmark | Sub-100ms response time under concurrent query loads | `server/tests/lab-04/dashboard-perf.api.test.ts` | Planned |
+| **MIGR-01** | Migr | AC-01 / FR-01 | Migration & Rollback: Forward DDL migration & reverse down-migration verification | DDL applies cleanly and drops safely without legacy ticket data loss | `server/tests/lab-04/migration-rollback.test.ts` | Planned |
 | **E2E-01** | E2E | AC-01 / AC-04 | Complete Actions Taken workflow (Create -> Edit -> Complete) | IT Staff records action and marks completed | `e2e/lab-04/actions-taken-flow.spec.ts` | Planned |
 | **E2E-02** | E2E | AC-10 / FR-12 | Advisory Resolution Gate & Formal Resolution flow | Requester indicates resolved; IT Staff verifies & closes | `e2e/lab-04/ticket-resolution.spec.ts` | Planned |
 | **E2E-03** | E2E | AC-06 / AC-08 | Multi-role Dashboard verification and drill-down navigation | Requester & Staff dashboards reflect real queue data | `e2e/lab-04/dashboards.spec.ts` | Planned |
@@ -29,20 +33,24 @@
 
 ## 2. Test Suite File Map
 
-### Backend Integration & Security Tests (`server/tests/lab-04/`)
-- `actions-taken.api.test.ts`: CRUD operations, performer binding, follow-up validation, inactive user rejection, optimistic locking.
-- `ticket-workflow.api.test.ts`: Permitted status transition matrix, advisory resolution gate, role restrictions.
-- `requester-dashboard.api.test.ts`: Requester metric queries, date boundaries, tenant session isolation.
-- `staff-dashboard.api.test.ts`: Operational queue metrics, unassigned/assigned logic, priority breakdowns.
+### Backend Integration, Security & Migration Tests (`server/tests/lab-04/`)
+- `actions-taken.api.test.ts`: CRUD operations, performer binding, assignee validation, inactive user rejection, optimistic locking.
+- `ticket-workflow.api.test.ts`: Permitted status transition matrix, advisory resolution gate, incomplete action resolution guard.
+- `requester-dashboard.api.test.ts`: Requester metric queries, date boundaries, tenant session isolation, empty state counts.
+- `staff-dashboard.api.test.ts`: Operational queue metrics, unassigned/assigned logic, priority breakdowns, zero metric handling.
+- `dashboard-perf.api.test.ts`: Performance-smoke benchmarking sub-100ms query latency under load.
+- `migration-rollback.test.ts`: Database migration execution, legacy ticket non-destructive compatibility, and down-migration rollback verification.
 
-### Frontend UI Component Tests (`client/tests/lab-04/`)
-- `ActionsTaken.test.tsx`: Actions list rendering, Create/Edit modal forms, follow-up conditional validation, requester read-only mode.
-- `RequesterDashboard.test.tsx`: Metric cards, recent tickets list, quick action buttons, drill-down router triggers.
-- `StaffDashboard.test.tsx`: Operational metric cards, urgent ticket triage table, queue filter shortcuts.
-- `TicketWorkflow.test.tsx`: Advisory resolution banner, status transition select restrictions, state machine feedback.
+### Frontend UI Component, Style & Accessibility Tests (`client/tests/lab-04/`)
+- `ActionsTaken.test.tsx`: Actions list rendering, Create/Edit modal forms with Assignee selector, follow-up conditional validation, requester read-only mode.
+- `RequesterDashboard.test.tsx`: Metric cards, zero-count states, recent tickets list, quick action buttons, drill-down router triggers.
+- `StaffDashboard.test.tsx`: Operational metric cards, empty queue feedback, urgent ticket triage table, queue filter shortcuts.
+- `TicketWorkflow.test.tsx`: Advisory resolution banner, incomplete action resolution blocking feedback, status transition matrix enforcement.
+- `ResponsiveLayout.test.tsx`: Zero horizontal overflow verification on 375px mobile breakpoint for dashboards and ticket detail.
+- `Accessibility.test.tsx`: Visible focus indicator verification, keyboard navigation, and semantic ARIA labeling.
 
 ### End-to-End Tests (`e2e/lab-04/`)
-- `actions-taken-flow.spec.ts`: E2E IT Staff logs in, opens ticket, adds Action Taken, updates outcome, transitions action to COMPLETED.
+- `actions-taken-flow.spec.ts`: E2E IT Staff logs in, opens ticket, adds Action Taken with assignee, updates outcome, transitions action to COMPLETED.
 - `ticket-resolution.spec.ts`: E2E Requester reports issue resolved; IT Staff inspects actions taken, executes formal resolution, closes ticket.
 - `dashboards.spec.ts`: E2E role-based landing, metric verification, and drill-down navigation into detailed filtered lists.
 
@@ -52,8 +60,8 @@
 
 | Test Suite | Target Framework | Expected Tests | Expected Status |
 | :--- | :--- | :--- | :--- |
-| **Lab 4 Backend Integration** | Vitest + Supertest | ~35 tests | Pending Implementation |
-| **Lab 4 Frontend UI Components** | Vitest + React Testing Library | ~30 tests | Pending Implementation |
+| **Lab 4 Backend Integration & Perf** | Vitest + Supertest | ~45 tests | Pending Implementation |
+| **Lab 4 Frontend UI, Style & A11Y** | Vitest + React Testing Library | ~40 tests | Pending Implementation |
 | **Lab 4 Playwright E2E** | Playwright (Chromium) | ~10 tests | Pending Implementation |
 | **Labs 1–3 Regression Suites** | Vitest + Supertest + RTL + E2E | 277 tests | Must Remain 100% Green |
-| **Total Automated Coverage** | Full Test Pyramid | > 350 tests | Target: 100% Passing |
+| **Total Automated Coverage** | Full Test Pyramid | > 370 tests | Target: 100% Passing |

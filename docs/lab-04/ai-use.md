@@ -18,6 +18,15 @@
   - Formulated strict REST API contracts with optimistic concurrency conflict detection (`409 Conflict`) in `api-spec.md`.
   - Defined the multi-tier test pyramid and traceability matrix in `tests.md`.
 
+### Prompt 2: PR #72 Review Feedback Resolution & Contract Hardening
+- **User Intent**: Address 4 specific feedback items requested by peer reviewer `@lmaybelgracel` for PR #72: add `assigneeId` field to Actions Taken model and APIs, add Migration Rollback and Disaster Recovery procedure to specification.md, add missing test categories (Style/Responsive, Accessibility, Performance-Smoke, Migration) to tests.md, and specify Empty Behavior for dashboard cards and completed-action requirements for the Resolution Gate.
+- **AI Response Summary**:
+  - Added `assigneeId: String?` referencing `User` alongside `performedById: String` in Prisma schema, APIs, and UI modal.
+  - Added Section 7.3 to `specification.md` detailing reverse down-migration SQL, `prisma migrate resolve --rolled-back`, and `pg_dump`/`pg_restore` recovery.
+  - Added `STYLE-01`, `A11Y-01`, `PERF-01`, and `MIGR-01` rows to `tests.md`.
+  - Specified empty metric card behaviors (value 0 styling & drill-down) and enforced `BR-08` precondition that resolving a ticket requires all child actions to be completed or cancelled.
+  - Recorded review comments and response in `docs/lab-04/reviewer.md`.
+
 ---
 
 ## 3. Reflection on AI Pairing in Software Engineering

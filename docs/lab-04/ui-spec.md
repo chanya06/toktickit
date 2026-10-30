@@ -56,10 +56,11 @@
   - **Card 3: In Progress**: Value, "Active triage", "View in-progress" button (links to `/staff/tickets?status=IN_PROGRESS`).
   - **Card 4: Waiting for Requester**: Value, "Pending response", "View waiting" button (links to `/staff/tickets?status=WAITING_FOR_REQUESTER`).
   - **Card 5: Urgent / High Priority**: Value, "High attention", "View urgent" button (links to `/staff/tickets?priority=URGENT`).
+  - **Empty Metric Behavior**: If any count is 0, the number renders as "0" in neutral slate (`#64748B`) with inactive border (`#E2E8F0`). Clicking the card drills down into the queue showing a clean empty state.
 - **Main Operational Layout (2-Column Grid on Desktop)**:
   - **Left Section (70%): Recent & Urgent Tickets**:
     - Table columns: Ticket No, Summary, Status Badge, IT Priority Badge, Owner, Updated Time, Action ("View Detail").
-    - Empty state: "No urgent tickets require immediate attention."
+    - Empty state: "Queue is clear. No urgent tickets require immediate attention." (Zen Green bordered box with neutral icon).
   - **Right Section (30%): Quick Actions & Workload Summary**:
     - Quick Action Buttons:
       - "Search Tickets" (Jump to search input on queue)
@@ -81,10 +82,12 @@
   - **Card 2: In Progress**: Count of tickets currently being worked on by IT Staff, "View all" link.
   - **Card 3: Waiting for Your Input**: Count of tickets in `WAITING_FOR_REQUESTER`, Amber alert styling, "Respond now" link.
   - **Card 4: Resolved / Closed**: Count of resolved/closed tickets within last 30 days, "View history" link.
+  - **Empty Metric Behavior**: If count is 0, renders "0" in neutral slate without alert tokens; drill-down button navigates to filtered `MyTicketsView`.
 - **Main Layout (2-Column on Desktop)**:
   - **Left Section (70%): My Recent Tickets**:
     - Table columns: Ticket No, Summary, Category, Status Badge, Last Updated, Action ("View").
     - If `isResolutionIndicated === true`, shows a small green badge "Resolution Indicated".
+    - Empty state: "No support requests submitted yet. Click '+ Submit New Request' to open a ticket."
   - **Right Section (30%): Quick Help & Actions**:
     - Big Primary Button: "+ Submit New Request" (opens `/create-ticket`).
     - Secondary Button: "View All My Tickets" (opens `/my-tickets`).
@@ -111,11 +114,12 @@
     1. *Action Date/Time*: Formatted as `DD MMM YYYY, HH:mm`.
     2. *Description*: Concise summary of work done.
     3. *Result / Outcome*: Output of the action (e.g. "Driver reinstalled", "Port unblocked").
-    4. *Performed By*: Name and IT Staff badge of performer.
-    5. *Status*: Badge (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`).
-    6. *Follow-Up*: Icon indicator (`Yes` with note tooltip, or `None`).
-    7. *Attachments / Notes*: Reference text to files/images.
-    8. *Actions*: "Edit" button, "Transition Status" dropdown (IT Staff / Admin only).
+    4. *Performed By*: Name and IT Staff badge of author.
+    5. *Assigned To*: Name and badge of assigned staff member (`assigneeId`), or "Unassigned".
+    6. *Status*: Badge (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`).
+    7. *Follow-Up*: Icon indicator (`Yes` with note tooltip, or `None`).
+    8. *Attachments / Notes*: Reference text to files/images.
+    9. *Actions*: "Edit" button, "Transition Status" dropdown (IT Staff / Admin only).
   - **Requester View**: Same table/cards but read-only (all "+ Add", "Edit", and status transition controls completely omitted).
   - **Empty State**: "No actions recorded yet. IT Staff will log technical steps here as work progresses."
 - **Create / Edit Action Taken Modal**:
@@ -123,10 +127,11 @@
   - Field 1: Action Date/Time (default: Current time, editable).
   - Field 2: Action Description (textarea, required, min 5 chars).
   - Field 3: Result / Outcome (textarea, required for COMPLETED).
-  - Field 4: Status (select: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`).
-  - Field 5: Follow-Up Required Toggle (Switch/Checkbox).
-  - Field 6: Follow-Up Note (textarea, dynamically required and highlighted when toggle is ON).
-  - Field 7: Attachment Notes (text input, placeholder: "e.g. diagnostics_log.txt or screenshot_1.png").
+  - Field 4: Assignee Selector (dropdown populated strictly with active IT Staff and Admin accounts; disables inactive users).
+  - Field 5: Status (select: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`).
+  - Field 6: Follow-Up Required Toggle (Switch/Checkbox).
+  - Field 7: Follow-Up Note (textarea, dynamically required and highlighted when toggle is ON).
+  - Field 8: Attachment Notes (text input, placeholder: "e.g. diagnostics_log.txt or screenshot_1.png").
   - Actions: "Cancel" (neutral) and "Save Action" (primary Zen Green).
 
 ---
@@ -136,8 +141,10 @@
   - Rendered when `ticket.isResolutionIndicated === true`.
   - Alert Box: Soft green background (`#DCFCE7`), border (`#16A34A`), icon (Checkmark Circle).
   - Text: *"Requester has indicated that this issue appears resolved. Please verify all Actions Taken before formally transitioning ticket to RESOLVED."*
-- **Status Transition Guard**:
-  - Status select dropdown disables illegal transitions.
+- **Action Completion Validation Guard (BR-08)**:
+  - If any child Action Taken under the ticket is still in `PENDING` or `IN_PROGRESS` status, selecting `RESOLVED` in the status dropdown displays an immediate error alert:
+    *"Cannot resolve ticket: Action '#{actionId}' is still in progress. Please complete or cancel all actions taken first."*
+  - The submit action is disabled until all actions reach `COMPLETED` or `CANCELLED`.
   - Selecting `RESOLVED` prompts confirmation verifying that required Actions Taken are completed.
 
 ---

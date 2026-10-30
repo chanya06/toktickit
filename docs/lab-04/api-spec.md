@@ -30,6 +30,13 @@ Tokens encode user credentials: `id`, `email`, `role` (`REQUESTER`, `IT_STAFF`, 
       "email": "somsak@toktickit.com",
       "role": "IT_STAFF"
     },
+    "assigneeId": "u-staff-02",
+    "assignee": {
+      "id": "u-staff-02",
+      "fullName": "Wichai IT",
+      "email": "wichai@toktickit.com",
+      "role": "IT_STAFF"
+    },
     "status": "COMPLETED",
     "followUpRequired": true,
     "followUpNote": "Check stability after 24 hours of burn-in test.",
@@ -55,6 +62,7 @@ Tokens encode user credentials: `id`, `email`, `role` (`REQUESTER`, `IT_STAFF`, 
   "actionDateTime": "2026-10-29T10:30:00.000Z",
   "actionDescription": "Replaced faulty network patch cable on switch port 14.",
   "result": "Link light active; 1Gbps full duplex negotiation established.",
+  "assigneeId": "u-staff-02",
   "status": "COMPLETED",
   "followUpRequired": false,
   "followUpNote": null,
@@ -63,6 +71,8 @@ Tokens encode user credentials: `id`, `email`, `role` (`REQUESTER`, `IT_STAFF`, 
 ```
 - **Validation Rules**:
   - `actionDescription`: Required, minimum 5 characters.
+  - `performedById`: Automatically bound to authenticated user ID.
+  - `assigneeId`: Optional. If provided, must reference an active `IT_STAFF` or `ADMINISTRATOR` user (`isActive: true`). Rejection with 422 if inactive or having role `REQUESTER`.
   - `followUpRequired`: Boolean. If `true`, `followUpNote` is mandatory (minimum 5 chars).
   - `status`: Must be one of `PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED` (default: `COMPLETED`).
 - **Response**: `201 Created`
@@ -70,7 +80,7 @@ Tokens encode user credentials: `id`, `email`, `role` (`REQUESTER`, `IT_STAFF`, 
   - `400 Bad Request`: Validation failure (e.g. `followUpRequired: true` but `followUpNote` is empty).
   - `403 Forbidden`: Authenticated user is a Requester.
   - `404 Not Found`: Ticket not found.
-  - `422 Unprocessable Entity`: Performer account is inactive.
+  - `422 Unprocessable Entity`: Performer account is inactive, or `assigneeId` refers to an inactive account or non-staff user.
 
 ---
 
@@ -82,6 +92,7 @@ Tokens encode user credentials: `id`, `email`, `role` (`REQUESTER`, `IT_STAFF`, 
 {
   "actionDescription": "Replaced faulty network patch cable and re-crimped RJ45 termination.",
   "result": "Link active with 0% packet loss over 1000 packets.",
+  "assigneeId": "u-staff-02",
   "status": "COMPLETED",
   "followUpRequired": true,
   "followUpNote": "Verify line stability during morning peak traffic tomorrow.",
@@ -91,12 +102,14 @@ Tokens encode user credentials: `id`, `email`, `role` (`REQUESTER`, `IT_STAFF`, 
 ```
 - **Concurrency & Conflict Handling**:
   - If `expectedUpdatedAt` is provided and does not match the database `updatedAt`, returns `409 Conflict` to prevent overwriting concurrent updates.
+- **Validation**:
+  - If `assigneeId` is provided, must be an active IT Staff or Administrator account (`isActive: true`). Rejection with 422 if inactive.
 - **Response**: `200 OK`
 - **Error Responses**:
   - `400 Bad Request`: Invalid payload.
   - `403 Forbidden`: Non-staff user.
   - `404 Not Found`: Ticket or Action Taken record not found.
-  - `409 Conflict`: Stale update detected.
+  - `409 Conflict`: Stale update detected (`expectedUpdatedAt` mismatch).
   - `422 Unprocessable Entity`: Inactive assignee or illegal modification.
 
 ---
@@ -213,6 +226,11 @@ Tokens encode user credentials: `id`, `email`, `role` (`REQUESTER`, `IT_STAFF`, 
 }
 ```
 
+### 3.4 Empty Behavior & Zero Metric Guarantees
+- **Zero Metrics**: When an aggregation has 0 matching tickets, endpoints return exact integer `0` for numeric metrics (e.g. `"unassignedTickets": 0`), never `null` or omitted keys.
+- **Empty Collections**: When no recent or urgent tickets match, arrays are returned as empty lists `[]` rather than `null`.
+- **Drill-Down Query Continuity**: The frontend utilizes metric keys to query filtered endpoints (e.g. `/api/staff/tickets?owner=unassigned`), which gracefully return empty paginated responses (`{ "tickets": [], "total": 0 }`).
+
 ---
 
 ## 4. Ticket Workflow & Resolution Gate Endpoints
@@ -233,4 +251,12 @@ Tokens encode user credentials: `id`, `email`, `role` (`REQUESTER`, `IT_STAFF`, 
   "resolutionNote": "Replaced RAM module; burn-in verified clean."
 }
 ```
-- **Validation**: Enforces 8+1 transition matrix per BR-07. Rejecting illegal state changes with `422 Unprocessable Entity`.
+- **Validation & Resolution Precondition**:
+  - Enforces 8+1 transition matrix per BR-07. Rejection of illegal state jumps with `422 Unprocessable Entity`.
+  - **Action Completion Check (BR-08)**: When attempting to transition status to `RESOLVED`, the server checks all child `ActionTaken` records under the ticket. If any action remains in `PENDING` or `IN_PROGRESS` status, the transition is rejected with `422 Unprocessable Entity` and the error payload:
+    ```json
+    {
+      "error": "Cannot resolve ticket: all child actions taken must be completed or cancelled first",
+      "pendingActionsCount": 1
+    }
+    ```

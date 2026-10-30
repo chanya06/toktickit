@@ -50,11 +50,11 @@ The IT department requires TokTickIT to evolve from a ticketing and communicatio
 ## 4. Functional Requirements
 
 ### 4.1 Actions Taken Requirements
-- **FR-01 (Actions Taken Model)**: The system shall record child `ActionTaken` items under a parent `Ticket`, capturing `actionDateTime`, `actionDescription`, `result`, `performedById`, `status`, `followUpRequired`, `followUpNote`, and `attachmentNotes`.
+- **FR-01 (Actions Taken Model)**: The system shall record child `ActionTaken` items under a parent `Ticket`, capturing `actionDateTime`, `actionDescription`, `result`, `performedById` (auto-bound to creator), `assigneeId` (optional assigned IT Staff or Administrator), `status`, `followUpRequired`, `followUpNote`, and `attachmentNotes`.
 - **FR-02 (Action Performer Attribution)**: The system shall automatically bind the authenticated IT Staff or Administrator user ID to `performedById` upon creation and update.
 - **FR-03 (Action Status Lifecycle)**: The system shall support lifecycle states for Actions Taken (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`) with validated status transitions.
 - **FR-04 (Follow-Up Validation)**: The system shall enforce that `followUpNote` is non-empty whenever `followUpRequired` is set to `true`.
-- **FR-05 (Inactive Assignee Guard)**: The system shall reject assigning or reassigning an Action Taken to any user account marked as `isActive: false` with HTTP 422.
+- **FR-05 (Inactive Assignee Guard)**: The system shall permit assigning or reassigning an Action Taken to any active IT Staff or Administrator account (`assigneeId`), and shall reject assignment or reassignment to any user marked `isActive: false` or holding role `REQUESTER` with HTTP 422 Unprocessable Entity.
 - **FR-06 (Requester Action Visibility)**: The system shall permit authenticated Requesters to view all Actions Taken items associated with their owned tickets in read-only mode, while prohibiting creation, modification, or status alteration.
 
 ### 4.2 Dashboard Requirements
@@ -79,14 +79,14 @@ The IT department requires TokTickIT to evolve from a ticketing and communicatio
 
 ### 5.1 Actions Taken Business Rules
 - **BR-01 (Single Parent Ownership)**: Each Action Taken record must belong to exactly one parent Ticket (`ticketId` is required and immutable).
-- **BR-02 (Separation of Ticket Ownership & Action Execution)**: The Ticket Owner coordinates the ticket as a whole, but individual Actions Taken may be performed by and assigned to different active IT Staff members.
+- **BR-02 (Separation of Ticket Ownership & Action Execution)**: The Ticket Owner coordinates the ticket as a whole, but individual Actions Taken may be authored by `performedById` and assigned to different active IT Staff members via `assigneeId`.
 - **BR-03 (Action Taken Status Machine)**: Permitted status transitions for an Action Taken:
   - `PENDING` -> `IN_PROGRESS`, `CANCELLED`
   - `IN_PROGRESS` -> `COMPLETED`, `CANCELLED`, `PENDING`
   - `COMPLETED` -> Final state (read-only audit trail; cannot be reopened)
   - `CANCELLED` -> Final state
 - **BR-04 (Follow-up Completeness)**: If `followUpRequired` is `true`, `followUpNote` must contain at least 5 non-whitespace characters. If `followUpRequired` is `false`, `followUpNote` is optional or nullified.
-- **BR-05 (Active Performer Integrity)**: Actions Taken can only be created by or assigned to active accounts (`isActive: true`) holding either `IT_STAFF` or `ADMINISTRATOR` role.
+- **BR-05 (Active Assignee & Performer Integrity)**: Actions Taken can only be created by active IT Staff/Admin, and `assigneeId` can only be set to active accounts (`isActive: true`) holding either `IT_STAFF` or `ADMINISTRATOR` role. Assigning or reassigning to an inactive user or a user with `REQUESTER` role is rejected with HTTP 422 Unprocessable Entity.
 - **BR-06 (Requester Action Guard)**: Requesters attempting to create, update, or delete Actions Taken shall be rejected with HTTP 403 Forbidden.
 
 ### 5.2 Ticket Workflow & Resolution Gate Rules
@@ -100,19 +100,26 @@ The IT department requires TokTickIT to evolve from a ticketing and communicatio
   - `REOPENED` -> `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CANCELLED` (IT Staff / Admin)
   - `CLOSED` -> Terminal state (no further transitions permitted)
   - `CANCELLED` -> Terminal state
-- **BR-08 (Resolution Verification Gate)**: Requester problem resolution indication (`isResolutionIndicated: true`) is strictly advisory. A ticket cannot reach `RESOLVED` status without formal execution of `PATCH /api/tickets/:id/status` by an IT Staff or Administrator.
+- **BR-08 (Resolution Gate & Completed Work Verification)**:
+  1. Requester problem resolution indication (`isResolutionIndicated: true`) is strictly advisory and logs an audit comment without closing or resolving the ticket.
+  2. A Ticket cannot reach `RESOLVED` status without formal review and status change (`PATCH /api/tickets/:id/status`) executed by an IT Staff or Administrator.
+  3. **Action Completion Precondition**: The backend strictly prohibits transitioning a ticket to `RESOLVED` if any child `ActionTaken` records under that ticket remain in `PENDING` or `IN_PROGRESS` status. All recorded actions must be finalized in either `COMPLETED` or `CANCELLED` state. Attempting to resolve a ticket with unfinished actions is rejected with HTTP 422 Unprocessable Entity (*"Cannot resolve ticket with pending or in-progress actions"*).
 
-### 5.3 Dashboard Calculation Business Rules
-- **BR-09 (Requester Dashboard Metric Boundaries)**:
+### 5.3 Dashboard Calculation Business Rules & Empty Behavior
+- **BR-09 (Requester Dashboard Metric Boundaries & Empty States)**:
   - *My Open Tickets*: Count of tickets where `requesterId === authUserId` and `status IN ('NEW', 'OPEN', 'IN_PROGRESS', 'WAITING_FOR_REQUESTER', 'PENDING')`.
   - *Waiting for Requester*: Count of tickets where `requesterId === authUserId` and `status === 'WAITING_FOR_REQUESTER'`.
   - *Recently Updated*: Count of tickets where `requesterId === authUserId` updated within the last 7 calendar days.
   - *Recently Resolved*: Count of tickets where `requesterId === authUserId` and `status IN ('RESOLVED', 'CLOSED')` within the last 30 calendar days.
-- **BR-10 (IT Staff Dashboard Metric Boundaries)**:
+  - *Zero / Empty Metric Card Behavior*: When any metric count equals 0, the card displays a prominent "0" with a muted neutral border (`#E2E8F0`). Clicking the card navigates to `MyTicketsView` pre-filtered by that criterion, displaying a clear Zen Green empty state.
+  - *Empty Recent Tickets Table Behavior*: When the requester has no tickets, the table renders a Zen Green empty container: *"No support requests found. Click '+ Submit New Request' to get IT support."*
+- **BR-10 (IT Staff Dashboard Metric Boundaries & Empty States)**:
   - *Unassigned Tickets*: Count of active tickets where `ownerId IS NULL` and `status NOT IN ('RESOLVED', 'CLOSED', 'CANCELLED')`.
   - *My Assigned Tickets*: Count of active tickets where `ownerId === authUserId` and `status NOT IN ('RESOLVED', 'CLOSED', 'CANCELLED')`.
   - *Status Counts*: Precise counts for `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `PENDING`.
   - *Priority Counts*: Precise counts for active tickets grouped by `itPriority` (`URGENT`, `HIGH`, `MEDIUM`, `LOW`).
+  - *Zero / Empty Metric Card Behavior*: When a count is 0 (e.g. 0 unassigned tickets), the card displays "0" in neutral styling. Clicking the card drills down into `StaffTicketQueue` with matching query filters, showing the empty queue state (*"No tickets match the selected filters"*).
+  - *Empty Urgent / Recent Tickets Table Behavior*: When no urgent tickets exist, the dashboard displays: *"Queue is clear. No urgent tickets require immediate attention."*
 
 ---
 
@@ -133,12 +140,13 @@ The IT department requires TokTickIT to evolve from a ticketing and communicatio
 - **Actions Taken Panel on Ticket Detail (`/tickets/:id`)**:
   - Positioned prominently below ticket operations panel, above communication tabs.
   - Table view on desktop, card view on mobile.
-  - Columns: Date/Time, Description, Result, Performed By, Status Badge, Follow-up indicator, Actions ("Edit", "Update Status").
+  - Columns: Date/Time, Description, Result, Performed By (Creator), Assigned To (Assignee Staff/Admin), Status Badge, Follow-up indicator, Actions ("Edit", "Update Status").
   - "+ Add Action Taken" button (hidden from Requesters).
-  - Create / Edit Modal with form validation, follow-up toggle, follow-up note input, and attachment references.
+  - Create / Edit Modal with form validation, assignee selector (active IT Staff / Admin), follow-up toggle, follow-up note input, and attachment references.
 - **Ticket Workflow & Resolution Indicator**:
   - Prominent Green Banner when `isResolutionIndicated === true` alerting IT Staff that requester reported resolution.
   - Status transition select strictly restricted to permitted transitions per BR-07.
+  - Inline error banner when attempting to transition to `RESOLVED` while actions remain in `PENDING` or `IN_PROGRESS`: *"Cannot resolve ticket: all child actions taken must be completed or cancelled first."*
 
 ### 6.2 Responsive & Accessibility Rules
 - **Desktop (>= 992px)**: Multi-column grid for dashboard metric cards (4 cards per row), comprehensive data tables.
@@ -167,6 +175,7 @@ model ActionTaken {
   actionDescription String            @db.Text
   result            String?           @db.Text
   performedById     String
+  assigneeId        String?
   status            ActionTakenStatus @default(COMPLETED)
   followUpRequired  Boolean           @default(false)
   followUpNote      String?           @db.Text
@@ -176,11 +185,17 @@ model ActionTaken {
 
   ticket            Ticket            @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   performedBy       User              @relation("ActionPerformer", fields: [performedById], references: [id])
+  assignee          User?             @relation("ActionAssignee", fields: [assigneeId], references: [id])
 
   @@index([ticketId])
   @@index([performedById])
+  @@index([assigneeId])
   @@index([actionDateTime])
 }
+
+// User model relations extended:
+// actionsPerformed ActionTaken[] @relation("ActionPerformer")
+// actionsAssigned  ActionTaken[] @relation("ActionAssignee")
 ```
 
 ### 7.2 Database Design Decisions Justification (Handout Section 5.1 Requirement)
@@ -191,6 +206,32 @@ model ActionTaken {
 3. **Decision 3: Non-Destructive Nullable Legacy Support**:
    - *Rationale*: All newly introduced dashboard queries and ticket detail views use outer joins (`include: { actionsTaken: true }`), ensuring legacy tickets created during Labs 1–3 without Actions Taken continue to render and compute with zero errors or schema backfill corruption.
 
+### 7.3 Migration Strategy, Rollback Procedure & Disaster Recovery Plan (Handout Section 5.2 Requirement)
+- **Forward Migration Execution**:
+  ```bash
+  npx prisma migrate dev --name lab4_actions_taken
+  npx prisma migrate deploy
+  ```
+- **Rollback Procedure**:
+  In the event of a migration anomaly or deployment rollback, execute the reverse SQL down-migration script:
+  ```sql
+  -- Rollback DDL: Drop ActionTaken table and enum type safely
+  DROP TABLE IF EXISTS "ActionTaken" CASCADE;
+  DROP TYPE IF EXISTS "ActionTakenStatus";
+  ```
+  After executing the SQL rollback, resolve the migration record in Prisma:
+  ```bash
+  npx prisma migrate resolve --rolled-back 20261030000000_lab4_actions_taken
+  ```
+  Revert `schema.prisma` to the Lab 3 commit and regenerate the client (`npx prisma generate`).
+- **Disaster Recovery & Non-Destructive Data Preservation**:
+  - Before applying any DDL changes in production or staging, create an automated logical database backup:
+    ```bash
+    pg_dump -U postgres -d toktickit -Fc -f backup_pre_lab4.dump
+    ```
+  - Point-in-Time Recovery (PITR): If database inconsistency occurs, restore from `backup_pre_lab4.dump` using `pg_restore -c -d toktickit backup_pre_lab4.dump`.
+  - Legacy Ticket Behavior: Existing tickets from Labs 1–3 contain zero actions (`actionsTaken: []`). All queries use nullable foreign keys and outer joins so legacy tickets continue to function without data loss or backfill corruption.
+
 ---
 
 ## 8. REST API Contract Summary
@@ -198,12 +239,12 @@ model ActionTaken {
 | Method | Endpoint | Authorized Roles | Description | Status Codes |
 | :--- | :--- | :--- | :--- | :--- |
 | `GET` | `/api/tickets/:id/actions` | All (Requester owned only; IT Staff / Admin all) | List all Actions Taken for ticket | 200, 401, 403, 404 |
-| `POST` | `/api/tickets/:id/actions` | IT Staff, Administrator | Create new Action Taken record | 201, 400, 401, 403, 404, 422 |
-| `PUT` | `/api/tickets/:id/actions/:actionId` | IT Staff, Administrator | Update existing Action Taken details | 200, 400, 401, 403, 404, 409, 422 |
+| `POST` | `/api/tickets/:id/actions` | IT Staff, Administrator | Create Action Taken (binds creator, validates assignee & follow-up) | 201, 400, 401, 403, 404, 422 |
+| `PUT` | `/api/tickets/:id/actions/:actionId` | IT Staff, Administrator | Update Action Taken (description, result, assignee, follow-up) | 200, 400, 401, 403, 404, 409, 422 |
 | `PATCH` | `/api/tickets/:id/actions/:actionId/status` | IT Staff, Administrator | Transition status of Action Taken | 200, 400, 401, 403, 404, 422 |
 | `GET` | `/api/dashboard/requester` | Requester | Authoritative Requester metrics & recent tickets | 200, 401, 403 |
-| `GET` | `/api/dashboard/staff` | IT Staff, Administrator | Authoritative IT Staff operational metrics | 200, 401, 403 |
-| `GET` | `/api/dashboard/admin` | Administrator | System-wide metrics and user counts | 200, 401, 403 |
+| `GET` | `/api/dashboard/staff` | IT Staff, Administrator | Authoritative IT Staff operational metrics & urgent tickets | 200, 401, 403 |
+| `GET` | `/api/dashboard/admin` | Administrator | System-wide metrics, user statistics, and queue triage | 200, 401, 403 |
 
 Full request/response schemas, validation payloads, and conflict rules are documented in [`docs/lab-04/api-spec.md`](file:///c:/Users/chany/Documents/GitHub/toktickit/docs/lab-04/api-spec.md).
 
@@ -211,16 +252,16 @@ Full request/response schemas, validation payloads, and conflict rules are docum
 
 ## 9. Acceptance Criteria
 
-- **AC-01 (Create Action Taken)**: Given an authenticated IT Staff or Admin user and valid action payload, when `POST /api/tickets/:id/actions` is called, then a new `ActionTaken` record is created, automatically assigned to the authenticated user, and returned with HTTP 201.
+- **AC-01 (Create Action Taken)**: Given an authenticated IT Staff or Admin user and valid action payload, when `POST /api/tickets/:id/actions` is called, then a new `ActionTaken` record is created, automatically binding `performedById` to the authenticated user, saving `assigneeId` if provided, and returning HTTP 201.
 - **AC-02 (Follow-up Validation Guard)**: Given an IT Staff user submitting an Action Taken with `followUpRequired: true`, when `followUpNote` is empty or missing, then the request is rejected with HTTP 400 and inline validation feedback.
 - **AC-03 (Requester Action Isolation)**: Given an authenticated Requester, when attempting to create, edit, or delete an Action Taken via API or UI, then the request is rejected with HTTP 403 Forbidden.
 - **AC-04 (Action Status Transitions)**: Given an IT Staff user, when transitioning an Action Taken status from `PENDING` to `IN_PROGRESS` or `COMPLETED`, then the status updates cleanly and reflects immediately in the UI.
-- **AC-05 (Inactive Assignee Rejection)**: Given an attempt to assign an Action Taken to a deactivated user (`isActive: false`), then the system rejects the operation with HTTP 422 Unprocessable Entity.
-- **AC-06 (Requester Dashboard Metrics)**: Given an authenticated Requester with tickets in various states, when visiting `/dashboard/requester`, then the dashboard displays accurate counts for Open, Waiting, Recently Updated, and Recently Resolved tickets matching database records.
-- **AC-07 (Requester Dashboard Drill-down)**: Given a Requester viewing their dashboard, when clicking on the "My Open Tickets" metric card, then the user is navigated to `MyTicketsView` with appropriate status filters applied.
-- **AC-08 (IT Staff Dashboard Metrics)**: Given an authenticated IT Staff member, when visiting `/dashboard/staff`, then the dashboard renders correct counts for Unassigned, My Assigned, Status breakdown, and IT Priority distribution.
+- **AC-05 (Inactive Assignee Rejection)**: Given an attempt to assign or reassign an Action Taken to a deactivated user (`isActive: false`) or a user with `REQUESTER` role, then the system rejects the operation with HTTP 422 Unprocessable Entity.
+- **AC-06 (Requester Dashboard Metrics)**: Given an authenticated Requester with tickets in various states, when visiting `/dashboard/requester`, then the dashboard displays accurate counts for Open, Waiting, Recently Updated, and Recently Resolved tickets matching database records, with clean "0" display when counts are zero.
+- **AC-07 (Requester Dashboard Drill-down)**: Given a Requester viewing their dashboard, when clicking on any metric card (even with count 0), then the user is navigated to `MyTicketsView` with appropriate status filters applied.
+- **AC-08 (IT Staff Dashboard Metrics)**: Given an authenticated IT Staff member, when visiting `/dashboard/staff`, then the dashboard renders correct counts for Unassigned, My Assigned, Status breakdown, and IT Priority distribution, displaying neutral empty styling when counts are zero.
 - **AC-09 (IT Staff Dashboard Drill-down)**: Given an IT Staff member clicking on the "Unassigned Tickets" metric card, then the user is navigated to `StaffTicketQueue` with the owner filter set to `Unassigned`.
-- **AC-10 (Advisory Resolution Gate)**: Given a ticket where the Requester indicated problem resolution (`isResolutionIndicated: true`), when viewing the ticket detail, then an advisory alert banner is shown, but the ticket status remains unchanged until an IT Staff member formally transitions it.
+- **AC-10 (Resolution Gate & Completed Action Enforcement)**: Given a ticket where the Requester indicated problem resolution (`isResolutionIndicated: true`), when viewing the ticket detail, then an advisory alert banner is shown. When an IT Staff member attempts to transition the ticket to `RESOLVED`, the system permits the transition ONLY IF all child Actions Taken are in `COMPLETED` or `CANCELLED` status; if any action remains `PENDING` or `IN_PROGRESS`, the transition is blocked with HTTP 422 Unprocessable Entity.
 - **AC-11 (Stale Update Detection)**: Given two concurrent users updating the same Action Taken or Ticket, when the second user submits changes based on an outdated timestamp, then the system detects the conflict and returns HTTP 409.
 - **AC-12 (Full Product Regression)**: Given the existing automated test suite from Labs 1–3, when running the full test command, all 277 regression tests plus new Lab 4 tests pass with 100% green verification.
 
