@@ -14,9 +14,9 @@
 | **API-08** | API | AC-08 / FR-09 | IT Staff dashboard metrics calculation | 200 OK; unassigned, my assigned, status/priority | `server/tests/lab-04/staff-dashboard.api.test.ts` | Planned |
 | **API-09** | API | AC-10 / FR-12 | Requester resolution indication advisory gate | 200 OK; sets isResolutionIndicated: true; NOT resolved | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
 | **API-10** | API | AC-10 / FR-13 | Formal ticket status transition to RESOLVED | 200 OK for IT Staff; requires action verification | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
-| **UI-01** | UI | AC-01 / FR-01 | Actions Taken table & list rendering on Ticket Detail | Renders date, description, performer, status | `client/tests/lab-04/ActionsTaken.test.tsx` | Planned |
-| **UI-02** | UI | AC-02 / FR-04 | Create Action Taken modal & follow-up toggle validation | Dynamically requires follow-up note input | `client/tests/lab-04/ActionsTaken.test.tsx` | Planned |
-| **UI-03** | UI | AC-03 / FR-06 | Requester view hides "+ Add Action" and edit buttons | Read-only presentation for Requesters | `client/tests/lab-04/ActionsTaken.test.tsx` | Planned |
+| **UI-01** | UI | AC-01 / FR-01 | Actions Taken table & list rendering on Ticket Detail | Renders date, description, performer, status | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
+| **UI-02** | UI | AC-02 / FR-04 | Create Action Taken modal & follow-up toggle validation | Dynamically requires follow-up note input | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
+| **UI-03** | UI | AC-03 / FR-06 | Requester view hides "+ Add Action" and edit buttons | Read-only presentation for Requesters | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-04** | UI | AC-06 / FR-08 | Requester Dashboard metric cards & drill-down links | Metric values render; clicking card navigates to queue | `client/tests/lab-04/RequesterDashboard.test.tsx` | Planned |
 | **UI-05** | UI | AC-08 / FR-10 | IT Staff Dashboard cards, urgent list, and quick actions | Unassigned, My Assigned, priority breakdown render | `client/tests/lab-04/StaffDashboard.test.tsx` | Planned |
 | **UI-06** | UI | AC-10 / FR-12 | Ticket Resolution Gate advisory banner & controls | Banner shows requester report; status dropdown restricted | `client/tests/lab-04/TicketWorkflow.test.tsx` | Planned |

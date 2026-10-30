@@ -15,6 +15,7 @@ import {
 import { AttachmentSection } from "./AttachmentSection.js";
 import { CommentsSection } from "./CommentsSection.js";
 import { InternalNotesSection } from "./InternalNotesSection.js";
+import { ActionsTakenSection } from "./ActionsTakenSection.js";
 
 const PERMITTED_NEXT_STATUSES: Record<string, string[]> = {
   NEW: ["OPEN", "CANCELLED"],
@@ -63,6 +64,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
   const [activeTab, setActiveTab] = useState<"comments" | "internalNotes" | "attachments" | "actions" | "log">("comments");
   const [commentsCount, setCommentsCount] = useState<number>(0);
   const [notesCount, setNotesCount] = useState<number>(0);
+  const [actionsCount, setActionsCount] = useState<number>(0);
 
   // Requester resolution indication state
   const [showResolutionModal, setShowResolutionModal] = useState<boolean>(false);
@@ -710,6 +712,14 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
         </div>
       )}
 
+      {/* Actions Taken by IT Staff Section (Lab 4 / Issue 32) */}
+      <ActionsTakenSection
+        ticketId={ticketId}
+        isStaffOrAdmin={isStaffOrAdmin}
+        assignees={assignees}
+        onActionCountChange={setActionsCount}
+      />
+
       {/* Feature Tabs Navigation Bar (Matching Figure 1 of Handout) */}
       <ul className="nav nav-tabs mb-3 border-bottom">
         <li className="nav-item">
@@ -769,7 +779,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
             </svg>
             <span>Service Actions</span>
-            <span className="badge bg-secondary rounded-pill ms-1">1</span>
+            <span className="badge bg-secondary rounded-pill ms-1" data-testid="tab-actions-count">{actionsCount}</span>
           </button>
         </li>
         <li className="nav-item">
