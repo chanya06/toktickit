@@ -258,6 +258,17 @@ actionsRouter.put(
         return res.status(404).json({ error: "Action taken not found under this ticket" });
       }
 
+      // Enforce BR-03 terminal state: COMPLETED and CANCELLED actions are read-only audit records
+      if (
+        existingAction.status === ActionTakenStatus.COMPLETED ||
+        existingAction.status === ActionTakenStatus.CANCELLED
+      ) {
+        return res.status(422).json({
+          error: "Cannot modify a completed or cancelled action: record is in a terminal read-only state",
+          field: "status",
+        });
+      }
+
       const {
         actionDescription,
         actionDateTime,
@@ -437,6 +448,7 @@ actionsRouter.patch(
       // Status transition rules (BR-03):
       // - COMPLETED is final: cannot transition to another status
       // - CANCELLED is final: cannot transition to another status
+      // - PENDING can only transition to IN_PROGRESS or CANCELLED (cannot skip directly to COMPLETED)
       if (currentStatus === ActionTakenStatus.COMPLETED && newStatus !== ActionTakenStatus.COMPLETED) {
         return res.status(422).json({
           error: "Illegal transition: Completed actions are finalized audit records and cannot be transitioned to another status",
@@ -446,6 +458,12 @@ actionsRouter.patch(
       if (currentStatus === ActionTakenStatus.CANCELLED && newStatus !== ActionTakenStatus.CANCELLED) {
         return res.status(422).json({
           error: "Illegal transition: Cancelled actions are final and cannot be transitioned to another status",
+          field: "status",
+        });
+      }
+      if (currentStatus === ActionTakenStatus.PENDING && newStatus === ActionTakenStatus.COMPLETED) {
+        return res.status(422).json({
+          error: "Illegal transition: Actions in PENDING status must transition to IN_PROGRESS before being COMPLETED",
           field: "status",
         });
       }

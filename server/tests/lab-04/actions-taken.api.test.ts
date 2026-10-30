@@ -427,6 +427,26 @@ describe("Actions Taken Backend REST APIs (API-01..06 / Issue 31)", () => {
       expect(patchRes.status).toBe(422);
     });
 
+    it("rejects direct transition from PENDING to COMPLETED with 422 Unprocessable Entity (BR-03 transition matrix)", async () => {
+      const createRes = await request(app)
+        .post(`/api/tickets/${testTicketId}/actions`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({
+          actionDescription: "Action starting in pending state.",
+          status: "PENDING",
+        });
+      const actionId = createRes.body.id;
+
+      const patchRes = await request(app)
+        .patch(`/api/tickets/${testTicketId}/actions/${actionId}/status`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({ status: "COMPLETED" });
+
+      expect(patchRes.status).toBe(422);
+      expect(patchRes.body).toHaveProperty("error");
+      expect(patchRes.body.field).toBe("status");
+    });
+
     it("rejects invalid status enum with 400 Bad Request", async () => {
       const res = await request(app)
         .patch(`/api/tickets/${testTicketId}/actions/1/status`)
@@ -523,5 +543,50 @@ describe("Actions Taken Backend REST APIs (API-01..06 / Issue 31)", () => {
 
       expect(res.status).toBe(404);
     });
+
+    it("rejects PUT update on COMPLETED action with 422 Unprocessable Entity (BR-03 terminal state)", async () => {
+      const createRes = await request(app)
+        .post(`/api/tickets/${testTicketId}/actions`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({
+          actionDescription: "Action created directly in completed state.",
+          status: "COMPLETED",
+        });
+      const actionId = createRes.body.id;
+
+      const updateRes = await request(app)
+        .put(`/api/tickets/${testTicketId}/actions/${actionId}`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({
+          actionDescription: "Attempting to modify completed action description.",
+        });
+
+      expect(updateRes.status).toBe(422);
+      expect(updateRes.body).toHaveProperty("error");
+      expect(updateRes.body.field).toBe("status");
+    });
+
+    it("rejects PUT update on CANCELLED action with 422 Unprocessable Entity (BR-03 terminal state)", async () => {
+      const createRes = await request(app)
+        .post(`/api/tickets/${testTicketId}/actions`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({
+          actionDescription: "Action created directly in cancelled state.",
+          status: "CANCELLED",
+        });
+      const actionId = createRes.body.id;
+
+      const updateRes = await request(app)
+        .put(`/api/tickets/${testTicketId}/actions/${actionId}`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({
+          actionDescription: "Attempting to modify cancelled action description.",
+        });
+
+      expect(updateRes.status).toBe(422);
+      expect(updateRes.body).toHaveProperty("error");
+      expect(updateRes.body.field).toBe("status");
+    });
   });
 });
+

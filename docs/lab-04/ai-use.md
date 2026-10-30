@@ -64,6 +64,17 @@
 
 ---
 
+### Prompt 6: PR #82 Peer Review Defect Resolution & Terminal State Hardening
+- **User Intent**: Address 4 specific review feedback points from peer reviewer `@lmaybelgracel` on PR #82: enforce terminal state read-only protection in PUT (`COMPLETED`/`CANCELLED` cannot be modified -> 422), enforce complete BR-03 transition matrix in PATCH (block direct `PENDING` -> `COMPLETED` skipping -> 422), document Review Round 3 in `reviewer.md`, and author automated test cases verifying terminal state rejection on PUT and direct skip rejection on PATCH.
+- **AI Response Summary**:
+  - Added pre-update terminal state check in `actionsRouter.put` (`server/src/routes/actions.ts`), rejecting modifications on `COMPLETED` or `CANCELLED` actions with `422 Unprocessable Entity`.
+  - Added transition matrix enforcement in `actionsRouter.patch`, rejecting direct `PENDING` to `COMPLETED` skips with `422 Unprocessable Entity` according to rule `BR-03`.
+  - Added automated tests in `server/tests/lab-04/actions-taken.api.test.ts` verifying PUT on `COMPLETED` action returns 422, PUT on `CANCELLED` action returns 422, and PATCH from `PENDING` to `COMPLETED` returns 422 (26/26 tests passing).
+  - Documented Review Round 3 verbatim reviewer comments and author action plan in `docs/lab-04/reviewer.md`.
+  - Verified full test regression suite: 179 backend tests passing across all 17 test files.
+
+---
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ### Specification-Agent Synergy

@@ -12,7 +12,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | [PR #72](https://github.com/chanya06/toktickit/pull/72) | `feature/29-spec-and-tests` | Sprint 4 Engineering Contract (`specification.md`, `tests.md`, `ui-spec.md`, `api-spec.md`) | Approved & Merged | Merged |
 | [PR #81](https://github.com/chanya06/toktickit/pull/81) | `feature/30-db-schema-actions-taken` | Prisma Schema for `ActionTaken`, Database Migration & Seed Data | Approved & Merged | Merged |
-| [PR #82](https://github.com/chanya06/toktickit/pull/82) | `feature/31-actions-taken-api` | Actions Taken REST API, Authorization & Concurrency | Pending Review | In Review |
+| [PR #82](https://github.com/chanya06/toktickit/pull/82) | `feature/31-actions-taken-api` | Actions Taken REST API, Authorization & Concurrency | Changes Requested (Resolved) | In Review |
 | [PR # (Pending)] | `feature/32-actions-taken-ui` | Actions Taken UI on Ticket Detail Screen & Responsive Cards | Pending | Planned |
 | [PR # (Pending)] | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Pending | Planned |
 | [PR # (Pending)] | `feature/34-dashboard-ui` | Role Dashboards UI (Metric Cards, Recent Lists, Quick Actions & Drill-down) | Pending | Planned |
@@ -128,3 +128,50 @@
 4. **เพิ่มเหตุผลการตัดสินใจทางสถาปัตยกรรม (Decision 4) ใน `docs/lab-04/specification.md`:**
    - เพิ่มข้อ "4. Decision 4: Application-Layer Enforcement of Conditional Follow-up Invariants over Database CHECK Constraints" ในหัวข้อ 7.2
    - ชี้แจงเหตุผลว่าการตรวจสอบ `followUpRequired => followUpNote` ในระดับ Application Layer ช่วยให้ส่งรหัส HTTP 400 พร้อมข้อความแจ้งเตือนที่ระบุฟิลด์ชัดเจนสู่ UI Component (แทนการติด Error 23514 / 500 จาก Database) และช่วยรักษาความยืดหยุ่นของ ORM Schema ให้ Portable ต่อการทดสอบ
+
+
+---
+
+### Reviewer Comments on [PR #82](https://github.com/chanya06/toktickit/pull/82) (feature/31-actions-taken-api)
+
+> **Reviewer:** `@lmaybelgracel` — **Verdict:** CHANGES REQUESTED  
+> จากการตรวจทานโค้ดสถาปัตยกรรม REST API การควบคุมการเข้าถึง และการจัดการความสอดคล้องของข้อมูลใน PR #82 (สาขา feature/31-actions-taken-api) เทียบกับเกณฑ์บังคับของอาจารย์ใน Handout Lab 4 (Sections 4.1, 4.2, 5.1, 6.1, 10 และ 14) พบข้อบกพร่องสำคัญ 4 จุดที่ต้องได้รับการแก้ไขก่อนการอนุมัติ:  
+> 
+> 1. **การละเมิดกฎสถานะสิ้นสุดในคำสั่ง PUT (`PUT /api/tickets/:id/actions/:actionId`):**  
+>    - *เกณฑ์บังคับ:* Handout Section 4.2 และ Business Rule BR-03 กำหนดว่าสถานะ COMPLETED และ CANCELLED เป็นสถานะสิ้นสุดของประวัติการดำเนินงาน (Final read-only audit trail) ไม่สามารถเปิดใหม่ แก้ไข หรือเปลี่ยนสถานะกลับได้  
+>    - *ข้อผิดพลาด:* โค้ดในเส้นทาง actionsRouter.put ไม่มีการตรวจสอบสถานะเดิมของ existingAction.status ทำให้ไคลเอนต์สามารถส่งคำสั่ง PUT เพื่อแก้ไขเนื้อหาและเปลี่ยนสถานะของ Action ที่ COMPLETED หรือ CANCELLED ไปแล้วกลับมาเป็น PENDING หรือ IN_PROGRESS ได้ ซึ่งทำให้กลไกการป้องกันในคำสั่ง PATCH ถูกหลีกเลี่ยง  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มเงื่อนไขตรวจสอบในคำสั่ง PUT ว่าหาก existingAction.status เป็น COMPLETED หรือ CANCELLED ให้ปฏิเสธคำขอด้วยรหัส HTTP 422 Unprocessable Entity ทันที  
+> 
+> 2. **การบังคับใช้ Transition Matrix ของกฎ BR-03 ในคำสั่ง PATCH ไม่ครบถ้วน:**  
+>    - *เกณฑ์บังคับ:* ข้อกำหนด BR-03 (Action Taken Status Machine) ใน specification.md กำหนดให้สถานะ PENDING สามารถเปลี่ยนผ่านได้เฉพาะ IN_PROGRESS หรือ CANCELLED เท่านั้น (ห้ามเปลี่ยนข้ามขั้นเป็น COMPLETED โดยไม่ผ่านการลงมือปฏิบัติงาน)  
+>    - *ข้อผิดพลาด:* ใน actionsRouter.patch มีการดักจับเฉพาะกรณีสถานะเดิมเป็น COMPLETED หรือ CANCELLED แต่ยังขาดการตรวจสอบสถานะ PENDING ส่งผลให้สามารถส่งคำสั่งเปลี่ยนจาก PENDING ไปเป็น COMPLETED ได้โดยตรง  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มเงื่อนไขตรวจสอบสถานะต้นทาง PENDING ไม่ให้อนุญาตการเปลี่ยนสู่ COMPLETED โดยตรง และตอบกลับด้วย HTTP 422 เมื่อเกิดการเปลี่ยนผ่านที่ผิดกฎ  
+> 
+> 3. **การขาดหัวข้อบันทึกการรีวิว PR #82 ในเอกสารกระบวนการวิศวกรรม (`docs/lab-04/reviewer.md`):**  
+>    - *เกณฑ์บังคับ:* Handout Section 14 (Answer Part 1) กำหนดให้เอกสาร reviewer.md ต้องปรากฏหลักฐานการรีวิวของทุก Pull Request ประกอบด้วยลิงก์ PR, ข้อคิดเห็น/ข้อบกพร่องที่พบ (Comments), การตอบกลับ (Responses) และการอนุมัติ (Approvals)  
+>    - *ข้อผิดพลาด:* ใน docs/lab-04/reviewer.md มีเพียงการระบุสถานะในตารางสรุป แต่ยังไม่มีหัวข้อเนื้อหา Review Round 3: PR #82 (feature/31-actions-taken-api) ที่บันทึกรายละเอียดข้อคิดเห็นการตรวจทาน  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มหัวข้อ Review Round 3: PR #82 ใน reviewer.md บันทึกข้อเสนอแนะในการปรับปรุง และเปิดพื้นที่ให้ผู้พัฒนาตอบกลับแผนการแก้ไข  
+> 
+> 4. **การขาดเคสทดสอบอัตโนมัติสำหรับ Terminal State Protection ในคำสั่ง PUT:**  
+>    - *เกณฑ์บังคับ:* Handout Section 10 กำหนดให้การบังคับใช้กฎทางธุรกิจ (Business Rules) ต้องมีชุดทดสอบอัตโนมัติรองรับอย่างครอบคลุม  
+>    - *ข้อผิดพลาด:* ในไฟล์ server/tests/lab-04/actions-taken.api.test.ts มีเฉพาะเคสทดสอบการปฏิเสธในคำสั่ง PATCH (API-04) แต่ยังขาดการทดสอบยืนยันว่าคำสั่ง PUT จะต้องปฏิเสธการแก้ไข Action ที่อยู่ในสถานะ COMPLETED หรือ CANCELLED  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มเคสทดสอบอัตโนมัติใน actions-taken.api.test.ts เพื่อยืนยันว่าการส่ง PUT ไปยัง Action ที่ปิดงานแล้วจะได้รับรหัส HTTP 422 เสมอ  
+
+---
+
+### Author Response & Action Plan (`@chanya06`):
+ขอบคุณสำหรับผลการตรวจสอบที่ละเอียดและตรงจุด ได้ดำเนินการปรับปรุงแก้ไขในสาขา `feature/31-actions-taken-api` ครบทั้ง 4 ประเด็นเรียบร้อยแล้ว:
+
+1. **เพิ่มการป้องกัน Terminal State ในคำสั่ง PUT (`server/src/routes/actions.ts`):**
+   - เพิ่มการตรวจสอบ `existingAction.status === ActionTakenStatus.COMPLETED || existingAction.status === ActionTakenStatus.CANCELLED` ใน `actionsRouter.put`
+   - หากตรวจพบ จะปฏิเสธทันทีด้วยรหัส HTTP `422 Unprocessable Entity` พร้อมแจ้งข้อความ `"Cannot modify a completed or cancelled action: record is in a terminal read-only state"` ป้องกันการแก้ไขเนื้อหาหรือหลีกเลี่ยงกฎสถานะสิ้นสุด
+2. **บังคับใช้ Transition Matrix ของกฎ BR-03 ในคำสั่ง PATCH อย่างสมบูรณ์ (`server/src/routes/actions.ts`):**
+   - เพิ่มการตรวจสอบกรณี `currentStatus === ActionTakenStatus.PENDING && newStatus === ActionTakenStatus.COMPLETED`
+   - ปฏิเสธการเปลี่ยนข้ามขั้นโดยไม่ผ่าน `IN_PROGRESS` ด้วยรหัส HTTP `422 Unprocessable Entity` ตามข้อกำหนด BR-03
+3. **บันทึกหลักฐานการรีวิว PR #82 ใน `docs/lab-04/reviewer.md`:**
+   - เพิ่มหัวข้อ Review Round 3 สำหรับ PR #82 พร้อมบันทึกข้อคิดเห็นของ `@lmaybelgracel` และการตอบกลับของ `@chanya06` ครบถ้วนตามเกณฑ์ Handout Section 14 (Part 1)
+4. **เพิ่มเคสทดสอบอัตโนมัติครอบคลุม Terminal State และ Transition Matrix ใน `server/tests/lab-04/actions-taken.api.test.ts`:**
+   - เพิ่มเคสทดสอบยืนยันคำสั่ง PUT บน Action สถานะ `COMPLETED` ได้รับ HTTP 422
+   - เพิ่มเคสทดสอบยืนยันคำสั่ง PUT บน Action สถานะ `CANCELLED` ได้รับ HTTP 422
+   - เพิ่มเคสทดสอบยืนยันคำสั่ง PATCH เปลี่ยนสถานะจาก `PENDING` ข้ามไป `COMPLETED` ได้รับ HTTP 422
+   - ทุกเคสทดสอบผ่าน 100% (รวม 26 tests ใน actions-taken.api.test.ts)
