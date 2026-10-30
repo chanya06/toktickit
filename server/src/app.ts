@@ -13,6 +13,7 @@ import { authRouter } from "./routes/auth.js";
 import { staffRouter } from "./routes/staff.js";
 import { commentsRouter } from "./routes/comments.js";
 import { usersRouter } from "./routes/users.js";
+import { actionsRouter } from "./routes/actions.js";
 
 export const app = express();
 
@@ -24,6 +25,7 @@ app.use(authenticate);
 app.use("/api/auth", authRouter);
 app.use("/api/staff", staffRouter);
 app.use("/api/tickets", commentsRouter);
+app.use("/api/tickets", actionsRouter);
 app.use("/api/admin/users", usersRouter);
 
 const uploadDir = path.join(process.cwd(), "uploads", "attachments");

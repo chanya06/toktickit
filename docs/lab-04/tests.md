@@ -4,12 +4,12 @@
 
 | Test ID | Type | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **API-01** | API | AC-01 / FR-01 | Create Action Taken under Ticket by IT Staff | 201 Created; record persisted with performedBy | `server/tests/lab-04/actions-taken.api.test.ts` | Planned |
-| **API-02** | API | AC-02 / FR-04 | Follow-up required validation guard | 400 Bad Request if followUpNote is empty | `server/tests/lab-04/actions-taken.api.test.ts` | Planned |
-| **API-03** | API | AC-03 / FR-06 | Requester attempts Action Taken creation | 403 Forbidden; no action record created | `server/tests/lab-04/actions-taken.api.test.ts` | Planned |
-| **API-04** | API | AC-04 / FR-03 | Action Taken status lifecycle transitions | 200 OK; status transitions PENDING -> COMPLETED | `server/tests/lab-04/actions-taken.api.test.ts` | Planned |
-| **API-05** | API | AC-05 / BR-05 | Inactive assignee assignment rejection | 422 Unprocessable Entity | `server/tests/lab-04/actions-taken.api.test.ts` | Planned |
-| **API-06** | API | AC-11 / FR-14 | Stale update optimistic concurrency detection | 409 Conflict if expectedUpdatedAt is stale | `server/tests/lab-04/actions-taken.api.test.ts` | Planned |
+| **API-01** | API | AC-01 / FR-01 | Create Action Taken under Ticket by IT Staff | 201 Created; record persisted with performedBy | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
+| **API-02** | API | AC-02 / FR-04 | Follow-up required validation guard | 400 Bad Request if followUpNote is empty | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
+| **API-03** | API | AC-03 / FR-06 | Requester attempts Action Taken creation | 403 Forbidden; no action record created | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
+| **API-04** | API | AC-04 / FR-03 | Action Taken status lifecycle transitions | 200 OK; status transitions PENDING -> COMPLETED | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
+| **API-05** | API | AC-05 / BR-05 | Inactive assignee assignment rejection | 422 Unprocessable Entity | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
+| **API-06** | API | AC-11 / FR-14 | Stale update optimistic concurrency detection | 409 Conflict if expectedUpdatedAt is stale | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
 | **API-07** | API | AC-06 / FR-07 | Requester dashboard metrics calculation | 200 OK; accurate counts isolated to auth user | `server/tests/lab-04/requester-dashboard.api.test.ts` | Planned |
 | **API-08** | API | AC-08 / FR-09 | IT Staff dashboard metrics calculation | 200 OK; unassigned, my assigned, status/priority | `server/tests/lab-04/staff-dashboard.api.test.ts` | Planned |
 | **API-09** | API | AC-10 / FR-12 | Requester resolution indication advisory gate | 200 OK; sets isResolutionIndicated: true; NOT resolved | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |

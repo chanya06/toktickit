@@ -51,6 +51,30 @@
 
 ---
 
+### Prompt 5: Issue 31 Actions Taken Backend REST APIs, Authorization & Concurrency
+- **User Intent**: Implement the Actions Taken backend REST APIs under Issue 31 with strict role authorization, optimistic concurrency control (`409 Conflict`), follow-up validation guards, inactive assignee rejection (`422 Unprocessable Entity`), and terminal state lifecycle protection, verified by comprehensive automated tests (`API-01..06`).
+- **AI Response Summary**:
+  - Implemented `server/src/routes/actions.ts` mounted under `/api/tickets` in `server/src/app.ts`:
+    - `GET /api/tickets/:id/actions`: Role-scoped action retrieval (requesters restricted to owned tickets; IT staff/admin across all).
+    - `POST /api/tickets/:id/actions`: Authenticated creator binding (`performedById`), `actionDescription` validation (min 5 chars), conditional `followUpNote` enforcement, and active staff/admin `assigneeId` verification.
+    - `PUT /api/tickets/:id/actions/:actionId`: Optimistic concurrency check comparing `expectedUpdatedAt` against database timestamp returning `409 Conflict` on race conditions, with assignee and note validation.
+    - `PATCH /api/tickets/:id/actions/:actionId/status`: Status lifecycle transition enforcing terminal state protection (`COMPLETED` / `CANCELLED` cannot be reopened, returning `422`).
+  - Authored automated test suite `server/tests/lab-04/actions-taken.api.test.ts` covering 23 comprehensive tests (`API-01` through `API-06` + edge cases), with 100% pass rate.
+  - Verified full regression test suite: 176 backend tests passing across all 17 test files.
+
+---
+
+### Prompt 6: PR #82 Peer Review Defect Resolution & Terminal State Hardening
+- **User Intent**: Address 4 specific review feedback points from peer reviewer `@lmaybelgracel` on PR #82: enforce terminal state read-only protection in PUT (`COMPLETED`/`CANCELLED` cannot be modified -> 422), enforce complete BR-03 transition matrix in PATCH (block direct `PENDING` -> `COMPLETED` skipping -> 422), document Review Round 3 in `reviewer.md`, and author automated test cases verifying terminal state rejection on PUT and direct skip rejection on PATCH.
+- **AI Response Summary**:
+  - Added pre-update terminal state check in `actionsRouter.put` (`server/src/routes/actions.ts`), rejecting modifications on `COMPLETED` or `CANCELLED` actions with `422 Unprocessable Entity`.
+  - Added transition matrix enforcement in `actionsRouter.patch`, rejecting direct `PENDING` to `COMPLETED` skips with `422 Unprocessable Entity` according to rule `BR-03`.
+  - Added automated tests in `server/tests/lab-04/actions-taken.api.test.ts` verifying PUT on `COMPLETED` action returns 422, PUT on `CANCELLED` action returns 422, and PATCH from `PENDING` to `COMPLETED` returns 422 (26/26 tests passing).
+  - Documented Review Round 3 verbatim reviewer comments and author action plan in `docs/lab-04/reviewer.md`.
+  - Verified full test regression suite: 179 backend tests passing across all 17 test files.
+
+---
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ### Specification-Agent Synergy
