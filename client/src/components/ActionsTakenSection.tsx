@@ -109,6 +109,7 @@ export function ActionsTakenSection({
   const [editingAction, setEditingAction] = useState<ActionTaken | null>(null);
   const [modalSubmitting, setModalSubmitting] = useState<boolean>(false);
   const [modalError, setModalError] = useState<string | null>(null);
+  const [modalErrorField, setModalErrorField] = useState<string | null>(null);
 
   // Modal Form Fields
   const [formDateTime, setFormDateTime] = useState<string>("");
@@ -205,19 +206,24 @@ export function ActionsTakenSection({
     e.preventDefault();
     setModalError(null);
 
+    setModalErrorField(null);
+
     // Client-side validations
     if (formDescription.trim().length < 5) {
       setModalError("Action description must be at least 5 characters.");
+      setModalErrorField("actionDescription");
       return;
     }
 
     if (formFollowUpRequired && formFollowUpNote.trim().length < 5) {
       setModalError("Follow-up note is required (minimum 5 characters) when follow-up is checked.");
+      setModalErrorField("followUpNote");
       return;
     }
 
     if (formStatus === "COMPLETED" && formResult.trim().length === 0) {
       setModalError("Result/Outcome is required when status is marked as Completed.");
+      setModalErrorField("result");
       return;
     }
 
@@ -266,6 +272,9 @@ export function ActionsTakenSection({
         setModalError("Conflict: This action was modified by another user. Please cancel and reload to see updates.");
       } else {
         setModalError(err.message || "Failed to save action taken.");
+        if (err?.field) {
+          setModalErrorField(err.field);
+        }
       }
     } finally {
       setModalSubmitting(false);
@@ -838,12 +847,23 @@ export function ActionsTakenSection({
                       <input
                         type="datetime-local"
                         id="action-datetime"
-                        className="form-control form-control-sm"
+                        className={`form-control form-control-sm ${modalErrorField === "actionDateTime" ? "is-invalid" : ""}`}
                         value={formDateTime}
-                        onChange={(e) => setFormDateTime(e.target.value)}
+                        onChange={(e) => {
+                          setFormDateTime(e.target.value);
+                          if (modalErrorField === "actionDateTime") {
+                            setModalError(null);
+                            setModalErrorField(null);
+                          }
+                        }}
                         data-testid="action-datetime-input"
                         required
                       />
+                      {modalErrorField === "actionDateTime" && (
+                        <div className="invalid-feedback d-block" data-testid="field-error-actionDateTime">
+                          {modalError}
+                        </div>
+                      )}
                     </div>
 
                     {/* Status */}
@@ -872,14 +892,25 @@ export function ActionsTakenSection({
                       </label>
                       <textarea
                         id="action-description"
-                        className="form-control form-control-sm"
+                        className={`form-control form-control-sm ${modalErrorField === "actionDescription" ? "is-invalid" : ""}`}
                         rows={3}
                         placeholder="Detailed technical description of actions taken (minimum 5 characters)..."
                         value={formDescription}
-                        onChange={(e) => setFormDescription(e.target.value)}
+                        onChange={(e) => {
+                          setFormDescription(e.target.value);
+                          if (modalErrorField === "actionDescription") {
+                            setModalError(null);
+                            setModalErrorField(null);
+                          }
+                        }}
                         data-testid="action-description-input"
                         required
                       />
+                      {modalErrorField === "actionDescription" && (
+                        <div className="invalid-feedback d-block" data-testid="field-error-actionDescription">
+                          {modalError}
+                        </div>
+                      )}
                     </div>
 
                     {/* Result / Outcome */}
@@ -889,13 +920,24 @@ export function ActionsTakenSection({
                       </label>
                       <textarea
                         id="action-result"
-                        className="form-control form-control-sm"
+                        className={`form-control form-control-sm ${modalErrorField === "result" ? "is-invalid" : ""}`}
                         rows={2}
                         placeholder="Resolution outcome or diagnostic result (required if status is Completed)..."
                         value={formResult}
-                        onChange={(e) => setFormResult(e.target.value)}
+                        onChange={(e) => {
+                          setFormResult(e.target.value);
+                          if (modalErrorField === "result") {
+                            setModalError(null);
+                            setModalErrorField(null);
+                          }
+                        }}
                         data-testid="action-result-input"
                       />
+                      {modalErrorField === "result" && (
+                        <div className="invalid-feedback d-block" data-testid="field-error-result">
+                          {modalError}
+                        </div>
+                      )}
                     </div>
 
                     {/* Assignee Selector */}
@@ -905,9 +947,15 @@ export function ActionsTakenSection({
                       </label>
                       <select
                         id="action-assignee"
-                        className="form-select form-select-sm"
+                        className={`form-select form-select-sm ${modalErrorField === "assigneeId" ? "is-invalid" : ""}`}
                         value={formAssigneeId}
-                        onChange={(e) => setFormAssigneeId(e.target.value)}
+                        onChange={(e) => {
+                          setFormAssigneeId(e.target.value);
+                          if (modalErrorField === "assigneeId") {
+                            setModalError(null);
+                            setModalErrorField(null);
+                          }
+                        }}
                         data-testid="action-assignee-select"
                       >
                         <option value="">Unassigned</option>
@@ -915,13 +963,16 @@ export function ActionsTakenSection({
                           <option
                             key={assignee.id}
                             value={assignee.id}
-                            disabled={assignee.isActive === false}
                           >
-                            {assignee.fullName} ({assignee.role === "ADMINISTRATOR" ? "Admin" : "Staff"})
-                            {assignee.isActive === false ? " - Inactive" : ""}
+                            {assignee.fullName} ({assignee.role === "ADMINISTRATOR" ? "Admin" : "Staff"}{assignee.isActive === false ? " - Inactive" : ""})
                           </option>
                         ))}
                       </select>
+                      {modalErrorField === "assigneeId" && (
+                        <div className="invalid-feedback d-block" data-testid="field-error-assigneeId">
+                          {modalError}
+                        </div>
+                      )}
                     </div>
 
                     {/* Attachment Notes */}
@@ -965,15 +1016,26 @@ export function ActionsTakenSection({
                         </label>
                         <textarea
                           id="follow-up-note"
-                          className="form-control form-control-sm border-warning"
+                          className={`form-control form-control-sm border-warning ${modalErrorField === "followUpNote" ? "is-invalid" : ""}`}
                           style={{ backgroundColor: "#FFFBEB" }}
                           rows={2}
                           placeholder="Describe the required follow-up action (minimum 5 characters)..."
                           value={formFollowUpNote}
-                          onChange={(e) => setFormFollowUpNote(e.target.value)}
+                          onChange={(e) => {
+                            setFormFollowUpNote(e.target.value);
+                            if (modalErrorField === "followUpNote") {
+                              setModalError(null);
+                              setModalErrorField(null);
+                            }
+                          }}
                           data-testid="follow-up-note-input"
                           required
                         />
+                        {modalErrorField === "followUpNote" && (
+                          <div className="invalid-feedback d-block" data-testid="field-error-followUpNote">
+                            {modalError}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

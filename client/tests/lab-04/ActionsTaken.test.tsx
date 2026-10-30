@@ -197,6 +197,10 @@ describe("Lab 4: Actions Taken UI Component Suite (AC-01..05, Issue #76)", () =>
       expect(screen.getByTestId("action-form-error")).toHaveTextContent(
         "Action description must be at least 5 characters."
       );
+      expect(screen.getByTestId("action-description-input")).toHaveClass("is-invalid");
+      expect(screen.getByTestId("field-error-actionDescription")).toHaveTextContent(
+        "Action description must be at least 5 characters."
+      );
       expect(api.createTicketAction).not.toHaveBeenCalled();
     });
 
@@ -237,6 +241,10 @@ describe("Lab 4: Actions Taken UI Component Suite (AC-01..05, Issue #76)", () =>
       expect(screen.getByTestId("action-form-error")).toHaveTextContent(
         "Follow-up note is required (minimum 5 characters) when follow-up is checked."
       );
+      expect(screen.getByTestId("follow-up-note-input")).toHaveClass("is-invalid");
+      expect(screen.getByTestId("field-error-followUpNote")).toHaveTextContent(
+        "Follow-up note is required (minimum 5 characters) when follow-up is checked."
+      );
       expect(api.createTicketAction).not.toHaveBeenCalled();
     });
 
@@ -271,7 +279,70 @@ describe("Lab 4: Actions Taken UI Component Suite (AC-01..05, Issue #76)", () =>
       expect(screen.getByTestId("action-form-error")).toHaveTextContent(
         "Result/Outcome is required when status is marked as Completed."
       );
+      expect(screen.getByTestId("action-result-input")).toHaveClass("is-invalid");
+      expect(screen.getByTestId("field-error-result")).toHaveTextContent(
+        "Result/Outcome is required when status is marked as Completed."
+      );
       expect(api.createTicketAction).not.toHaveBeenCalled();
+    });
+
+    it("handles inactive assignee rejection with HTTP 422 and field-level error highlighting", async () => {
+      vi.mocked(api.fetchTicketActions).mockResolvedValueOnce([]);
+
+      const inactiveErr = new Error("Assignee must be an active IT Staff or Administrator account");
+      (inactiveErr as any).status = 422;
+      (inactiveErr as any).field = "assigneeId";
+      vi.mocked(api.createTicketAction).mockRejectedValueOnce(inactiveErr);
+
+      render(
+        <ActionsTakenSection
+          ticketId={101}
+          isStaffOrAdmin={true}
+          assignees={mockAssignees}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId("add-action-btn")).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId("add-action-btn"));
+
+      fireEvent.change(screen.getByTestId("action-description-input"), {
+        target: { value: "Configured backup sync job on server" },
+      });
+
+      // Assert inactive option is NOT disabled and can be selected
+      const assigneeSelect = screen.getByTestId("action-assignee-select");
+      const inactiveOption = screen.getByRole("option", { name: /Inactive Staff/i });
+      expect(inactiveOption).not.toBeDisabled();
+
+      fireEvent.change(assigneeSelect, {
+        target: { value: "99" },
+      });
+
+      fireEvent.click(screen.getByTestId("save-action-btn"));
+
+      await waitFor(() => {
+        expect(api.createTicketAction).toHaveBeenCalledWith(
+          101,
+          expect.objectContaining({
+            assigneeId: 99,
+          })
+        );
+      });
+
+      // Verify top alert and inline field highlighting on assigneeId
+      await waitFor(() => {
+        expect(screen.getByTestId("action-form-error")).toHaveTextContent(
+          "Assignee must be an active IT Staff or Administrator account"
+        );
+      });
+
+      expect(assigneeSelect).toHaveClass("is-invalid");
+      expect(screen.getByTestId("field-error-assigneeId")).toHaveTextContent(
+        "Assignee must be an active IT Staff or Administrator account"
+      );
     });
 
     it("successfully creates action taken and appends to the table", async () => {
