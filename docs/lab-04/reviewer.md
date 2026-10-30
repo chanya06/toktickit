@@ -11,7 +11,7 @@
 | PR # | Branch | Scope / Description | Reviewer Verdict | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | [PR #72](https://github.com/chanya06/toktickit/pull/72) | `feature/29-spec-and-tests` | Sprint 4 Engineering Contract (`specification.md`, `tests.md`, `ui-spec.md`, `api-spec.md`) | Approved & Merged | Merged |
-| [PR # (Pending)] | `feature/30-db-schema-actions-taken` | Prisma Schema for `ActionTaken`, Database Migration & Seed Data | Pending | Planned |
+| [PR #81](https://github.com/chanya06/toktickit/pull/81) | `feature/30-db-schema-actions-taken` | Prisma Schema for `ActionTaken`, Database Migration & Seed Data | Pending Review | In Review |
 | [PR # (Pending)] | `feature/31-actions-taken-api` | Actions Taken REST API, Authorization & Concurrency | Pending | Planned |
 | [PR # (Pending)] | `feature/32-actions-taken-ui` | Actions Taken UI on Ticket Detail Screen & Responsive Cards | Pending | Planned |
 | [PR # (Pending)] | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Pending | Planned |
