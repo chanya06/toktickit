@@ -150,7 +150,16 @@ async function main() {
   ];
 
   // Purge non-seed tickets and non-seed users to ensure clean state
-  const seedTicketNumbers = ["TKT-2026-000001", "TKT-2026-000002", "TKT-2026-000003"];
+  const seedTicketNumbers = [
+    "TKT-2026-000001",
+    "TKT-2026-000002",
+    "TKT-2026-000003",
+    "TKT-2026-000004",
+    "TKT-2026-000005",
+    "TKT-2026-000006",
+    "TKT-2026-000007",
+    "TKT-2026-000008",
+  ];
   await prisma.ticket.deleteMany({
     where: { ticketNumber: { notIn: seedTicketNumbers } },
   });
@@ -161,6 +170,9 @@ async function main() {
   });
   await prisma.internalNote.deleteMany({
     where: { author: { email: { notIn: seedEmails } } },
+  });
+  await prisma.actionTaken.deleteMany({
+    where: { performedBy: { email: { notIn: seedEmails } } },
   });
   await prisma.user.deleteMany({
     where: { email: { notIn: seedEmails } },
@@ -193,19 +205,25 @@ async function main() {
     userMap.set(u.email, user.id);
   }
 
-  // 5. Seed Sample Tickets with distributed status, priority, and assigned/unassigned owner
+  // 5. Seed Sample Tickets with distributed status, priority, ownership, and Actions Taken
   const jenniferId = userMap.get("jennifer.anderson@example.com")!;
   const michaelId = userMap.get("michael.brown@example.com")!;
   const sarahId = userMap.get("sarah.johnson@example.com")!;
   const kevinStaffId = userMap.get("kevin.patel@toktickit.com")!;
   const emilyStaffId = userMap.get("emily.davis@toktickit.com")!;
+  const lisaStaffId = userMap.get("lisa.martinez@toktickit.com")!;
 
   const hardwareCatId = categoryMap.get("Hardware")!;
   const networkCatId = categoryMap.get("Network")!;
   const softwareCatId = categoryMap.get("Software")!;
+  const accountCatId = categoryMap.get("Account and Access")!;
+
   const laptopSysId = systemMap.get("Corporate Laptop")!;
   const wifiSysId = systemMap.get("Campus Wi-Fi")!;
   const emailSysId = systemMap.get("Email")!;
+  const vpnSysId = systemMap.get("VPN")!;
+  const leb2SysId = systemMap.get("LEB2 App")!;
+  const gradeSysId = systemMap.get("Grade Submission App")!;
 
   const sampleTickets = [
     {
@@ -219,6 +237,31 @@ async function main() {
       requestedPriority: "MEDIUM" as const,
       itPriority: "HIGH" as const,
       status: "IN_PROGRESS" as const,
+      isResolutionIndicated: false,
+      actions: [
+        {
+          actionDescription: "Ran battery diagnostic wear cycle analysis and generated hardware report.",
+          result: "Cycle count 820; battery capacity degraded to 42% of design capacity.",
+          performedById: kevinStaffId,
+          assigneeId: emilyStaffId,
+          status: "COMPLETED" as const,
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: "battery_diagnostic_report.pdf",
+          actionDateTime: new Date(Date.now() - 3600000 * 5),
+        },
+        {
+          actionDescription: "Ordered replacement OEM battery and scheduled hardware swap.",
+          result: null,
+          performedById: emilyStaffId,
+          assigneeId: emilyStaffId,
+          status: "IN_PROGRESS" as const,
+          followUpRequired: true,
+          followUpNote: "Hardware swap scheduled upon delivery (Est. 2 business days).",
+          attachmentNotes: "po_battery_order.pdf",
+          actionDateTime: new Date(Date.now() - 3600000 * 2),
+        },
+      ],
     },
     {
       ticketNumber: "TKT-2026-000002",
@@ -231,6 +274,20 @@ async function main() {
       requestedPriority: "HIGH" as const,
       itPriority: "HIGH" as const,
       status: "OPEN" as const,
+      isResolutionIndicated: false,
+      actions: [
+        {
+          actionDescription: "Scheduled on-site RF spectrum analysis on Engineering Building 3 Floor 4.",
+          result: null,
+          performedById: emilyStaffId,
+          assigneeId: lisaStaffId,
+          status: "PENDING" as const,
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: null,
+          actionDateTime: new Date(Date.now() - 3600000 * 8),
+        },
+      ],
     },
     {
       ticketNumber: "TKT-2026-000003",
@@ -243,10 +300,154 @@ async function main() {
       requestedPriority: "LOW" as const,
       itPriority: "LOW" as const,
       status: "NEW" as const,
+      isResolutionIndicated: false,
+      actions: [], // Zero Actions Taken: demonstrates clean zero-state
+    },
+    {
+      ticketNumber: "TKT-2026-000004",
+      requesterId: jenniferId,
+      ownerId: kevinStaffId,
+      categoryId: networkCatId,
+      relatedSystemId: vpnSysId,
+      summary: "VPN disconnects randomly after 10 minutes",
+      description: "Any active SSH session drops after approximately 10 minutes of inactivity through the corporate VPN gateway.",
+      requestedPriority: "MEDIUM" as const,
+      itPriority: "MEDIUM" as const,
+      status: "RESOLVED" as const,
+      isResolutionIndicated: true,
+      actions: [
+        {
+          actionDescription: "Renewed LDAP certificate and adjusted keep-alive timeout on VPN concentrator.",
+          result: "Connection remains active without disconnects during test cycle.",
+          performedById: kevinStaffId,
+          assigneeId: kevinStaffId,
+          status: "COMPLETED" as const,
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: null,
+          actionDateTime: new Date(Date.now() - 3600000 * 24),
+        },
+        {
+          actionDescription: "Preliminary plan to roll back router firmware.",
+          result: "Cancelled - certificate renewal resolved the root cause without firmware changes.",
+          performedById: kevinStaffId,
+          assigneeId: null,
+          status: "CANCELLED" as const,
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: null,
+          actionDateTime: new Date(Date.now() - 3600000 * 20),
+        },
+      ],
+    },
+    {
+      ticketNumber: "TKT-2026-000005",
+      requesterId: michaelId,
+      ownerId: lisaStaffId,
+      categoryId: accountCatId,
+      relatedSystemId: leb2SysId,
+      summary: "Session timeout immediately upon login",
+      description: "Logging in to LEB2 redirects back to the login page with session expired message.",
+      requestedPriority: "MEDIUM" as const,
+      itPriority: "MEDIUM" as const,
+      status: "WAITING_FOR_REQUESTER" as const,
+      isResolutionIndicated: false,
+      actions: [
+        {
+          actionDescription: "Flushed Redis token cache on LEB2 application gateway.",
+          result: "Cache flushed successfully. Requested user to log in again and confirm behavior.",
+          performedById: lisaStaffId,
+          assigneeId: lisaStaffId,
+          status: "COMPLETED" as const,
+          followUpRequired: true,
+          followUpNote: "Check back if no response from requester within 48 hours.",
+          attachmentNotes: null,
+          actionDateTime: new Date(Date.now() - 3600000 * 12),
+        },
+      ],
+    },
+    {
+      ticketNumber: "TKT-2026-000006",
+      requesterId: sarahId,
+      ownerId: kevinStaffId,
+      categoryId: softwareCatId,
+      relatedSystemId: gradeSysId,
+      summary: "Grade Submission App times out when exporting CSV",
+      description: "Faculty grade export feature times out after 60 seconds with 504 Gateway Timeout.",
+      requestedPriority: "URGENT" as const,
+      itPriority: "URGENT" as const,
+      status: "CLOSED" as const,
+      isResolutionIndicated: true,
+      actions: [
+        {
+          actionDescription: "Optimized database query index and increased HTTP proxy timeout to 120s.",
+          result: "Export now executes in 1.4 seconds (previously timed out at 60s).",
+          performedById: kevinStaffId,
+          assigneeId: kevinStaffId,
+          status: "COMPLETED" as const,
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: "query_explain_analyze.txt",
+          actionDateTime: new Date(Date.now() - 3600000 * 48),
+        },
+      ],
+    },
+    {
+      ticketNumber: "TKT-2026-000007",
+      requesterId: michaelId,
+      ownerId: emilyStaffId,
+      categoryId: networkCatId,
+      relatedSystemId: wifiSysId,
+      summary: "Campus Wi-Fi drops recurrently after initial fix",
+      description: "After the switch reboot, wireless connectivity worked for 2 hours then began disconnecting again in Building 3.",
+      requestedPriority: "HIGH" as const,
+      itPriority: "HIGH" as const,
+      status: "REOPENED" as const,
+      isResolutionIndicated: false,
+      actions: [
+        {
+          actionDescription: "Requester reported recurrence; reviewed access point channel utilization and logs.",
+          result: "Intermittent interference detected on 5GHz channel 36 from rogue transmitter.",
+          performedById: emilyStaffId,
+          assigneeId: emilyStaffId,
+          status: "IN_PROGRESS" as const,
+          followUpRequired: true,
+          followUpNote: "Coordinate with building maintenance to isolate rogue transmitter.",
+          attachmentNotes: "spectrum_utilization_chart.png",
+          actionDateTime: new Date(Date.now() - 3600000 * 3),
+        },
+      ],
+    },
+    {
+      ticketNumber: "TKT-2026-000008",
+      requesterId: sarahId,
+      ownerId: kevinStaffId,
+      categoryId: softwareCatId,
+      relatedSystemId: emailSysId,
+      summary: "Duplicate request: Outlook sync error on mobile",
+      description: "Submitted this request accidentally twice while experiencing network latency.",
+      requestedPriority: "LOW" as const,
+      itPriority: "LOW" as const,
+      status: "CANCELLED" as const,
+      isResolutionIndicated: false,
+      actions: [
+        {
+          actionDescription: "Confirmed ticket is duplicate of active request TKT-2026-000003.",
+          result: "Cancelled ticket upon requester confirmation of duplicate submission.",
+          performedById: kevinStaffId,
+          assigneeId: null,
+          status: "CANCELLED" as const,
+          followUpRequired: false,
+          followUpNote: null,
+          attachmentNotes: null,
+          actionDateTime: new Date(Date.now() - 3600000 * 18),
+        },
+      ],
     },
   ];
 
   for (const t of sampleTickets) {
+    const { actions, ...ticketData } = t;
     const existing = await prisma.ticket.findUnique({
       where: { ticketNumber: t.ticketNumber },
     });
@@ -254,24 +455,13 @@ async function main() {
     let ticketId: number;
     if (!existing) {
       const created = await prisma.ticket.create({
-        data: t,
+        data: ticketData,
       });
       ticketId = created.id;
     } else {
       await prisma.ticket.update({
         where: { ticketNumber: t.ticketNumber },
-        data: {
-          requesterId: t.requesterId,
-          ownerId: t.ownerId,
-          categoryId: t.categoryId,
-          relatedSystemId: t.relatedSystemId,
-          summary: t.summary,
-          description: t.description,
-          requestedPriority: t.requestedPriority,
-          itPriority: t.itPriority,
-          status: t.status,
-          isResolutionIndicated: false,
-        },
+        data: ticketData,
       });
       ticketId = existing.id;
     }
@@ -311,6 +501,20 @@ async function main() {
         });
       }
     }
+
+    // Idempotently replace actions taken for seed ticket
+    await prisma.actionTaken.deleteMany({
+      where: { ticketId },
+    });
+
+    for (const act of actions) {
+      await prisma.actionTaken.create({
+        data: {
+          ticketId,
+          ...act,
+        },
+      });
+    }
   }
 
   const categoryCount = await prisma.category.count();
@@ -320,6 +524,7 @@ async function main() {
   const itStaffCount = await prisma.user.count({ where: { role: "IT_STAFF" } });
   const adminCount = await prisma.user.count({ where: { role: "ADMINISTRATOR" } });
   const ticketCount = await prisma.ticket.count();
+  const actionCount = await prisma.actionTaken.count();
   const commentCount = await prisma.publicComment.count();
   const noteCount = await prisma.internalNote.count();
 
@@ -328,6 +533,7 @@ async function main() {
   console.log(`- Related Systems: ${systemCount}`);
   console.log(`- Total Users: ${userCount} (Requesters: ${requesterCount}, IT Staff: ${itStaffCount}, Admin: ${adminCount})`);
   console.log(`- Tickets: ${ticketCount}`);
+  console.log(`- Actions Taken: ${actionCount}`);
   console.log(`- Public Comments: ${commentCount}`);
   console.log(`- Internal Notes: ${noteCount}`);
 }

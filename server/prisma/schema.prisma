@@ -1,4 +1,4 @@
-// Prisma schema for TokTickIT Lab 3
+// Prisma schema for TokTickIT Lab 4
 
 generator client {
   provider = "prisma-client-js"
@@ -41,6 +41,13 @@ enum TicketStatus {
   CANCELLED
 }
 
+enum ActionTakenStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id                 Int              @id @default(autoincrement())
   fullName           String
@@ -59,6 +66,8 @@ model User {
   publicComments     PublicComment[]
   internalNotes      InternalNote[]
   removedAttachments Attachment[]     @relation("RemovedByUser")
+  actionsPerformed   ActionTaken[]    @relation("ActionPerformer")
+  actionsAssigned    ActionTaken[]    @relation("ActionAssignee")
 
   @@index([email])
   @@index([role])
@@ -105,6 +114,7 @@ model Ticket {
   attachments           Attachment[]
   publicComments        PublicComment[]
   internalNotes         InternalNote[]
+  actionsTaken          ActionTaken[]
 
   @@index([requesterId])
   @@index([ownerId])
@@ -165,4 +175,29 @@ model InternalNote {
   @@index([ticketId])
   @@index([authorId])
   @@index([createdAt])
+}
+
+model ActionTaken {
+  id                Int               @id @default(autoincrement())
+  ticketId          Int
+  actionDateTime    DateTime          @default(now())
+  actionDescription String
+  result            String?
+  performedById     Int
+  assigneeId        Int?
+  status            ActionTakenStatus @default(COMPLETED)
+  followUpRequired  Boolean           @default(false)
+  followUpNote      String?
+  attachmentNotes   String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  ticket            Ticket            @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  performedBy       User              @relation("ActionPerformer", fields: [performedById], references: [id])
+  assignee          User?             @relation("ActionAssignee", fields: [assigneeId], references: [id])
+
+  @@index([ticketId])
+  @@index([performedById])
+  @@index([assigneeId])
+  @@index([actionDateTime])
 }

@@ -29,6 +29,28 @@
 
 ---
 
+### Prompt 3: Issue 30 Database Foundation, Migration & Idempotent Seeding
+- **User Intent**: Proceed with Issue 30 to implement the Prisma schema changes for Actions Taken (ActionTakenStatus enum and ActionTaken model), create and execute the database migration, implement idempotent seed data with realistic tickets spanning zero, one, and multiple actions across all statuses, and verify with automated migration tests.
+- **AI Response Summary**:
+  - Implemented `ActionTakenStatus` enum (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`) and `ActionTaken` model in `server/prisma/schema.prisma` with integer foreign key alignment to `Ticket(id)` and `User(id)`.
+  - Created migration `20261030000000_lab4_actions_taken` and deployed cleanly to PostgreSQL database.
+  - Updated `server/prisma/seed.ts` with 6 realistic tickets covering all required variations: 0 actions (unassigned queue), 1 action (pending RF survey / waiting for requester), and multiple actions (in-progress battery swap / resolved LDAP VPN certificate).
+  - Authored automated integration test suite `server/tests/lab-04/migration-rollback.test.ts` (`MIGR-01`) verifying foreign keys, cascading deletions, legacy ticket compatibility, and rollback DDL safety (100% passing).
+  - Maintained full regression safety across all 153 backend tests and 116 frontend tests.
+
+---
+
+### Prompt 4: PR #81 Peer Review Defect Resolution & Schema Hardening
+- **User Intent**: Address 4 specific review feedback points from peer reviewer `@lmaybelgracel` on PR #81: improve `MIGR-01d` to test rollback DDL on full schema with Enums and Foreign Keys, add `REOPENED` and `CANCELLED` tickets to seed data, record review comments and author responses in `reviewer.md`, and justify application-layer follow-up invariant enforcement over DB check constraints in `specification.md`.
+- **AI Response Summary**:
+  - Re-architected `MIGR-01d` in `server/tests/lab-04/migration-rollback.test.ts` to build a complete replica schema with `ActionTakenStatus` enum, foreign keys to Ticket and User, test data insertion, and executed the exact `DROP TABLE CASCADE` and `DROP TYPE` rollback DDL, asserting zero residual tables or types.
+  - Added `TKT-2026-000007` (`REOPENED`) and `TKT-2026-000008` (`CANCELLED`) with associated Actions Taken in `server/prisma/seed.ts`, achieving 100% coverage of all 8 major ticket statuses with idempotent re-execution.
+  - Documented Review Round 2 verbatim reviewer comments and author action plan in `docs/lab-04/reviewer.md`.
+  - Added architectural justification Decision 4 to Section 7.2 in `docs/lab-04/specification.md` explaining why conditional follow-up note validation belongs in the application/API layer for actionable HTTP 400 responses and schema portability.
+  - Verified full test regression suite: 153 backend tests passing.
+
+---
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ### Specification-Agent Synergy
