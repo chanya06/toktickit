@@ -11,13 +11,24 @@ import {
 } from "../api.js";
 import { getPaginationItems } from "../utils/pagination.js";
 
-interface MyTicketsViewProps {
+export interface MyTicketsViewProps {
   onNavigateCreate: () => void;
   onSelectTicket?: (ticketId: number) => void;
+  initialStatusFilter?: string[];
 }
 
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"];
-const STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "PENDING", "RESOLVED", "CLOSED"];
+const STATUSES = [
+  "NEW",
+  "OPEN",
+  "IN_PROGRESS",
+  "WAITING_FOR_REQUESTER",
+  "PENDING",
+  "RESOLVED",
+  "CLOSED",
+  "REOPENED",
+  "CANCELLED",
+];
 
 interface MultiSelectFilterProps<T extends string | number> {
   id: string;
@@ -161,7 +172,7 @@ function MultiSelectFilter<T extends string | number>({
   );
 }
 
-export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsViewProps) {
+export function MyTicketsView({ onNavigateCreate, onSelectTicket, initialStatusFilter }: MyTicketsViewProps) {
   const auth = useContext(AuthContext);
   const user = auth?.user;
   const { selectedRequester } = useRequester();
@@ -186,11 +197,23 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
   // Multi-select Filter & Sort states
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(initialStatusFilter || []);
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState<number>(1);
   const [retryToken, setRetryToken] = useState<number>(0);
+
+  // Synchronize internal filter state when initialStatusFilter prop changes (Handout Section 6.2 / BR-07)
+  const isFirstRender = useRef(true);
+  const initialStatusKey = initialStatusFilter ? initialStatusFilter.slice().sort().join(",") : "";
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    setSelectedStatuses(initialStatusFilter ? [...initialStatusFilter] : []);
+    setPage(1);
+  }, [initialStatusKey]);
 
   // Debounce search input (300ms)
   useEffect(() => {
@@ -313,6 +336,12 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
 
   function getStatusBadgeClass(ticketStatus: string) {
     switch (ticketStatus.toUpperCase()) {
+      case "WAITING_FOR_REQUESTER":
+        return "badge bg-warning text-dark";
+      case "REOPENED":
+        return "badge bg-danger text-white";
+      case "CANCELLED":
+        return "badge bg-secondary text-white";
       case "NEW":
         return "badge bg-primary text-white";
       case "OPEN":

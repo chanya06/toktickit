@@ -124,6 +124,53 @@
   - Documented Review Round 5 verbatim review comments and author response plan in `docs/lab-04/reviewer.md`.
   - Maintained 100% pass across all 199 backend tests (20 files) and 132 frontend tests (16 files).
 
+---
+
+### Prompt 11: Issue 34 Role Dashboards UI: Metric Cards, Recent Activity & Drill-Down
+- **User Intent**: Build the role-based dashboards user interface for Requesters, IT Staff, and Administrators conforming to Zen Green styling (#006B3C), responsive 2-column desktop layouts, interactive metric summary cards, recent activity lists, quick actions, role-aware landing, and drill-down navigation linking cards directly into filtered queues.
+- **AI Response Summary**:
+  - Extended `client/src/api.ts` with dashboard data models (`DashboardTicket`, `RequesterDashboardMetrics`, `RequesterDashboardResponse`, `StaffOperationalMetrics`, `StaffDashboardResponse`, `SystemUserStats`, `AdminDashboardResponse`) and API fetchers (`fetchRequesterDashboard`, `fetchStaffDashboard`, `fetchAdminDashboard`).
+  - Implemented `client/src/components/RequesterDashboard.tsx` (`UI-04`):
+    - Welcome banner with Requester Name, role badge (`REQUESTER`), and refresh button with spin animation.
+    - 4 Zen Green metric cards: `My Open Tickets`, `Waiting for Input` (highlighted amber when > 0), `Recently Updated`, and `Recently Resolved`. Zero-count values cleanly styled in neutral slate (#64748B).
+    - Drill-down navigation: clicking any metric card transitions to My Tickets with appropriate status filter pre-selected.
+    - 2-Column desktop layout (70/30): Left column displays recent requests table with ticket number, title, status badges, actions taken count, and resolution indicated advisory tag (`isResolutionIndicated`), plus BR-07 compliant empty state (*"No support requests found. Click '+ Submit New Request' to get IT support."*). Right column provides quick action buttons (*+ Submit New Request*, *View All My Tickets*) and IT Helpdesk contact assistance.
+  - Implemented `client/src/components/StaffDashboard.tsx` (`UI-05`):
+    - Welcome banner with Staff Name, role badge (`IT Staff` or `Administrator`), and refresh button.
+    - System User Administration row (Administrator only) displaying 5 summary stat cards (`totalUsers`, `activeRequesters`, `activeStaff`, `administrators`, `inactiveUsers`) and shortcut to User Management.
+    - 5 Operational metric cards: `Unassigned`, `My Assigned`, `In Progress`, `Waiting Input`, and `Urgent` (highlighted red when > 0).
+    - Drill-down navigation: clicking any card transitions directly to Staff Ticket Queue with target status, owner (unassigned / me), or priority pre-filtered.
+    - 2-Column desktop layout (70/30): Left column features tabbed triage view between Urgent Queue and Recent Activity with BR-10 empty urgent queue feedback (*"Queue is clear. No urgent tickets require immediate attention."*). Right column provides queue shortcuts and active priority/status workload distribution charts.
+  - Integrated routing and navigation:
+    - Updated `client/src/components/Header.tsx` with Dashboard nav tab and brand logo navigation.
+    - Extended `client/src/components/MyTicketsView.tsx` and `client/src/components/StaffTicketQueue.tsx` to accept initial filter props for drill-down navigation.
+    - Updated `client/src/App.tsx` to land logged-in users on Dashboard while maintaining test backwards-compatibility with Lab 3 tab navigation.
+  - Authored automated RTL test suites:
+    - `client/tests/lab-04/RequesterDashboard.test.tsx` (8 tests covering UI-04: welcome banner, 4 cards, empty state, resolution indicated tag, drill-down callbacks, ticket detail navigation, quick actions, refresh, error retry).
+    - `client/tests/lab-04/StaffDashboard.test.tsx` (9 tests covering UI-05: operational metric cards, admin user stats, empty urgent queue message, tab toggling, drill-down callbacks, ticket detail navigation, queue shortcuts, refresh, error retry).
+  - Maintained 100% pass across all 149 client tests (18 files) and 199 backend tests (20 files).
+
+---
+
+### Prompt 12: PR #85 Peer Review Defect Resolution & Filter Synchronization Hardening
+- **User Intent**: Address 4 specific review feedback points from peer reviewer `@lmaybelgracel` on PR #85: add missing statuses (`WAITING_FOR_REQUESTER`, `REOPENED`, `CANCELLED`) to `STATUSES` in `MyTicketsView.tsx`, implement `useEffect` filter state synchronization across dynamic dashboard drill-downs in `MyTicketsView.tsx` and `StaffTicketQueue.tsx`, record Review Round 6 in `reviewer.md`, and author automated tests verifying drill-down and filter options.
+- **AI Response Summary**:
+  - Updated `client/src/components/MyTicketsView.tsx`:
+    - Added `WAITING_FOR_REQUESTER`, `REOPENED`, and `CANCELLED` into the `STATUSES` array, enabling full 9-status multi-select filtering and option labels.
+    - Extended `getStatusBadgeClass` to style `WAITING_FOR_REQUESTER` (amber), `REOPENED` (danger), and `CANCELLED` (secondary).
+    - Implemented filter state synchronization `useEffect` with `isFirstRender` guard watching `initialStatusFilter` changes to update `selectedStatuses` and reset page to 1 upon dashboard drill-down.
+  - Updated `client/src/components/StaffTicketQueue.tsx`:
+    - Implemented filter state synchronization `useEffect` watching `initialFilters` (`category`, `status`, `priority`, `owner`) to sync queue filters and reset page to 1 upon dashboard card transitions.
+  - Hardened backend status query validation in `server/src/app.ts`:
+    - Updated `VALID_STATUSES` to include `WAITING_FOR_REQUESTER`, `REOPENED`, and `CANCELLED`, guaranteeing safe HTTP 200 filtering instead of HTTP 400 rejection.
+  - Authored automated tests:
+    - Added `"filters and fetches tickets with WAITING_FOR_REQUESTER when initialStatusFilter is provided"` in `client/tests/lab-02/MyTickets.test.tsx`.
+    - Added `"synchronizes status filter when initialStatusFilter prop changes dynamically (drill-down)"` in `client/tests/lab-02/MyTickets.test.tsx`.
+    - Added `"includes all 9 statuses in the status filter dropdown options"` in `client/tests/lab-02/MyTickets.test.tsx`.
+    - Added `"synchronizes filter states when initialFilters prop changes dynamically"` in `client/tests/lab-03/StaffTicketQueue.test.tsx`.
+  - Documented Review Round 6 verbatim reviewer feedback and author responses in `docs/lab-04/reviewer.md`.
+  - Maintained 100% pass across all 153 client tests (18 files) and 199 backend tests (20 files).
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ---

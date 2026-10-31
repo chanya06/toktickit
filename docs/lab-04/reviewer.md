@@ -14,8 +14,8 @@
 | [PR #81](https://github.com/chanya06/toktickit/pull/81) | `feature/30-db-schema-actions-taken` | Prisma Schema for `ActionTaken`, Database Migration & Seed Data | Approved & Merged | Merged |
 | [PR #82](https://github.com/chanya06/toktickit/pull/82) | `feature/31-actions-taken-api` | Actions Taken REST API, Authorization & Concurrency | Approved & Merged | Merged |
 | [PR #83](https://github.com/chanya06/toktickit/pull/83) | `feature/32-actions-taken-ui` | Actions Taken UI on Ticket Detail Screen & Responsive Cards | Approved & Merged | Merged |
-| [PR #84](https://github.com/chanya06/toktickit/pull/84) | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Changes Requested (Resolved) | In Review |
-| [PR # (Pending)] | `feature/34-dashboard-ui` | Role Dashboards UI (Metric Cards, Recent Lists, Quick Actions & Drill-down) | Pending | Planned |
+| [PR #84](https://github.com/chanya06/toktickit/pull/84) | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Approved & Merged | Merged |
+| [PR #85](https://github.com/chanya06/toktickit/pull/85) | `feature/34-dashboard-ui` | Role Dashboards UI (Metric Cards, Recent Lists, Quick Actions & Drill-down) | Changes Requested (Resolved) | In Review |
 | [PR # (Pending)] | `feature/35-ticket-workflow-hardening` | Ticket Workflow Hardening, Resolution Gate & Stale Update Handling | Pending | Planned |
 | [PR # (Pending)] | `feature/36-qa-regression-and-deliverables` | QA Automated Tests, Regression Suite, Screenshots & Final PDF Deliverable | Pending | Planned |
 | [PR # (Pending)] | `lab4-staging` | Release Integration PR into `main` | Pending | Planned |
@@ -276,3 +276,53 @@
    - ยืนยันว่า `byStatus` ยังคงสะท้อนจำนวนตั๋วสถานะสิ้นสุดในภาพรวมได้อย่างถูกต้อง
    - ปรับปรุงการตรวจสอบในเคส `API-08b` ให้กรองเฉพาะ Active Tickets เพื่อให้สอดคล้องกับกฎ BR-10 อย่างสมบูรณ์
    - ชุดทดสอบ `staff-dashboard.api.test.ts` ผ่าน 100% (9/9 tests) และชุดทดสอบฝั่งเซิร์ฟเวอร์ทั้งหมดผ่านครบ 20/20 files (199/199 tests)
+
+---
+
+### Reviewer Comments on [PR #85](https://github.com/chanya06/toktickit/pull/85) (feature/34-dashboard-ui) - Review Round 6
+
+> **Reviewer:** `@lmaybelgracel` — **Verdict:** CHANGES REQUESTED  
+> จากการตรวจทานการออกแบบส่วนต่อประสานผู้ใช้ของแดชบอร์ด (Role Dashboards UI) และกลไก Drill-down ใน PR #85 (สาขา feature/34-dashboard-ui) เทียบกับเกณฑ์บังคับของอาจารย์ใน Handout Lab 4 (Sections 6, 8.3, 10 และ 14) และสัญญาข้อกำหนด ui-spec.md พบข้อบกพร่องสำคัญ 4 จุดที่ต้องได้รับการปรับปรุงแก้ไขก่อนการอนุมัติ:  
+> 
+> 1. **การขาดตัวเลือกสถานะ WAITING_FOR_REQUESTER, REOPENED, และ CANCELLED ในฟิลเตอร์ของ MyTicketsView:**  
+>    - *เกณฑ์บังคับ:* Handout Section 4.5, 6.2 และ ui-spec.md กำหนดว่าเมื่อคลิก Drill-down จากการ์ด "Waiting for Input" ใน Requester Dashboard ระบบต้องนำทางไปยังหน้ารายการตั๋วพร้อมคัดกรองสถานะ WAITING_FOR_REQUESTER ให้โดยอัตโนมัติ  
+>    - *ข้อผิดพลาด:* ในไฟล์ `client/src/components/MyTicketsView.tsx` ตัวแปร `STATUSES` (บรรทัดที่ 21) มีเพียง 6 สถานะเดิม (NEW, OPEN, IN_PROGRESS, PENDING, RESOLVED, CLOSED) ขาด WAITING_FOR_REQUESTER, REOPENED, และ CANCELLED ส่งผลให้เมื่อรับค่า `initialStatusFilter: ["WAITING_FOR_REQUESTER"]` เข้ามา ตัวเลือกใน Dropdown ไม่สามารถจับคู่ป้ายกำกับได้ และผู้ใช้ไม่สามารถเลือกหรือยกเลิกตัวเลือกสถานะดังกล่าวบน UI ได้  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มสถานะ WAITING_FOR_REQUESTER, REOPENED, และ CANCELLED ในอาเรย์ `STATUSES` ของ `MyTicketsView.tsx` ให้ครอบคลุมครบทั้ง 9 สถานะของระบบ  
+> 
+> 2. **การขาดการซิงค์ State เมื่อค่า Props ฟิลเตอร์เริ่มต้นเปลี่ยนแปลง (Filter State Synchronization):**  
+>    - *เกณฑ์บังคับ:* Handout Section 6.2 กำหนดให้การ์ดแดชบอร์ดทุกใบสามารถคลิก Drill-down สลับเงื่อนไขการกรองได้ตลอดเวลา  
+>    - *ข้อผิดพลาด:* ใน `MyTicketsView.tsx` และ `StaffTicketQueue.tsx` มีการตั้งค่าเริ่มต้นของฟิลเตอร์ผ่าน `useState(initialStatusFilter || [])` และ `useState(initialFilters?.status || "")` เพียงครั้งเดียวขณะ Mount โดยไม่มี `useEffect` ดักจับการเปลี่ยนแปลงของ Props ส่งผลให้เมื่อผู้ใช้นำทางสลับไปมาระหว่างการ์ดต่าง ๆ บนแดชบอร์ด (เช่น จาก My Open Tickets ไปยัง Recently Resolved) ค่าฟิลเตอร์ใหม่จะไม่ถูกซิงค์ลงใน State ภายในของคอมโพเนนต์  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่ม `useEffect` ใน `MyTicketsView.tsx` และ `StaffTicketQueue.tsx` เพื่อตรวจสอบและอัปเดต State ภายในเมื่อ `initialStatusFilter` หรือ `initialFilters` มีการเปลี่ยนแปลง  
+> 
+> 3. **การขาดหัวข้อบันทึกการรีวิว PR #85 ในเอกสารกระบวนการวิศวกรรม (`docs/lab-04/reviewer.md`):**  
+>    - *เกณฑ์บังคับ:* Handout Section 14 (Answer Part 1: Git Use with Engineering Workflow) กำหนดให้เอกสาร reviewer.md ต้องปรากฏหลักฐานการรีวิวของทุก PR ประกอบด้วย ตัวตนผู้ตรวจ ลิงก์ PR ข้อคิดเห็น/ข้อบกพร่องที่พบ (Comments) การตอบกลับของผู้พัฒนา (Responses) และผลการอนุมัติ (Approvals)  
+>    - *ข้อผิดพลาด:* ใน `docs/lab-04/reviewer.md` มีเพียงการอัปเดตบรรทัด PR #85 ในตารางสรุปด้านบน แต่ยังไม่มีหัวข้อเนื้อหา Review Round 6 สำหรับ PR #85 ที่บันทึกข้อคิดเห็นการตรวจทาน  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มหัวข้อ Review Round 6: PR #85 ใน `docs/lab-04/reviewer.md` บันทึกรายละเอียดข้อเสนอแนะและเปิดพื้นที่ให้ผู้พัฒนาตอบกลับแผนการดำเนินงาน  
+> 
+> 4. **การขาดเคสทดสอบอัตโนมัติสำหรับการ Drill-Down สถานะ WAITING_FOR_REQUESTER ใน MyTicketsView:**  
+>    - *เกณฑ์บังคับ:* Handout Section 10 กำหนดให้การบูรณาการระบบนำทางและการ Drill-down ต้องได้รับการทดสอบอย่างครอบคลุม  
+>    - *ข้อผิดพลาด:* ในชุดทดสอบหน้าบ้าน มีเพียงการทดสอบปุ่มในระดับคอมโพเนนต์ `RequesterDashboard.test.tsx` แต่ยังขาดเคสทดสอบใน `MyTicketsView.test.tsx` ที่ยืนยันว่าการส่ง `initialStatusFilter: ["WAITING_FOR_REQUESTER"]` สามารถกรองและแสดงผลตั๋วสถานะดังกล่าวได้อย่างถูกต้อง  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มเคสทดสอบอัตโนมัติในชุดทดสอบฝั่งหน้าบ้านเพื่อยืนยันพฤติกรรมการกรองสถานะ WAITING_FOR_REQUESTER ผ่าน `initialStatusFilter`  
+> 
+> ---
+> 
+> ### Author Response & Action Plan (`@chanya06`):
+> ขอบคุณสำหรับข้อเสนอแนะในการตรวจสอบส่วนต่อประสานผู้ใช้และการ Drill-down ที่ละเอียดและมีประโยชน์อย่างยิ่ง ได้ดำเนินการปรับปรุงแก้ไขในสาขา `feature/34-dashboard-ui` ครบทั้ง 4 ประเด็นเรียบร้อยแล้ว:
+> 
+> 1. **เพิ่มสถานะ `WAITING_FOR_REQUESTER`, `REOPENED`, และ `CANCELLED` ใน `MyTicketsView.tsx` และ `server/src/app.ts`:**
+>    - ใน `client/src/components/MyTicketsView.tsx` เพิ่มทั้ง 3 สถานะลงในอาเรย์ `STATUSES` ทำให้ตัวเลือกใน Dropdown แสดงผลครบทั้ง 9 สถานะของระบบ รองรับการเลือก/ยกเลิกตัวเลือก และจับคู่ป้ายกำกับของปุ่ม Multi-select Filter ได้อย่างสมบูรณ์
+>    - อัปเดตฟังก์ชัน `getStatusBadgeClass` ใน `MyTicketsView.tsx` ให้แสดง Badge สอดคล้องกับสถานะใหม่ (`WAITING_FOR_REQUESTER` สี Amber, `REOPENED` สี Danger, `CANCELLED` สี Secondary)
+>    - อัปเดต `VALID_STATUSES` ใน `server/src/app.ts` ให้ครอบคลุมครบ 9 สถานะ ป้องกันข้อผิดพลาด HTTP 400 Bad Request เมื่อคิวรีกรองสถานะจากฝั่ง Server
+> 2. **ซิงโครไนซ์ State ของฟิลเตอร์เมื่อ Props มีการเปลี่ยนแปลง (Filter State Synchronization):**
+>    - ใน `client/src/components/MyTicketsView.tsx` เพิ่ม `useEffect` ตรวจสอบการเปลี่ยนแปลงของ `initialStatusFilter` (ผ่าน Sorted Key Dependency พร้อม Guard `isFirstRender`) เพื่ออัปเดต `selectedStatuses` และรีเซ็ต `page` เป็น 1 เมื่อมีการคลิก Drill-down จากการ์ดใด ๆ บน Dashboard
+>    - ใน `client/src/components/StaffTicketQueue.tsx` เพิ่ม `useEffect` ตรวจสอบการเปลี่ยนแปลงของ `initialFilters` (`category`, `status`, `priority`, `owner`) เพื่ออัปเดต State ภายในและรีเซ็ต `page` เป็น 1 เมื่อเจ้าหน้าที่คลิกสลับการ์ด Drill-down บน Staff Dashboard
+> 3. **บันทึกหลักฐานการรีวิว PR #85 ใน `docs/lab-04/reviewer.md`:**
+>    - บันทึกรายละเอียด Review Round 6 สำหรับ PR #85 ครบถ้วนตามเกณฑ์ Handout Section 14 (Answer Part 1)
+>    - อัปเดตสถานะ PR #85 ในตารางสรุปเป็น `Changes Requested (Resolved) | In Review`
+> 4. **เพิ่มเคสทดสอบอัตโนมัติสำหรับการ Drill-down ในชุดทดสอบหน้าบ้าน:**
+>    - เพิ่มเคส `"filters and fetches tickets with WAITING_FOR_REQUESTER when initialStatusFilter is provided"` ใน `client/tests/lab-02/MyTickets.test.tsx`
+>    - เพิ่มเคส `"synchronizes status filter when initialStatusFilter prop changes dynamically (drill-down)"` ใน `client/tests/lab-02/MyTickets.test.tsx`
+>    - เพิ่มเคส `"includes all 9 statuses in the status filter dropdown options"` ใน `client/tests/lab-02/MyTickets.test.tsx`
+>    - เพิ่มเคส `"synchronizes filter states when initialFilters prop changes dynamically"` ใน `client/tests/lab-03/StaffTicketQueue.test.tsx`
+>    - ชุดทดสอบ Client ทั้งหมด 18 ไฟล์ (153 tests) ผ่านครบ 100%
+

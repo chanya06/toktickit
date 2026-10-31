@@ -8,8 +8,14 @@ import {
 } from "../api.js";
 import { getPaginationItems } from "../utils/pagination.js";
 
-interface StaffTicketQueueProps {
+export interface StaffTicketQueueProps {
   onSelectTicket?: (ticketId: number) => void;
+  initialFilters?: {
+    owner?: string;
+    status?: string;
+    priority?: string;
+    category?: string;
+  };
 }
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
@@ -46,7 +52,7 @@ function formatDate(dateStr: string): string {
   }
 }
 
-export function StaffTicketQueue({ onSelectTicket }: StaffTicketQueueProps) {
+export function StaffTicketQueue({ onSelectTicket, initialFilters }: StaffTicketQueueProps) {
   const [tickets, setTickets] = useState<StaffTicketResponse[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -57,10 +63,24 @@ export function StaffTicketQueue({ onSelectTicket }: StaffTicketQueueProps) {
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
   // Filters
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [selectedPriority, setSelectedPriority] = useState<string>("");
-  const [selectedOwner, setSelectedOwner] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialFilters?.category || "");
+  const [selectedStatus, setSelectedStatus] = useState<string>(initialFilters?.status || "");
+  const [selectedPriority, setSelectedPriority] = useState<string>(initialFilters?.priority || "");
+  const [selectedOwner, setSelectedOwner] = useState<string>(initialFilters?.owner || "");
+
+  // Synchronize internal filter states when initialFilters prop changes (Handout Section 6.2 / BR-10)
+  useEffect(() => {
+    setSelectedCategory(initialFilters?.category || "");
+    setSelectedStatus(initialFilters?.status || "");
+    setSelectedPriority(initialFilters?.priority || "");
+    setSelectedOwner(initialFilters?.owner || "");
+    setPage(1);
+  }, [
+    initialFilters?.category,
+    initialFilters?.status,
+    initialFilters?.priority,
+    initialFilters?.owner,
+  ]);
 
   // Sorting & Pagination
   const [sortBy, setSortBy] = useState<string>("createdAt");
