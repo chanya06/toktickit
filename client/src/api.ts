@@ -1237,3 +1237,105 @@ export async function transitionActionStatus(
   }
   return data;
 }
+
+
+// ---------------------------------------------------------------------------
+// Lab 4 Role Dashboards API Interfaces & Functions (Issue 34 / FR-07..FR-11)
+// ---------------------------------------------------------------------------
+
+export interface DashboardTicket {
+  id: number;
+  ticketNumber: string;
+  summary: string;
+  category: string;
+  status: string;
+  itPriority: string;
+  isResolutionIndicated: boolean;
+  owner: { fullName: string } | null;
+  actionsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RequesterDashboardMetrics {
+  myOpenTickets: number;
+  waitingForRequester: number;
+  recentlyUpdated: number;
+  recentlyResolved: number;
+}
+
+export interface RequesterDashboardResponse {
+  metrics: RequesterDashboardMetrics;
+  recentTickets: DashboardTicket[];
+}
+
+export interface StaffOperationalMetrics {
+  unassignedTickets: number;
+  myAssignedTickets: number;
+  byStatus: Record<string, number>;
+  byPriority: Record<string, number>;
+  recentlyUpdatedCount: number;
+}
+
+export interface StaffDashboardResponse {
+  metrics: StaffOperationalMetrics;
+  urgentTickets: DashboardTicket[];
+  recentTickets: DashboardTicket[];
+}
+
+export interface SystemUserStats {
+  totalUsers: number;
+  activeRequesters: number;
+  activeStaff: number;
+  administrators: number;
+  inactiveUsers: number;
+}
+
+export interface AdminDashboardResponse {
+  systemUserStats: SystemUserStats;
+  operationalMetrics: StaffOperationalMetrics;
+  urgentTickets: DashboardTicket[];
+  recentTickets: DashboardTicket[];
+}
+
+export async function fetchRequesterDashboard(): Promise<RequesterDashboardResponse> {
+  const res = await fetch(`${API_URL}/api/dashboard/requester`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch requester dashboard");
+  }
+  return data;
+}
+
+export async function fetchStaffDashboard(): Promise<StaffDashboardResponse> {
+  const res = await fetch(`${API_URL}/api/dashboard/staff`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch IT staff dashboard");
+  }
+  return data;
+}
+
+export async function fetchAdminDashboard(): Promise<AdminDashboardResponse> {
+  const res = await fetch(`${API_URL}/api/dashboard/admin`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch administrator dashboard");
+  }
+  return data;
+}

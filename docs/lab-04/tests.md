@@ -17,8 +17,8 @@
 | **UI-01** | UI | AC-01 / FR-01 | Actions Taken table & list rendering on Ticket Detail | Renders date, description, performer, status | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-02** | UI | AC-02 / FR-04 | Create Action Taken modal & follow-up toggle validation | Dynamically requires follow-up note input | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-03** | UI | AC-03 / FR-06 | Requester view hides "+ Add Action" and edit buttons | Read-only presentation for Requesters | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
-| **UI-04** | UI | AC-06 / FR-08 | Requester Dashboard metric cards & drill-down links | Metric values render; clicking card navigates to queue | `client/tests/lab-04/RequesterDashboard.test.tsx` | Planned |
-| **UI-05** | UI | AC-08 / FR-10 | IT Staff Dashboard cards, urgent list, and quick actions | Unassigned, My Assigned, priority breakdown render | `client/tests/lab-04/StaffDashboard.test.tsx` | Planned |
+| **UI-04** | UI | AC-06 / FR-08 | Requester Dashboard metric cards & drill-down links | Metric values render; clicking card navigates to queue | `client/tests/lab-04/RequesterDashboard.test.tsx` | Pass |
+| **UI-05** | UI | AC-08 / FR-10 | IT Staff Dashboard cards, urgent list, and quick actions | Unassigned, My Assigned, priority breakdown render | `client/tests/lab-04/StaffDashboard.test.tsx` | Pass |
 | **UI-06** | UI | AC-10 / FR-12 | Ticket Resolution Gate advisory banner & controls | Banner shows requester report; status dropdown restricted | `client/tests/lab-04/TicketWorkflow.test.tsx` | Planned |
 | **STYLE-01** | Style | AC-12 / FR-16 | Responsive layout: Zero horizontal overflow at 375px mobile viewport | No horizontal scrolling (`overflow-x: hidden`), width strictly 375px | `client/tests/lab-04/ResponsiveLayout.test.tsx` | Planned |
 | **A11Y-01** | A11Y | AC-12 / FR-16 | Accessibility: Visible focus rings (`#006B3C`), keyboard tab navigation & ARIA labels | WCAG AA compliance; focus outlines visible on all interactive controls | `client/tests/lab-04/Accessibility.test.tsx` | Planned |

@@ -11,9 +11,10 @@ import {
 } from "../api.js";
 import { getPaginationItems } from "../utils/pagination.js";
 
-interface MyTicketsViewProps {
+export interface MyTicketsViewProps {
   onNavigateCreate: () => void;
   onSelectTicket?: (ticketId: number) => void;
+  initialStatusFilter?: string[];
 }
 
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"];
@@ -161,7 +162,7 @@ function MultiSelectFilter<T extends string | number>({
   );
 }
 
-export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsViewProps) {
+export function MyTicketsView({ onNavigateCreate, onSelectTicket, initialStatusFilter }: MyTicketsViewProps) {
   const auth = useContext(AuthContext);
   const user = auth?.user;
   const { selectedRequester } = useRequester();
@@ -186,7 +187,7 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket }: MyTicketsVie
   // Multi-select Filter & Sort states
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(initialStatusFilter || []);
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState<number>(1);

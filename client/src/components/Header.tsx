@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext.js";
 import { useRequester } from "../context/RequesterContext.js";
 
 export type NavTab =
+  | "dashboard"
   | "my-tickets"
   | "create-ticket"
   | "ticket-queue"
@@ -20,10 +21,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
 
   const handleBrandClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (user?.role === "ADMINISTRATOR") {
-      onSelectTab("user-management");
-    } else if (user?.role === "IT_STAFF") {
-      onSelectTab("ticket-queue");
+    if (user) {
+      onSelectTab("dashboard");
     } else {
       onSelectTab("my-tickets");
     }
@@ -107,6 +106,33 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
                 <button
                   type="button"
                   className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
+                    activeTab === "dashboard"
+                      ? "opacity-100 fw-bold border-bottom border-2 border-white pb-1"
+                      : "opacity-75"
+                  }`}
+                  onClick={() => onSelectTab("dashboard")}
+                  data-testid="nav-dashboard"
+                >
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="7" height="9" />
+                    <rect x="14" y="3" width="7" height="5" />
+                    <rect x="14" y="12" width="7" height="9" />
+                    <rect x="3" y="16" width="7" height="5" />
+                  </svg>
+                  <span>Dashboard</span>
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
                     activeTab === "my-tickets"
                       ? "opacity-100 fw-bold border-bottom border-2 border-white pb-1"
                       : "opacity-75"
@@ -160,7 +186,35 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
 
             {/* IT Staff Navigation Links */}
             {isItStaffRole && (
-              <button
+              <>
+                <button
+                  type="button"
+                  className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
+                    activeTab === "dashboard"
+                      ? "opacity-100 fw-bold border-bottom border-2 border-white pb-1"
+                      : "opacity-75"
+                  }`}
+                  onClick={() => onSelectTab("dashboard")}
+                  data-testid="nav-dashboard"
+                >
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="7" height="9" />
+                    <rect x="14" y="3" width="7" height="5" />
+                    <rect x="14" y="12" width="7" height="9" />
+                    <rect x="3" y="16" width="7" height="5" />
+                  </svg>
+                  <span>Dashboard</span>
+                </button>
+                <button
                 type="button"
                 className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
                   activeTab === "ticket-queue"
@@ -184,11 +238,39 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab }) => {
                 </svg>
                 <span>Ticket Queue</span>
               </button>
+              </>
             )}
 
             {/* Administrator Navigation Links */}
             {isAdminRole && (
               <>
+                <button
+                  type="button"
+                  className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
+                    activeTab === "dashboard"
+                      ? "opacity-100 fw-bold border-bottom border-2 border-white pb-1"
+                      : "opacity-75"
+                  }`}
+                  onClick={() => onSelectTab("dashboard")}
+                  data-testid="nav-dashboard"
+                >
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="7" height="9" />
+                    <rect x="14" y="3" width="7" height="5" />
+                    <rect x="14" y="12" width="7" height="9" />
+                    <rect x="3" y="16" width="7" height="5" />
+                  </svg>
+                  <span>Dashboard</span>
+                </button>
                 <button
                   type="button"
                   className={`btn btn-sm btn-link text-white text-decoration-none fw-medium d-flex align-items-center gap-1 px-2 py-1 ${
