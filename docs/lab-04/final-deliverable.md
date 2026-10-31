@@ -6,9 +6,9 @@
 | **Student / Author** | `chanya06` (Chanya Poolketkij) — GitHub: [@chanya06](https://github.com/chanya06) |
 | **Peer Reviewer** | Peer Reviewer — GitHub: [@lmaybelgracel](https://github.com/lmaybelgracel) |
 | **Partner Reviewed by Author** | Phatthidawadi — GitHub: [@phatthidawadi](https://github.com/phatthidawadi) (`phatthidawadi/toktickit`) |
-| **Repository & Branch** | [`chanya06/toktickit`](https://github.com/chanya06/toktickit) — `lab4-staging` (targeting `main`) |
+| **Repository & Branch** | [`chanya06/toktickit`](https://github.com/chanya06/toktickit) — `main` (Production Release) |
 | **GitHub Project Board** | [Backlog · TokTickIT Individual Sprints (Board #3)](https://github.com/users/chanya06/projects/3) |
-| **Release PR** | [PR #88](https://github.com/chanya06/toktickit/pull/88) (`lab4-staging` -> `main`) |
+| **Release PR** | [PR #88](https://github.com/chanya06/toktickit/pull/88) (`lab4-staging` -> `main`) — Approved & Merged |
 | **Final Test Metric** | **375 / 375 Automated Tests Passed (100% Pass Rate)** (Server: 207, Client: 164, Playwright E2E: 4 tests across 3 suites) |
 | **Build Status** | Clean Production Build (`tsc && vite build`) — Zero errors |
 | **Deliverable Date** | October 31, 2026 |
@@ -51,48 +51,58 @@ All feature branches, peer review verdicts, and PR links for Lab 4 are tracked b
 | [phatthidawadi/toktickit#77](https://github.com/phatthidawadi/toktickit/pull/77) | `feature/31-e2e-automated-testing-and-screenshots` | Playwright Multi-Viewport E2E Test Suite, Performance-Smoke Tests, and Visual Screenshots (Issue #31) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
 | [phatthidawadi/toktickit#78](https://github.com/phatthidawadi/toktickit/pull/78) | `feature/32-visual-style-accessibility-hardening` | Zen Green Visual Style, Accessibility, Regression, and Final Hardening (Issue #32) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
 | [phatthidawadi/toktickit#79](https://github.com/phatthidawadi/toktickit/pull/79) | `feature/33-doc-reviewer-ai-use` | Sprint 4 Peer Reviewer Documentation, AI Usage Reflection, and Release Integration (Issue #33) | Approved with comments | Merged |
-| [phatthidawadi/toktickit#80](https://github.com/phatthidawadi/toktickit/pull/80) | `lab4-staging` | Release Sprint 4 (Lab 4): Actions Taken, Dashboards, and Final Regression | Pending Final Merge | Open |
+| [phatthidawadi/toktickit#80](https://github.com/phatthidawadi/toktickit/pull/80) | `lab4-staging` | Release Sprint 4 (Lab 4): Actions Taken, Dashboards, and Final Regression | Approved & Merged | Merged |
 
 ### 1.3 Git Commit History Evidence
 The Git commit graph confirms disciplined branch merging with linear traceability across all Lab 4 sprint deliverables:
 
 ```text
-* 5be7dc8 (HEAD -> lab4-staging) Merge pull request #86 from chanya06/feature/35-ticket-workflow-hardening
+* e9cf7eb (HEAD -> main, origin/main) docs(release): reflect PR #88 approval and merged status in final deliverables
+*   15e9e95 Merge pull request #88 from chanya06/lab4-staging
 |\  
-| * 7b335bd fix(workflow): add requester reopen action, resolution note input, and workflow tests (PR #86 Review Round 7)
-| * 821fbca docs(review): align partner reviewed format with author and reviewer headers
-| * 38cef5c docs(review): update partner reviewed by author to phatthidawadi/toktickit
-| * 80e5f38 docs(review): record PR #86 for Issue 35 in reviewer tracking
-| * 195ad9e feat(workflow): implement 8+1 status matrix, resolution gate, and concurrency control (#79)
-|/  
-* 80d8fd4 Merge pull request #85 from chanya06/feature/34-dashboard-ui
-|\  
-| * 0995c64 fix(dashboard-ui): address Review Round 6 defects for filter sync, all statuses, and test ids (PR #85)
-| * 532e3a6 docs(review): record Review Round 6 comments and author responses for PR #85
-| * e65d836 feat(dashboard-ui): implement Requester and IT Staff dashboards with drill-downs (#78)
-|/  
-* b28b2be Merge pull request #84 from chanya06/feature/33-dashboard-api
-|\  
-| * da82a32 fix(dashboard-api): filter terminal statuses in unassigned/myAssigned metrics and fix admin test (PR #84)
-| * de88950 docs(review): record Review Round 5 defects and author response plan for PR #84
-| * ec11239 feat(dashboard-api): implement Requester and IT Staff operational metric aggregation APIs (#77)
-|/  
-* b8421c6 Merge pull request #83 from chanya06/feature/32-actions-taken-ui
-|\  
-| * 1b24bf4 fix(actions-ui): address peer review defects for PR #83 (Review Round 4)
-| * 22cbbe0 feat(actions-ui): implement Actions Taken section and responsive cards (#76)
-|/  
-* a1e92d7 Merge pull request #82 from chanya06/feature/31-actions-taken-api
-|\  
-| * c21f4ae fix(actions-api): resolve peer review defects for PR #82 (Review Round 3)
-| * 5013069 feat(actions-api): implement actions taken REST endpoints and validations (#75)
-|/  
-* 8d48a19 Merge pull request #81 from chanya06/feature/30-db-schema-actions-taken
-|\  
-| * f1c8b32 fix(db): address Review Round 2 defects for seed statuses, rollback tests, and schema justification
-| * 338c201 feat(db): create ActionTaken schema, migration, and seed data (#74)
-|/  
-* 92ec2b5 Merge pull request #72 from chanya06/feature/29-spec-and-tests
+| * 2400687 docs(release): finalize partner PR reviews (#72-#80) and PR #87 approval in deliverables
+| *   5ddf3b6 Merge pull request #87 from chanya06/feature/36-qa-regression-and-deliverables
+| |\  
+| | * c30a8f3 docs(review): record PR #87 in peer review tracking table
+| | * 2ce8f70 feat(qa): implement Lab 4 E2E suites, screenshots, and final deliverable (#80)
+| |/  
+| *   5be7dc8 Merge pull request #86 from chanya06/feature/35-ticket-workflow-hardening
+| |\  
+| | * 7b335bd fix(workflow): add requester reopen action, resolution note input, and workflow tests (PR #86 Review Round 7)
+| | * 821fbca docs(review): align partner reviewed format with author and reviewer headers
+| | * 38cef5c docs(review): update partner reviewed by author to phatthidawadi/toktickit
+| | * 80e5f38 docs(review): record PR #86 for Issue 35 in reviewer tracking
+| | * 1080ffa feat(workflow): enforce 8+1 status matrix, resolution gate, and optimistic concurrency (Issue #79)
+| |/  
+| *   bb9065c Merge pull request #85 from chanya06/feature/34-dashboard-ui
+| |\  
+| | * dea8951 fix(ui): synchronize filter state on drill-down and add full 9-status support (PR #85 Review Round 6)
+| | * 6485c20 docs(review): record PR #85 for Issue 34 in reviewer tracking
+| | * a092d0b feat(ui): implement Role Dashboards UI, metric cards, and drill-down navigation (Issue #78)
+| |/  
+| *   22d8a4d Merge pull request #84 from chanya06/feature/33-dashboard-api
+| |\  
+| | * c356fd0 fix(dashboard): enforce BR-10 terminal status exclusion on operational metrics and add API-08i (PR #84 Review Round 5)
+| | * beb00be docs: record PR #84 in reviewer tracker
+| | * 39ef9d2 feat(api): implement Role Dashboards REST APIs and performance benchmarks (Issue #77)
+| |/  
+| *   aec17e4 Merge pull request #83 from chanya06/feature/32-actions-taken-ui
+| |\  
+| | * d63ae0d fix(ui): address PR #83 review comments - inactive assignee selection, field-level error highlighting, tests & reviewer docs
+| | * 9eeeeb3 docs: track PR #83 in reviewer.md
+| | * c0f4988 feat(ui): implement Actions Taken UI on Ticket Detail & responsive cards (Issue #76)
+| |/  
+| *   b9ed4d5 Merge pull request #82 from chanya06/feature/31-actions-taken-api
+| |\  
+| | * c21f4ae fix(actions-api): resolve peer review defects for PR #82 (Review Round 3)
+| | * 5013069 feat(actions-api): implement actions taken REST endpoints and validations (#75)
+| |/  
+| *   8d48a19 Merge pull request #81 from chanya06/feature/30-db-schema-actions-taken
+| |\  
+| | * f1c8b32 fix(db): address Review Round 2 defects for seed statuses, rollback tests, and schema justification
+| | * 338c201 feat(db): create ActionTaken schema, migration, and seed data (#74)
+| |/  
+| * 92ec2b5 Merge pull request #72 from chanya06/feature/29-spec-and-tests
 ```
 
 ---
@@ -435,5 +445,5 @@ All interactive controls display prominent, high-contrast focus rings when navig
 ---
 
 ## Conclusion & Verification Sign-Off
-TokTickIT Lab 4 delivers all functional requirements, business rules, role dashboards, Actions Taken subsystems, resolution gates, and final regression tests with 100% test pass rate (374/374 automated tests) and zero compilation warnings.
+TokTickIT Lab 4 delivers all functional requirements, business rules, role dashboards, Actions Taken subsystems, resolution gates, and final regression tests with 100% test pass rate (375/375 automated tests) and zero compilation warnings.
 

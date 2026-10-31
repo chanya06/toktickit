@@ -242,9 +242,18 @@ async function main() {
     path: pdfPath,
     format: "A4",
     printBackground: true,
+    displayHeaderFooter: true,
+    headerTemplate: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 8px; color: #94a3b8; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between;">
+      <span>TokTickIT Lab 4 — Final Engineering Deliverable</span>
+      <span>CPE 334 Software Engineering</span>
+    </div>`,
+    footerTemplate: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 8px; color: #94a3b8; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between;">
+      <span>Author: Chanya Poolketkij (@chanya06)</span>
+      <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
+    </div>`,
     margin: {
-      top: "12mm",
-      bottom: "12mm",
+      top: "14mm",
+      bottom: "14mm",
       left: "15mm",
       right: "15mm"
     }
