@@ -358,25 +358,31 @@ describe("IT Staff Ticket Operations & Status Matrix (API-07, API-08 / Issue 24)
       expect(res4.status).toBe(200);
       expect(res4.body.ticket.status).toBe("RESOLVED");
 
-      // 5. RESOLVED -> CLOSED
+      // 5. RESOLVED -> REOPENED (per BR-07)
       const res5 = await request(app)
         .patch(`/api/staff/tickets/${ticket.id}/status`)
         .set("Authorization", `Bearer ${staffToken}`)
-        .send({ status: "CLOSED" });
+        .send({ status: "REOPENED" });
       expect(res5.status).toBe(200);
-      expect(res5.body.ticket.status).toBe("CLOSED");
+      expect(res5.body.ticket.status).toBe("REOPENED");
 
-      // 6. CLOSED -> REOPENED
+      // 6. REOPENED -> RESOLVED -> CLOSED (terminal)
       const res6 = await request(app)
         .patch(`/api/staff/tickets/${ticket.id}/status`)
         .set("Authorization", `Bearer ${staffToken}`)
-        .send({ status: "REOPENED" });
-      // Wait, REOPENED transitions from CLOSED
+        .send({ status: "RESOLVED" });
       expect(res6.status).toBe(200);
-      expect(res6.body.ticket.status).toBe("REOPENED");
+      expect(res6.body.ticket.status).toBe("RESOLVED");
+
+      const res7 = await request(app)
+        .patch(`/api/staff/tickets/${ticket.id}/status`)
+        .set("Authorization", `Bearer ${staffToken}`)
+        .send({ status: "CLOSED" });
+      expect(res7.status).toBe(200);
+      expect(res7.body.ticket.status).toBe("CLOSED");
     });
 
-    it("permits OPEN -> CANCELLED and CANCELLED -> OPEN", async () => {
+    it("permits OPEN -> CANCELLED and rejects transitions from terminal CANCELLED", async () => {
       const ticket = await createTestTicket({ status: "OPEN" });
 
       // OPEN -> CANCELLED
@@ -387,13 +393,12 @@ describe("IT Staff Ticket Operations & Status Matrix (API-07, API-08 / Issue 24)
       expect(cancelRes.status).toBe(200);
       expect(cancelRes.body.ticket.status).toBe("CANCELLED");
 
-      // CANCELLED -> OPEN
+      // CANCELLED -> OPEN (rejected per BR-07 terminal state)
       const openRes = await request(app)
         .patch(`/api/staff/tickets/${ticket.id}/status`)
         .set("Authorization", `Bearer ${staffToken}`)
         .send({ status: "OPEN" });
-      expect(openRes.status).toBe(200);
-      expect(openRes.body.ticket.status).toBe("OPEN");
+      expect(openRes.status).toBe(422);
     });
 
     it("permits transitions from REOPENED to IN_PROGRESS, RESOLVED, and CANCELLED", async () => {

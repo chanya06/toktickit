@@ -765,13 +765,14 @@ export async function claimTicket(ticketId: number): Promise<{ message: string; 
 
 export async function assignTicket(
   ticketId: number,
-  ownerId: number | null
+  ownerId: number | null,
+  expectedUpdatedAt?: string
 ): Promise<{ message: string; ticket: TicketResponse }> {
   const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/assign`, {
     method: "PATCH",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
-    body: JSON.stringify({ ownerId }),
+    body: JSON.stringify({ ownerId, expectedUpdatedAt }),
   }).catch((err) => null);
 
   if (!res) throw new Error("Network error: Unable to connect to server");
@@ -779,6 +780,7 @@ export async function assignTicket(
   if (!res.ok) {
     const err = new Error(data.error || "Failed to assign ticket");
     (err as any).status = res.status;
+    (err as any).code = data.code;
     throw err;
   }
   return data;
@@ -786,13 +788,14 @@ export async function assignTicket(
 
 export async function updateTicketITPriority(
   ticketId: number,
-  itPriority: string
+  itPriority: string,
+  expectedUpdatedAt?: string
 ): Promise<{ message: string; ticket: TicketResponse }> {
   const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/it-priority`, {
     method: "PATCH",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
-    body: JSON.stringify({ itPriority }),
+    body: JSON.stringify({ itPriority, expectedUpdatedAt }),
   }).catch((err) => null);
 
   if (!res) throw new Error("Network error: Unable to connect to server");
@@ -800,6 +803,7 @@ export async function updateTicketITPriority(
   if (!res.ok) {
     const err = new Error(data.error || "Failed to update IT priority");
     (err as any).status = res.status;
+    (err as any).code = data.code;
     throw err;
   }
   return data;
@@ -807,13 +811,15 @@ export async function updateTicketITPriority(
 
 export async function updateTicketStatus(
   ticketId: number,
-  status: string
+  status: string,
+  expectedUpdatedAt?: string,
+  resolutionNote?: string
 ): Promise<{ message: string; ticket: TicketResponse }> {
   const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/status`, {
     method: "PATCH",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, expectedUpdatedAt, resolutionNote }),
   }).catch((err) => null);
 
   if (!res) throw new Error("Network error: Unable to connect to server");
@@ -821,6 +827,8 @@ export async function updateTicketStatus(
   if (!res.ok) {
     const err = new Error(data.error || "Failed to update ticket status");
     (err as any).status = res.status;
+    (err as any).code = data.code;
+    (err as any).pendingActionsCount = data.pendingActionsCount;
     throw err;
   }
   return data;

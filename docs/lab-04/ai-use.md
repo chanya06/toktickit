@@ -171,6 +171,35 @@
   - Documented Review Round 6 verbatim reviewer feedback and author responses in `docs/lab-04/reviewer.md`.
   - Maintained 100% pass across all 153 client tests (18 files) and 199 backend tests (20 files).
 
+---
+
+### Prompt 13: Ticket Workflow Hardening, Resolution Gate & Concurrency Control (Issue 35 / Issue #79)
+- **User Intent**: Implement Issue 35: Enforce 8+1 status transition matrix (BR-07), Resolution Gate requiring verification of child actions taken before formal resolution (BR-08), optimistic concurrency control via expectedUpdatedAt returning HTTP 409 Conflict (FR-14 / AC-11), prominent Zen Green resolution banner, and full regression test alignment.
+- **AI Response Summary**:
+  - Hardened backend status transition matrix in `server/src/routes/staff.ts` per BR-07:
+    - `NEW` -> `OPEN`, `CANCELLED`
+    - `OPEN` -> `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `PENDING`, `CANCELLED`
+    - `IN_PROGRESS` -> `WAITING_FOR_REQUESTER`, `PENDING`, `RESOLVED`, `CANCELLED`
+    - `WAITING_FOR_REQUESTER` -> `IN_PROGRESS`, `RESOLVED`, `CANCELLED`
+    - `PENDING` -> `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CANCELLED`
+    - `RESOLVED` -> `CLOSED` (Staff/Admin), `REOPENED` (Requester/Staff/Admin)
+    - `REOPENED` -> `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CANCELLED`
+    - `CLOSED` and `CANCELLED` enforced as strictly terminal states (`[]`).
+  - Implemented Resolution Gate (BR-08): Transitioning to `RESOLVED` queries child `ActionTaken` records in `PENDING` or `IN_PROGRESS`; returns HTTP 422 Unprocessable Entity with *"Cannot resolve ticket: all child actions taken must be completed or cancelled first"* if any active actions remain.
+  - Implemented Optimistic Concurrency Control (FR-14 / AC-11): Added `expectedUpdatedAt` checking on `PATCH /status`, `PATCH /assign`, and `PATCH /it-priority`, returning HTTP 409 Conflict (`code: "CONCURRENCY_CONFLICT"`).
+  - Mounted Requester/Staff status route in `server/src/app.ts` (`PATCH /api/tickets/:id/status`) enforcing role permissions (`REQUESTER` may only reopen their own resolved tickets).
+  - Updated frontend API client `client/src/api.ts` and `TicketDetailView.tsx`:
+    - Updated `updateTicketStatus`, `assignTicket`, and `updateTicketITPriority` to accept `expectedUpdatedAt` and only pass defined arguments.
+    - Upgraded resolution indication banner with Zen Green styling (`#006B3C`, `#DCFCE7`).
+    - Aligned permitted next statuses with BR-07.
+  - Authored automated tests:
+    - `server/tests/lab-04/ticket-workflow.api.test.ts` (8 tests covering API-09 and API-10).
+    - `client/tests/lab-04/TicketWorkflow.test.tsx` (8 tests covering UI-06).
+    - Aligned Lab 3 regression tests (`client/tests/lab-03/StaffTicketDetail.test.tsx` and `server/tests/lab-03/staff-ticket-detail.api.test.ts`) with BR-07 terminal state rules.
+  - 100% pass across all 161 client tests (19 files) and 207 server tests (21 files).
+
+---
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ---

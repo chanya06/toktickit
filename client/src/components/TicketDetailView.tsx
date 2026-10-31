@@ -19,14 +19,14 @@ import { ActionsTakenSection } from "./ActionsTakenSection.js";
 
 const PERMITTED_NEXT_STATUSES: Record<string, string[]> = {
   NEW: ["OPEN", "CANCELLED"],
-  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
-  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "PENDING", "CANCELLED"],
+  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "PENDING", "RESOLVED", "CANCELLED"],
   WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  PENDING: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
   RESOLVED: ["CLOSED", "REOPENED"],
-  CLOSED: ["REOPENED"],
-  REOPENED: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
-  CANCELLED: ["OPEN"],
-  PENDING: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  CLOSED: [], // Terminal state (BR-07)
+  CANCELLED: [], // Terminal state (BR-07)
+  REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -135,7 +135,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     setIsOperating(true);
     setOperationMessage(null);
     try {
-      const res = await assignTicket(ticketId, targetOwnerId);
+      const res = ticket?.updatedAt !== undefined ? await assignTicket(ticketId, targetOwnerId, ticket.updatedAt) : await assignTicket(ticketId, targetOwnerId);
       setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
       setOperationMessage({
         type: "success",
@@ -152,7 +152,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     setIsOperating(true);
     setOperationMessage(null);
     try {
-      const res = await updateTicketITPriority(ticketId, newPriority);
+      const res = ticket?.updatedAt !== undefined ? await updateTicketITPriority(ticketId, newPriority, ticket.updatedAt) : await updateTicketITPriority(ticketId, newPriority);
       setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
       setOperationMessage({ type: "success", text: `IT Priority updated to ${newPriority}.` });
     } catch (err: any) {
@@ -167,7 +167,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     setIsOperating(true);
     setOperationMessage(null);
     try {
-      const res = await updateTicketStatus(ticketId, selectedNextStatus);
+      const res = ticket?.updatedAt !== undefined ? await updateTicketStatus(ticketId, selectedNextStatus, ticket.updatedAt) : await updateTicketStatus(ticketId, selectedNextStatus);
       setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
       setSelectedNextStatus("");
       setOperationMessage({
@@ -456,11 +456,15 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
       </div>
 
       {ticket.isResolutionIndicated && (
-        <div className="alert alert-info d-flex align-items-center gap-2 mb-3" data-testid="resolution-indicated-banner">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-info flex-shrink-0">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
+        <div
+          className="alert alert-success d-flex align-items-center gap-2 mb-3 shadow-sm"
+          style={{ backgroundColor: "#DCFCE7", borderColor: "var(--primary-green, #006B3C)", color: "#14532D" }}
+          data-testid="resolution-indicated-banner"
+          role="status"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ color: "var(--primary-green, #006B3C)" }}>
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
           <div>
             <strong>Problem Appears Resolved:</strong> The requester indicated that the problem appears resolved. Awaiting IT Staff confirmation and formal closure.
