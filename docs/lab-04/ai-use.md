@@ -114,6 +114,16 @@
 
 ---
 
+### Prompt 10: PR #84 Peer Review Defect Resolution & Dashboard Metric Boundary Hardening
+- **User Intent**: Address 4 specific review feedback points from peer reviewer `@lmaybelgracel` on PR #84: filter out terminal states (`RESOLVED`, `CLOSED`, `CANCELLED`) from `unassignedTickets` and `myAssignedTickets` per BR-10, restrict priority distribution (`byPriority`) to active operational workload, record Review Round 5 in `reviewer.md`, and author an automated test case in `staff-dashboard.api.test.ts` verifying terminal state exclusion from operational metrics.
+- **AI Response Summary**:
+  - Updated `computeStaffOperationalMetrics` in `server/src/routes/dashboard.ts`:
+    - Added `status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] }` to both `unassignedTickets` and `myAssignedTickets` count queries.
+    - Added `where: { status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] } }` to the `byPriority` `groupBy` query, keeping priority metrics strictly focused on active backlog.
+  - Added automated test case `API-08i` in `server/tests/lab-04/staff-dashboard.api.test.ts` asserting that creating tickets in `CANCELLED`, `RESOLVED`, or `CLOSED` statuses does not inflate `unassignedTickets`, `myAssignedTickets`, or `byPriority` active counts, while `byStatus` accurately reflects overall queue lifecycle.
+  - Documented Review Round 5 verbatim review comments and author response plan in `docs/lab-04/reviewer.md`.
+  - Maintained 100% pass across all 199 backend tests (20 files) and 132 frontend tests (16 files).
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ---

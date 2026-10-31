@@ -133,22 +133,37 @@ async function computeStaffOperationalMetrics(userId: number) {
     urgentTicketsRaw,
     recentTicketsRaw,
   ] = await Promise.all([
-    // 1. Unassigned tickets in queue
+    // 1. Unassigned tickets in queue (active tickets only per BR-10)
     prisma.ticket.count({
-      where: { ownerId: null },
+      where: {
+        ownerId: null,
+        status: {
+          notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED],
+        },
+      },
     }),
-    // 2. Tickets assigned to authenticated staff member
+    // 2. Tickets assigned to authenticated staff member (active tickets only per BR-10)
     prisma.ticket.count({
-      where: { ownerId: userId },
+      where: {
+        ownerId: userId,
+        status: {
+          notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED],
+        },
+      },
     }),
     // 3. Distribution breakdown by ticket status
     prisma.ticket.groupBy({
       by: ["status"],
       _count: { status: true },
     }),
-    // 4. Distribution breakdown by IT priority
+    // 4. Distribution breakdown by IT priority (active operational workload only per BR-10)
     prisma.ticket.groupBy({
       by: ["itPriority"],
+      where: {
+        status: {
+          notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED],
+        },
+      },
       _count: { itPriority: true },
     }),
     // 5. Tickets updated within the past 24 hours
@@ -285,3 +300,4 @@ dashboardRouter.get(
     }
   }
 );
+

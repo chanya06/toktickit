@@ -14,7 +14,7 @@
 | [PR #81](https://github.com/chanya06/toktickit/pull/81) | `feature/30-db-schema-actions-taken` | Prisma Schema for `ActionTaken`, Database Migration & Seed Data | Approved & Merged | Merged |
 | [PR #82](https://github.com/chanya06/toktickit/pull/82) | `feature/31-actions-taken-api` | Actions Taken REST API, Authorization & Concurrency | Approved & Merged | Merged |
 | [PR #83](https://github.com/chanya06/toktickit/pull/83) | `feature/32-actions-taken-ui` | Actions Taken UI on Ticket Detail Screen & Responsive Cards | Approved & Merged | Merged |
-| [PR #84](https://github.com/chanya06/toktickit/pull/84) | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Pending Review | Open |
+| [PR #84](https://github.com/chanya06/toktickit/pull/84) | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Changes Requested (Resolved) | In Review |
 | [PR # (Pending)] | `feature/34-dashboard-ui` | Role Dashboards UI (Metric Cards, Recent Lists, Quick Actions & Drill-down) | Pending | Planned |
 | [PR # (Pending)] | `feature/35-ticket-workflow-hardening` | Ticket Workflow Hardening, Resolution Gate & Stale Update Handling | Pending | Planned |
 | [PR # (Pending)] | `feature/36-qa-regression-and-deliverables` | QA Automated Tests, Regression Suite, Screenshots & Final PDF Deliverable | Pending | Planned |
@@ -226,3 +226,53 @@
    - ทดสอบการเลือก Assignee ที่ถูกระงับสิทธิ์ (Option ไม่ถูก disable, สามารถเลือกได้)
    - จำลอง API ตอบกลับด้วยรหัส HTTP 422 `{ error: "Assignee must be an active IT Staff or Administrator account", field: "assigneeId" }`
    - ตรวจสอบว่า Dropdown มีคลาส `is-invalid` ขอบสีแดง และมีข้อความ Invalid Feedback แสดงผลแจ้งเตือนอย่างถูกต้อง (16/16 tests ใน ActionsTaken.test.tsx ผ่าน 100%)
+
+---
+
+### Reviewer Comments on [PR #84](https://github.com/chanya06/toktickit/pull/84) (feature/33-dashboard-api) - Review Round 5
+
+> **Reviewer:** `@lmaybelgracel` — **Verdict:** CHANGES REQUESTED  
+> จากการตรวจทานโค้ดระบบคำนวณเมตริกแดชบอร์ด (Requester & IT Staff Dashboard REST APIs) และชุดทดสอบวัดประสิทธิภาพใน PR #84 (สาขา feature/33-dashboard-api) เทียบกับเกณฑ์บังคับของอาจารย์ใน Handout Lab 4 (Sections 4.6, 5.3, 10 และ 14) พบข้อบกพร่องสำคัญ 4 จุดที่ต้องได้รับการแก้ไขก่อนการอนุมัติ:  
+> 
+> 1. **การนับรวมตั๋วสถานะสิ้นสุดในเมตริก Unassigned และ My Assigned Tickets (ขัดต่อกฎ BR-10):**  
+>    - *เกณฑ์บังคับ:* ข้อกำหนด Business Rule BR-10 (IT Staff Dashboard Metric Boundaries) ใน specification.md ระบุไว้อย่างชัดเจนว่า:
+>      - Unassigned Tickets: ต้องนับเฉพาะตั๋วที่ยัง Active และ `ownerId IS NULL` โดย `status NOT IN ('RESOLVED', 'CLOSED', 'CANCELLED')`
+>      - My Assigned Tickets: ต้องนับเฉพาะตั๋วที่ยัง Active และ `ownerId === authUserId` โดย `status NOT IN ('RESOLVED', 'CLOSED', 'CANCELLED')`  
+>    - *ข้อผิดพลาด:* ในไฟล์ `server/src/routes/dashboard.ts` (ฟังก์ชัน `computeStaffOperationalMetrics`) การคิวรี `unassignedTickets` และ `myAssignedTickets` มีเฉพาะเงื่อนไขตรวจสอบ `ownerId` แต่ขาดการกรองสถานะตั๋ว ส่งผลให้ตั๋วที่ถูกยกเลิก (เช่น TKT-2026-000008) หรือตั๋วที่ปิดไปแล้วถูกนับรวมเข้าไปในยอดงานค้างปฏิบัติงาน  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มเงื่อนไข `status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] }` ในทั้งสองคิวรีให้ถูกต้องตามกฎ BR-10  
+> 
+> 2. **การขาดการกรองสถานะตั๋วที่ยัง Active ในการคำนวณสถิติความสำคัญ (Priority Distribution):**  
+>    - *เกณฑ์บังคับ:* กฎ BR-10 กำหนดให้การแจกแจงสถิติตามความสำคัญ (byPriority) สะท้อนเฉพาะภาระงานปัจจุบันที่ต้องจัดการ (Active Operational Workload)  
+>    - *ข้อผิดพลาด:* คิวรี `prisma.ticket.groupBy` สำหรับ `itPriority` ไม่ได้ระบุตัวกรองสถานะ ส่งผลให้สถิตินำเอาตั๋วในประวัติศาสตร์ที่ปิดเสร็จสิ้นไปแล้วมาคำนวณรวมด้วย  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มเงื่อนไข `where: { status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] } }` ในคำสั่ง `groupBy` ของ `itPriority`  
+> 
+> 3. **การขาดหัวข้อบันทึกการรีวิว PR #84 ในเอกสารกระบวนการวิศวกรรม (`docs/lab-04/reviewer.md`):**  
+>    - *เกณฑ์บังคับ:* Handout Section 14 (Answer Part 1: Git Use with Engineering Workflow) กำหนดให้เอกสาร reviewer.md ต้องปรากฏหลักฐานการรีวิวของทุก PR ประกอบด้วย ตัวตนผู้ตรวจ ลิงก์ PR ข้อคิดเห็น/ข้อบกพร่องที่พบ (Comments) การตอบกลับของผู้พัฒนา (Responses) และผลการอนุมัติ (Approvals)  
+>    - *ข้อผิดพลาด:* ใน `docs/lab-04/reviewer.md` มีเพียงการอัปเดตสถานะบรรทัด PR #84 ในตารางสรุปด้านบน แต่ยังไม่มีหัวข้อเนื้อหา Review Round 5: PR #84 (feature/33-dashboard-api)  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มหัวข้อ Review Round 5 สำหรับ PR #84 ใน reviewer.md บันทึกข้อเสนอแนะในการปรับปรุง และเปิดพื้นที่ให้ผู้พัฒนาตอบกลับแผนการแก้ไข  
+> 
+> 4. **การขาดเคสทดสอบอัตโนมัติสำหรับ Terminal State Exclusion ใน `staff-dashboard.api.test.ts`:**  
+>    - *เกณฑ์บังคับ:* Handout Section 10 กำหนดให้การบังคับใช้ Business Rules ต้องมีชุดทดสอบอัตโนมัติรองรับอย่างครอบคลุม  
+>    - *ข้อผิดพลาด:* ในไฟล์ `server/tests/lab-04/staff-dashboard.api.test.ts` ยังไม่มีการทดสอบยืนยันว่าการสร้างตั๋วสถานะ CLOSED, RESOLVED หรือ CANCELLED จะต้องไม่ถูกนับเข้าไปเพิ่มในเมตริก `unassignedTickets`, `myAssignedTickets` และ `byPriority`  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มเคสทดสอบอัตโนมัติใน `staff-dashboard.api.test.ts` เพื่อยืนยันการคัดกรองตั๋วสถานะสิ้นสุดออกจากเมตริกการดำเนินงาน  
+
+---
+
+### Author Response & Action Plan (`@chanya06`):
+ขอบคุณสำหรับผลการตรวจทานการคำนวณแดชบอร์ดที่เฉียบคมและแม่นยำ ได้ดำเนินการปรับปรุงแก้ไขในสาขา `feature/33-dashboard-api` ครบถ้วนทั้ง 4 ประเด็นเรียบร้อยแล้ว:
+
+1. **คัดกรองสถานะสิ้นสุดออกจาก `unassignedTickets` และ `myAssignedTickets` ตามกฎ BR-10 (`server/src/routes/dashboard.ts`):**
+   - เพิ่มเงื่อนไข `status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] }` ในทั้งคิวรี `unassignedTickets` (ตั๋วที่ไม่มีผู้รับผิดชอบและยัง Active) และ `myAssignedTickets` (ตั๋วที่มอบหมายให้ตนเองและยัง Active)
+   - ป้องกันไม่ให้ตั๋วที่ยกเลิกหรือปิดเสร็จสิ้นแล้วหลุดเข้ามาปะปนในยอดค้างปฏิบัติงาน
+2. **จำกัดสถิติแจกแจงตามความสำคัญ (`byPriority`) ให้สะท้อนเฉพาะ Active Operational Workload (`server/src/routes/dashboard.ts`):**
+   - เพิ่ม `where: { status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] } }` ในคำสั่ง `prisma.ticket.groupBy` สำหรับ `itPriority`
+   - ทำให้สถิติความสำคัญสะท้อนเฉพาะภาระงานปัจจุบันที่ต้องจัดการจริงตามกฎ BR-10 ในขณะที่ `byStatus` ยังคงแสดงผลสถิติภาพรวมครบทุกสถานะในระบบ
+3. **บันทึกหลักฐานการรีวิว PR #84 ใน `docs/lab-04/reviewer.md`:**
+   - เพิ่มหัวข้อ Review Round 5 สำหรับ PR #84 บันทึกข้อคิดเห็นของ `@lmaybelgracel` และแผนการแก้ไขของผู้พัฒนา `@chanya06` ครบถ้วนตามเกณฑ์ Handout Section 14 (Answer Part 1)
+   - อัปเดตสถานะในตารางสรุปเป็น `Changes Requested (Resolved) | In Review`
+4. **เพิ่มเคสทดสอบอัตโนมัติ `API-08i` ใน `server/tests/lab-04/staff-dashboard.api.test.ts`:**
+   - เพิ่มเคสทดสอบ `"API-08i: strictly excludes terminal tickets (RESOLVED, CLOSED, CANCELLED) from unassignedTickets, myAssignedTickets, and byPriority (BR-10)"`
+   - ตรวจสอบว่าการสร้างตั๋วสถานะ `CANCELLED`, `RESOLVED`, และ `CLOSED` จะไม่ทำให้ยอด `unassignedTickets`, `myAssignedTickets` และ `byPriority` (URGENT, HIGH, LOW) เพิ่มขึ้น
+   - ยืนยันว่า `byStatus` ยังคงสะท้อนจำนวนตั๋วสถานะสิ้นสุดในภาพรวมได้อย่างถูกต้อง
+   - ปรับปรุงการตรวจสอบในเคส `API-08b` ให้กรองเฉพาะ Active Tickets เพื่อให้สอดคล้องกับกฎ BR-10 อย่างสมบูรณ์
+   - ชุดทดสอบ `staff-dashboard.api.test.ts` ผ่าน 100% (9/9 tests) และชุดทดสอบฝั่งเซิร์ฟเวอร์ทั้งหมดผ่านครบ 20/20 files (199/199 tests)

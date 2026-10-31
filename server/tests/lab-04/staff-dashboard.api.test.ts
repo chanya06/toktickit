@@ -222,9 +222,19 @@ describe("IT Staff & Admin Dashboard Backend REST API (API-08 / FR-09 / FR-11 / 
       // Unassigned count is system-wide, so it matches
       expect(res1.body.metrics.unassignedTickets).toBe(res2.body.metrics.unassignedTickets);
 
-      // myAssignedTickets is scoped to each staff member
-      const staff1AssignedCount = await prisma.ticket.count({ where: { ownerId: staffId } });
-      const staff2AssignedCount = await prisma.ticket.count({ where: { ownerId: staff2Id } });
+      // myAssignedTickets is scoped to each staff member (active tickets only per BR-10)
+      const staff1AssignedCount = await prisma.ticket.count({
+        where: {
+          ownerId: staffId,
+          status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] },
+        },
+      });
+      const staff2AssignedCount = await prisma.ticket.count({
+        where: {
+          ownerId: staff2Id,
+          status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] },
+        },
+      });
 
       expect(res1.body.metrics.myAssignedTickets).toBe(staff1AssignedCount);
       expect(res2.body.metrics.myAssignedTickets).toBe(staff2AssignedCount);
@@ -251,6 +261,94 @@ describe("IT Staff & Admin Dashboard Backend REST API (API-08 / FR-09 / FR-11 / 
     it("API-08e: rejects unauthenticated requests with 401 Unauthorized", async () => {
       const res = await request(app).get("/api/dashboard/staff");
       expect(res.status).toBe(401);
+    });
+
+    it("API-08i: strictly excludes terminal tickets (RESOLVED, CLOSED, CANCELLED) from unassignedTickets, myAssignedTickets, and byPriority (BR-10)", async () => {
+      // 1. Fetch baseline metrics for staffId
+      const baseRes = await request(app)
+        .get("/api/dashboard/staff")
+        .set("Authorization", `Bearer ${staffToken}`);
+      expect(baseRes.status).toBe(200);
+
+      const baseUnassigned = baseRes.body.metrics.unassignedTickets;
+      const baseMyAssigned = baseRes.body.metrics.myAssignedTickets;
+      const baseUrgentPriority = baseRes.body.metrics.byPriority.URGENT || 0;
+      const baseHighPriority = baseRes.body.metrics.byPriority.HIGH || 0;
+      const baseLowPriority = baseRes.body.metrics.byPriority.LOW || 0;
+
+      // 2. Create terminal tickets across different statuses and priorities:
+      // a) Unassigned CANCELLED ticket (HIGH priority)
+      const tCancelled = await prisma.ticket.create({
+        data: {
+          ticketNumber: `TKT-TEST-TERM-CANC-${Date.now()}`,
+          requesterId,
+          ownerId: null,
+          categoryId,
+          relatedSystemId,
+          summary: "Terminal Cancelled Ticket",
+          description: "Cancelled ticket must never increment unassigned or priority",
+          requestedPriority: RequestedPriority.HIGH,
+          itPriority: ITPriority.HIGH,
+          status: TicketStatus.CANCELLED,
+        },
+      });
+      testTicketIds.push(tCancelled.id);
+
+      // b) Assigned RESOLVED ticket (URGENT priority)
+      const tResolved = await prisma.ticket.create({
+        data: {
+          ticketNumber: `TKT-TEST-TERM-RES-${Date.now()}`,
+          requesterId,
+          ownerId: staffId,
+          categoryId,
+          relatedSystemId,
+          summary: "Terminal Resolved Ticket",
+          description: "Resolved ticket must never increment myAssigned or priority",
+          requestedPriority: RequestedPriority.URGENT,
+          itPriority: ITPriority.URGENT,
+          status: TicketStatus.RESOLVED,
+        },
+      });
+      testTicketIds.push(tResolved.id);
+
+      // c) Assigned CLOSED ticket (LOW priority)
+      const tClosed = await prisma.ticket.create({
+        data: {
+          ticketNumber: `TKT-TEST-TERM-CLS-${Date.now()}`,
+          requesterId,
+          ownerId: staffId,
+          categoryId,
+          relatedSystemId,
+          summary: "Terminal Closed Ticket",
+          description: "Closed ticket must never increment myAssigned or priority",
+          requestedPriority: RequestedPriority.LOW,
+          itPriority: ITPriority.LOW,
+          status: TicketStatus.CLOSED,
+        },
+      });
+      testTicketIds.push(tClosed.id);
+
+      // 3. Request staff dashboard again
+      const newRes = await request(app)
+        .get("/api/dashboard/staff")
+        .set("Authorization", `Bearer ${staffToken}`);
+      expect(newRes.status).toBe(200);
+
+      // Assert unassignedTickets did not increase despite unassigned cancelled ticket
+      expect(newRes.body.metrics.unassignedTickets).toBe(baseUnassigned);
+
+      // Assert myAssignedTickets did not increase despite assigned resolved and closed tickets
+      expect(newRes.body.metrics.myAssignedTickets).toBe(baseMyAssigned);
+
+      // Assert active priority workload counts did not increase
+      expect(newRes.body.metrics.byPriority.URGENT).toBe(baseUrgentPriority);
+      expect(newRes.body.metrics.byPriority.HIGH).toBe(baseHighPriority);
+      expect(newRes.body.metrics.byPriority.LOW).toBe(baseLowPriority);
+
+      // Assert byStatus continues to track overall queue lifecycle including terminal statuses
+      expect(newRes.body.metrics.byStatus.CANCELLED).toBeGreaterThanOrEqual(1);
+      expect(newRes.body.metrics.byStatus.RESOLVED).toBeGreaterThanOrEqual(1);
+      expect(newRes.body.metrics.byStatus.CLOSED).toBeGreaterThanOrEqual(1);
     });
   });
 
