@@ -125,7 +125,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
   return (
     <div className="staff-dashboard" data-testid="staff-dashboard">
       {/* 1. Welcome & Operational Header */}
-      <div className="card shadow-sm border-0 mb-4" style={{ backgroundColor: "#FFFFFF" }}>
+      <div className="card shadow-sm border-0 mb-4" style={{ backgroundColor: "#FFFFFF" }} data-testid="dashboard-welcome-banner">
         <div className="card-body p-3 p-md-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
           <div>
             <div className="d-flex align-items-center gap-2 mb-1">

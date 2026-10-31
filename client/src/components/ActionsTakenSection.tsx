@@ -414,7 +414,7 @@ export function ActionsTakenSection({
           <>
             {/* Desktop / Tablet Table View (>= 768px) */}
             <div className="table-responsive d-none d-md-block">
-              <table className="table table-hover align-middle mb-0 small" role="table">
+              <table className="table table-hover align-middle mb-0 small" role="table" data-testid="actions-table">
                 <thead className="table-light">
                   <tr>
                     <th scope="col" style={{ minWidth: "120px" }}>Date / Time</th>
@@ -832,7 +832,7 @@ export function ActionsTakenSection({
                     <div
                       className="alert alert-danger py-2 px-3 small mb-3"
                       role="alert"
-                      data-testid="action-form-error"
+                      data-testid="action-form-error" id="action-modal-error"
                     >
                       {modalError}
                     </div>
