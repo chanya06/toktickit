@@ -432,4 +432,31 @@ describe("StaffTicketQueue Component (Issue 23 / UI-03 / FR-10)", () => {
 
     expect(await screen.findAllByText("Laptop screen flickering intermittently")).toHaveLength(2);
   });
+
+  it("synchronizes filter states when initialFilters prop changes dynamically", async () => {
+    vi.mocked(api.fetchActiveCategories).mockResolvedValueOnce(mockCategories);
+    vi.mocked(api.fetchStaffTickets).mockResolvedValue({
+      data: mockTickets,
+      pagination: { page: 1, limit: 10, total: 2, totalPages: 1, currentPage: 1, pageSize: 10, totalItems: 2 },
+    });
+
+    const { rerender } = render(<StaffTicketQueue initialFilters={{ owner: "unassigned" }} />);
+
+    await waitFor(() => {
+      expect(api.fetchStaffTickets).toHaveBeenCalledWith(
+        expect.objectContaining({ ownerId: "unassigned" }),
+        expect.anything()
+      );
+    });
+
+    // Dynamic update when clicking different card on dashboard
+    rerender(<StaffTicketQueue initialFilters={{ priority: "URGENT" }} />);
+
+    await waitFor(() => {
+      expect(api.fetchStaffTickets).toHaveBeenLastCalledWith(
+        expect.objectContaining({ itPriority: "URGENT" }),
+        expect.anything()
+      );
+    });
+  });
 });

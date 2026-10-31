@@ -15,17 +15,18 @@ import {
 import { AttachmentSection } from "./AttachmentSection.js";
 import { CommentsSection } from "./CommentsSection.js";
 import { InternalNotesSection } from "./InternalNotesSection.js";
+import { ActionsTakenSection } from "./ActionsTakenSection.js";
 
 const PERMITTED_NEXT_STATUSES: Record<string, string[]> = {
   NEW: ["OPEN", "CANCELLED"],
-  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
-  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "PENDING", "CANCELLED"],
+  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "PENDING", "RESOLVED", "CANCELLED"],
   WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  PENDING: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
   RESOLVED: ["CLOSED", "REOPENED"],
-  CLOSED: ["REOPENED"],
-  REOPENED: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
-  CANCELLED: ["OPEN"],
-  PENDING: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  CLOSED: [], // Terminal state (BR-07)
+  CANCELLED: [], // Terminal state (BR-07)
+  REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -63,6 +64,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
   const [activeTab, setActiveTab] = useState<"comments" | "internalNotes" | "attachments" | "actions" | "log">("comments");
   const [commentsCount, setCommentsCount] = useState<number>(0);
   const [notesCount, setNotesCount] = useState<number>(0);
+  const [actionsCount, setActionsCount] = useState<number>(0);
 
   // Requester resolution indication state
   const [showResolutionModal, setShowResolutionModal] = useState<boolean>(false);
@@ -75,6 +77,13 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
   const [isOperating, setIsOperating] = useState<boolean>(false);
   const [operationMessage, setOperationMessage] = useState<{ type: "success" | "danger"; text: string } | null>(null);
   const [selectedNextStatus, setSelectedNextStatus] = useState<string>("");
+  const [staffResolutionNote, setStaffResolutionNote] = useState<string>("");
+
+  // Requester Reopen State (Defect 1)
+  const [showReopenModal, setShowReopenModal] = useState<boolean>(false);
+  const [reopenReason, setReopenReason] = useState<string>("");
+  const [isSubmittingReopen, setIsSubmittingReopen] = useState<boolean>(false);
+  const [reopenError, setReopenError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isStaffOrAdmin) return;
@@ -115,6 +124,34 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     }
   };
 
+  const canRequesterReopen =
+    (!user || user.role === "REQUESTER") &&
+    ticket?.status === "RESOLVED";
+
+  const handleReopenTicket = async () => {
+    setIsSubmittingReopen(true);
+    setReopenError(null);
+    try {
+      const reason = reopenReason.trim() || undefined;
+      const res = ticket?.updatedAt !== undefined
+        ? (reason
+            ? await updateTicketStatus(ticketId, "REOPENED", ticket.updatedAt, reason)
+            : await updateTicketStatus(ticketId, "REOPENED", ticket.updatedAt))
+        : (reason
+            ? await updateTicketStatus(ticketId, "REOPENED", undefined, reason)
+            : await updateTicketStatus(ticketId, "REOPENED"));
+
+      setTicket((prev) => (prev ? { ...prev, ...res.ticket, status: "REOPENED" } : res.ticket));
+      setShowReopenModal(false);
+      setReopenReason("");
+      setOperationMessage({ type: "success", text: "Ticket has been successfully reopened." });
+    } catch (err: any) {
+      setReopenError(err.message || "Failed to reopen ticket");
+    } finally {
+      setIsSubmittingReopen(false);
+    }
+  };
+
   const handleClaim = async () => {
     setIsOperating(true);
     setOperationMessage(null);
@@ -133,7 +170,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     setIsOperating(true);
     setOperationMessage(null);
     try {
-      const res = await assignTicket(ticketId, targetOwnerId);
+      const res = ticket?.updatedAt !== undefined ? await assignTicket(ticketId, targetOwnerId, ticket.updatedAt) : await assignTicket(ticketId, targetOwnerId);
       setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
       setOperationMessage({
         type: "success",
@@ -150,7 +187,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     setIsOperating(true);
     setOperationMessage(null);
     try {
-      const res = await updateTicketITPriority(ticketId, newPriority);
+      const res = ticket?.updatedAt !== undefined ? await updateTicketITPriority(ticketId, newPriority, ticket.updatedAt) : await updateTicketITPriority(ticketId, newPriority);
       setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
       setOperationMessage({ type: "success", text: `IT Priority updated to ${newPriority}.` });
     } catch (err: any) {
@@ -165,9 +202,17 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     setIsOperating(true);
     setOperationMessage(null);
     try {
-      const res = await updateTicketStatus(ticketId, selectedNextStatus);
+      const note = selectedNextStatus === "RESOLVED" && staffResolutionNote.trim() ? staffResolutionNote.trim() : undefined;
+      const res = ticket?.updatedAt !== undefined
+        ? (note
+            ? await updateTicketStatus(ticketId, selectedNextStatus, ticket.updatedAt, note)
+            : await updateTicketStatus(ticketId, selectedNextStatus, ticket.updatedAt))
+        : (note
+            ? await updateTicketStatus(ticketId, selectedNextStatus, undefined, note)
+            : await updateTicketStatus(ticketId, selectedNextStatus));
       setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
       setSelectedNextStatus("");
+      setStaffResolutionNote("");
       setOperationMessage({
         type: "success",
         text: `Ticket status successfully changed to ${STATUS_LABELS[res.ticket.status] || res.ticket.status}.`,
@@ -442,6 +487,20 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
               <span>Problem Appears Resolved</span>
             </button>
           )}
+          {canRequesterReopen && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-warning d-flex align-items-center gap-1"
+              onClick={() => setShowReopenModal(true)}
+              data-testid="reopen-ticket-btn"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 4v6h6" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+              </svg>
+              <span>Reopen Ticket</span>
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
@@ -454,15 +513,62 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
       </div>
 
       {ticket.isResolutionIndicated && (
-        <div className="alert alert-info d-flex align-items-center gap-2 mb-3" data-testid="resolution-indicated-banner">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-info flex-shrink-0">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
+        <div
+          className="alert alert-success d-flex align-items-center gap-2 mb-3 shadow-sm"
+          style={{ backgroundColor: "#DCFCE7", borderColor: "var(--primary-green, #006B3C)", color: "#14532D" }}
+          data-testid="resolution-indicated-banner"
+          role="status"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ color: "var(--primary-green, #006B3C)" }}>
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
           <div>
             <strong>Problem Appears Resolved:</strong> The requester indicated that the problem appears resolved. Awaiting IT Staff confirmation and formal closure.
           </div>
+        </div>
+      )}
+
+      {canRequesterReopen && (
+        <div
+          className="alert alert-warning d-flex justify-content-between align-items-center mb-3 shadow-sm"
+          data-testid="requester-reopen-banner"
+          role="alert"
+        >
+          <div className="d-flex align-items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warning flex-shrink-0">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <div>
+              <strong className="text-dark">Ticket Resolved:</strong> IT Staff has marked this ticket as resolved. If the issue is not solved or recurs, you can reopen it.
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn btn-sm btn-warning d-flex align-items-center gap-1 flex-shrink-0 ms-3 fw-semibold"
+            onClick={() => setShowReopenModal(true)}
+            data-testid="banner-reopen-ticket-btn"
+          >
+            <span>Reopen Ticket</span>
+          </button>
+        </div>
+      )}
+
+      {operationMessage && !isStaffOrAdmin && (
+        <div
+          className={`alert alert-${operationMessage.type} alert-dismissible py-2 px-3 mb-3 small d-flex justify-content-between align-items-center shadow-sm`}
+          role="alert"
+          data-testid="operation-feedback"
+        >
+          <span>{operationMessage.text}</span>
+          <button
+            type="button"
+            className="btn-close py-2"
+            aria-label="Close"
+            onClick={() => setOperationMessage(null)}
+          />
         </div>
       )}
 
@@ -704,11 +810,36 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
                     Apply
                   </button>
                 </div>
+                {selectedNextStatus === "RESOLVED" && (
+                  <div className="mt-2" data-testid="resolution-note-container">
+                    <label htmlFor="staff-resolution-note-input" className="form-label fw-semibold text-muted small mb-1">
+                      Resolution Note (Optional)
+                    </label>
+                    <textarea
+                      id="staff-resolution-note-input"
+                      className="form-control form-control-sm"
+                      rows={2}
+                      placeholder="Summary of resolution / actions taken..."
+                      value={staffResolutionNote}
+                      onChange={(e) => setStaffResolutionNote(e.target.value)}
+                      data-testid="resolution-note-input"
+                      disabled={isOperating}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Actions Taken by IT Staff Section (Lab 4 / Issue 32) */}
+      <ActionsTakenSection
+        ticketId={ticketId}
+        isStaffOrAdmin={isStaffOrAdmin}
+        assignees={assignees}
+        onActionCountChange={setActionsCount}
+      />
 
       {/* Feature Tabs Navigation Bar (Matching Figure 1 of Handout) */}
       <ul className="nav nav-tabs mb-3 border-bottom">
@@ -769,7 +900,7 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
             </svg>
             <span>Service Actions</span>
-            <span className="badge bg-secondary rounded-pill ms-1">1</span>
+            <span className="badge bg-secondary rounded-pill ms-1" data-testid="tab-actions-count">{actionsCount}</span>
           </button>
         </li>
         <li className="nav-item">
@@ -836,6 +967,92 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
           &laquo; {isStaffOrAdmin ? "Back to Ticket Queue" : "Back to My Tickets List"}
         </button>
       </div>
+      {/* Requester Reopen Ticket Modal (Issue 35 / Defect 1) */}
+      {showReopenModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+          data-testid="reopen-ticket-modal"
+        >
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content shadow">
+              <div className="modal-header bg-warning bg-opacity-10 border-bottom">
+                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warning">
+                    <path d="M1 4v6h6" />
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                  </svg>
+                  Reopen Ticket
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={() => {
+                    setShowReopenModal(false);
+                    setReopenReason("");
+                    setReopenError(null);
+                  }}
+                  disabled={isSubmittingReopen}
+                />
+              </div>
+              <div className="modal-body">
+                <p className="text-muted small mb-3">
+                  Please provide a reason describing why the issue requires further attention.
+                </p>
+                {reopenError && (
+                  <div className="alert alert-danger py-2 small mb-3" data-testid="reopen-error-alert">
+                    {reopenError}
+                  </div>
+                )}
+                <div className="mb-3">
+                  <label htmlFor="reopen-reason-input" className="form-label fw-semibold small">
+                    Reason for Reopening (Optional)
+                  </label>
+                  <textarea
+                    id="reopen-reason-input"
+                    className="form-control"
+                    rows={3}
+                    placeholder="Describe what is still broken or recurring..."
+                    value={reopenReason}
+                    onChange={(e) => setReopenReason(e.target.value)}
+                    data-testid="reopen-reason-input"
+                    disabled={isSubmittingReopen}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer bg-light border-top">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => {
+                    setShowReopenModal(false);
+                    setReopenReason("");
+                    setReopenError(null);
+                  }}
+                  disabled={isSubmittingReopen}
+                  data-testid="cancel-reopen-btn"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-warning fw-semibold"
+                  onClick={handleReopenTicket}
+                  disabled={isSubmittingReopen}
+                  data-testid="confirm-reopen-btn"
+                >
+                  {isSubmittingReopen ? "Reopening..." : "Confirm Reopen"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Requester Resolution Indication Modal */}
       {showResolutionModal && (
         <div className="modal show d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} data-testid="resolution-modal">

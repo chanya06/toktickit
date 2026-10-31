@@ -725,6 +725,7 @@ export interface StaffAssignee {
   fullName: string;
   email: string;
   role: string;
+  isActive?: boolean;
 }
 
 export async function fetchStaffAssignees(signal?: AbortSignal): Promise<StaffAssignee[]> {
@@ -764,13 +765,14 @@ export async function claimTicket(ticketId: number): Promise<{ message: string; 
 
 export async function assignTicket(
   ticketId: number,
-  ownerId: number | null
+  ownerId: number | null,
+  expectedUpdatedAt?: string
 ): Promise<{ message: string; ticket: TicketResponse }> {
   const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/assign`, {
     method: "PATCH",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
-    body: JSON.stringify({ ownerId }),
+    body: JSON.stringify({ ownerId, expectedUpdatedAt }),
   }).catch((err) => null);
 
   if (!res) throw new Error("Network error: Unable to connect to server");
@@ -778,6 +780,7 @@ export async function assignTicket(
   if (!res.ok) {
     const err = new Error(data.error || "Failed to assign ticket");
     (err as any).status = res.status;
+    (err as any).code = data.code;
     throw err;
   }
   return data;
@@ -785,13 +788,14 @@ export async function assignTicket(
 
 export async function updateTicketITPriority(
   ticketId: number,
-  itPriority: string
+  itPriority: string,
+  expectedUpdatedAt?: string
 ): Promise<{ message: string; ticket: TicketResponse }> {
   const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/it-priority`, {
     method: "PATCH",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
-    body: JSON.stringify({ itPriority }),
+    body: JSON.stringify({ itPriority, expectedUpdatedAt }),
   }).catch((err) => null);
 
   if (!res) throw new Error("Network error: Unable to connect to server");
@@ -799,6 +803,7 @@ export async function updateTicketITPriority(
   if (!res.ok) {
     const err = new Error(data.error || "Failed to update IT priority");
     (err as any).status = res.status;
+    (err as any).code = data.code;
     throw err;
   }
   return data;
@@ -806,13 +811,15 @@ export async function updateTicketITPriority(
 
 export async function updateTicketStatus(
   ticketId: number,
-  status: string
+  status: string,
+  expectedUpdatedAt?: string,
+  resolutionNote?: string
 ): Promise<{ message: string; ticket: TicketResponse }> {
-  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/status`, {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/status`, {
     method: "PATCH",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, expectedUpdatedAt, resolutionNote }),
   }).catch((err) => null);
 
   if (!res) throw new Error("Network error: Unable to connect to server");
@@ -820,6 +827,8 @@ export async function updateTicketStatus(
   if (!res.ok) {
     const err = new Error(data.error || "Failed to update ticket status");
     (err as any).status = res.status;
+    (err as any).code = data.code;
+    (err as any).pendingActionsCount = data.pendingActionsCount;
     throw err;
   }
   return data;
@@ -1091,3 +1100,250 @@ export async function resetAdminUserPassword(
 }
 
 
+
+// ---------------------------------------------------------------------------
+// Lab 4: Actions Taken APIs & Types (AC-01..05, BR-01..06)
+// ---------------------------------------------------------------------------
+
+export type ActionTakenStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+
+export interface ActionTakenUser {
+  id: number;
+  fullName: string;
+  email: string;
+  role: string;
+}
+
+export interface ActionTaken {
+  id: number;
+  ticketId: number;
+  actionDateTime: string;
+  actionDescription: string;
+  result?: string | null;
+  performedById: number;
+  assigneeId?: number | null;
+  status: ActionTakenStatus;
+  followUpRequired: boolean;
+  followUpNote?: string | null;
+  attachmentNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  performedBy?: ActionTakenUser | null;
+  assignee?: ActionTakenUser | null;
+}
+
+export interface CreateActionTakenPayload {
+  actionDescription: string;
+  actionDateTime?: string;
+  result?: string;
+  assigneeId?: number | null;
+  status?: ActionTakenStatus;
+  followUpRequired?: boolean;
+  followUpNote?: string;
+  attachmentNotes?: string;
+}
+
+export interface UpdateActionTakenPayload {
+  actionDescription?: string;
+  actionDateTime?: string;
+  result?: string;
+  assigneeId?: number | null;
+  status?: ActionTakenStatus;
+  followUpRequired?: boolean;
+  followUpNote?: string;
+  attachmentNotes?: string;
+  expectedUpdatedAt?: string;
+}
+
+export async function fetchTicketActions(
+  ticketId: number,
+  signal?: AbortSignal
+): Promise<ActionTaken[]> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/actions`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+    signal,
+  }).catch((err) => {
+    if (err?.name === "AbortError" || signal?.aborted) throw err;
+    return null;
+  });
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to fetch actions taken");
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function createTicketAction(
+  ticketId: number,
+  payload: CreateActionTakenPayload
+): Promise<ActionTaken> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/actions`, {
+    method: "POST",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to create action taken");
+    (err as any).status = res.status;
+    (err as any).field = data.field;
+    throw err;
+  }
+  return data;
+}
+
+export async function updateTicketAction(
+  ticketId: number,
+  actionId: number,
+  payload: UpdateActionTakenPayload
+): Promise<ActionTaken> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/actions/${actionId}`, {
+    method: "PUT",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to update action taken");
+    (err as any).status = res.status;
+    (err as any).field = data.field;
+    throw err;
+  }
+  return data;
+}
+
+export async function transitionActionStatus(
+  ticketId: number,
+  actionId: number,
+  payload: { status: ActionTakenStatus; result?: string }
+): Promise<ActionTaken> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/actions/${actionId}/status`, {
+    method: "PATCH",
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || "Failed to transition action status");
+    (err as any).status = res.status;
+    (err as any).field = data.field;
+    throw err;
+  }
+  return data;
+}
+
+
+// ---------------------------------------------------------------------------
+// Lab 4 Role Dashboards API Interfaces & Functions (Issue 34 / FR-07..FR-11)
+// ---------------------------------------------------------------------------
+
+export interface DashboardTicket {
+  id: number;
+  ticketNumber: string;
+  summary: string;
+  category: string;
+  status: string;
+  itPriority: string;
+  isResolutionIndicated: boolean;
+  owner: { fullName: string } | null;
+  actionsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RequesterDashboardMetrics {
+  myOpenTickets: number;
+  waitingForRequester: number;
+  recentlyUpdated: number;
+  recentlyResolved: number;
+}
+
+export interface RequesterDashboardResponse {
+  metrics: RequesterDashboardMetrics;
+  recentTickets: DashboardTicket[];
+}
+
+export interface StaffOperationalMetrics {
+  unassignedTickets: number;
+  myAssignedTickets: number;
+  byStatus: Record<string, number>;
+  byPriority: Record<string, number>;
+  recentlyUpdatedCount: number;
+}
+
+export interface StaffDashboardResponse {
+  metrics: StaffOperationalMetrics;
+  urgentTickets: DashboardTicket[];
+  recentTickets: DashboardTicket[];
+}
+
+export interface SystemUserStats {
+  totalUsers: number;
+  activeRequesters: number;
+  activeStaff: number;
+  administrators: number;
+  inactiveUsers: number;
+}
+
+export interface AdminDashboardResponse {
+  systemUserStats: SystemUserStats;
+  operationalMetrics: StaffOperationalMetrics;
+  urgentTickets: DashboardTicket[];
+  recentTickets: DashboardTicket[];
+}
+
+export async function fetchRequesterDashboard(): Promise<RequesterDashboardResponse> {
+  const res = await fetch(`${API_URL}/api/dashboard/requester`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch requester dashboard");
+  }
+  return data;
+}
+
+export async function fetchStaffDashboard(): Promise<StaffDashboardResponse> {
+  const res = await fetch(`${API_URL}/api/dashboard/staff`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch IT staff dashboard");
+  }
+  return data;
+}
+
+export async function fetchAdminDashboard(): Promise<AdminDashboardResponse> {
+  const res = await fetch(`${API_URL}/api/dashboard/admin`, {
+    headers: getAuthHeaders(),
+    credentials: "include",
+  }).catch(() => null);
+
+  if (!res) throw new Error("Network error: Unable to connect to server");
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to fetch administrator dashboard");
+  }
+  return data;
+}

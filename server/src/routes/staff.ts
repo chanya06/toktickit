@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { getPrisma } from "../prisma.js";
-import { Role, TicketStatus, ITPriority, Prisma } from "@prisma/client";
+import { Role, TicketStatus, ITPriority, ActionTakenStatus, Prisma } from "@prisma/client";
 import {
   requireAuth,
   requirePasswordChanged,
@@ -290,16 +290,18 @@ export const PERMITTED_STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> 
   [TicketStatus.OPEN]: [
     TicketStatus.IN_PROGRESS,
     TicketStatus.WAITING_FOR_REQUESTER,
-    TicketStatus.RESOLVED,
+    TicketStatus.PENDING,
     TicketStatus.CANCELLED,
   ],
   [TicketStatus.IN_PROGRESS]: [
     TicketStatus.WAITING_FOR_REQUESTER,
+    TicketStatus.PENDING,
     TicketStatus.RESOLVED,
     TicketStatus.CANCELLED,
   ],
   [TicketStatus.PENDING]: [
     TicketStatus.IN_PROGRESS,
+    TicketStatus.WAITING_FOR_REQUESTER,
     TicketStatus.RESOLVED,
     TicketStatus.CANCELLED,
   ],
@@ -309,13 +311,14 @@ export const PERMITTED_STATUS_TRANSITIONS: Record<TicketStatus, TicketStatus[]> 
     TicketStatus.CANCELLED,
   ],
   [TicketStatus.RESOLVED]: [TicketStatus.CLOSED, TicketStatus.REOPENED],
-  [TicketStatus.CLOSED]: [TicketStatus.REOPENED],
+  [TicketStatus.CLOSED]: [], // Terminal state (BR-07)
+  [TicketStatus.CANCELLED]: [], // Terminal state (BR-07)
   [TicketStatus.REOPENED]: [
     TicketStatus.IN_PROGRESS,
+    TicketStatus.WAITING_FOR_REQUESTER,
     TicketStatus.RESOLVED,
     TicketStatus.CANCELLED,
   ],
-  [TicketStatus.CANCELLED]: [TicketStatus.OPEN],
 };
 
 const defaultTicketDetailSelect = {
@@ -409,6 +412,7 @@ staffRouter.get("/assignees", async (_req: Request, res: Response) => {
 staffRouter.patch("/tickets/:id/claim", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const { expectedUpdatedAt } = req.body || {};
     if (!isPositiveInteger(id)) {
       return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
     }
@@ -422,6 +426,18 @@ staffRouter.patch("/tickets/:id/claim", async (req: Request, res: Response) => {
 
     if (!ticket) {
       return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    if (expectedUpdatedAt) {
+      const expectedTime = new Date(expectedUpdatedAt).getTime();
+      const actualTime = new Date(ticket.updatedAt).getTime();
+      if (expectedTime !== actualTime) {
+        return res.status(409).json({
+          error: "Conflict: Ticket has been modified by another user",
+          code: "CONCURRENCY_CONFLICT",
+          currentTicket: formatDetailResponse(ticket),
+        });
+      }
     }
 
     const currentUserId = req.user!.id;
@@ -463,7 +479,7 @@ staffRouter.patch("/tickets/:id/assign", async (req: Request, res: Response) => 
     }
 
     const ticketId = Number(id);
-    const { ownerId } = req.body;
+    const { ownerId, expectedUpdatedAt } = req.body;
     const prisma = getPrisma();
 
     const ticket = await prisma.ticket.findUnique({
@@ -472,6 +488,18 @@ staffRouter.patch("/tickets/:id/assign", async (req: Request, res: Response) => 
 
     if (!ticket) {
       return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    if (expectedUpdatedAt) {
+      const expectedTime = new Date(expectedUpdatedAt).getTime();
+      const actualTime = new Date(ticket.updatedAt).getTime();
+      if (expectedTime !== actualTime) {
+        return res.status(409).json({
+          error: "Conflict: Ticket has been modified by another user",
+          code: "CONCURRENCY_CONFLICT",
+          currentTicket: formatDetailResponse(ticket),
+        });
+      }
     }
 
     // Support unassigning
@@ -545,7 +573,7 @@ staffRouter.patch("/tickets/:id/it-priority", async (req: Request, res: Response
     }
 
     const ticketId = Number(id);
-    const { itPriority } = req.body;
+    const { itPriority, expectedUpdatedAt } = req.body;
 
     if (
       !itPriority ||
@@ -595,7 +623,7 @@ staffRouter.patch("/tickets/:id/status", async (req: Request, res: Response) => 
     }
 
     const ticketId = Number(id);
-    const { status } = req.body;
+    const { status, expectedUpdatedAt, resolutionNote } = req.body;
 
     if (
       !status ||
@@ -616,6 +644,19 @@ staffRouter.patch("/tickets/:id/status", async (req: Request, res: Response) => 
 
     if (!ticket) {
       return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // Optimistic Concurrency Check (FR-14 / AC-11)
+    if (expectedUpdatedAt) {
+      const expectedTime = new Date(expectedUpdatedAt).getTime();
+      const actualTime = new Date(ticket.updatedAt).getTime();
+      if (expectedTime !== actualTime) {
+        return res.status(409).json({
+          error: "Conflict: Ticket has been modified by another user",
+          code: "CONCURRENCY_CONFLICT",
+          currentTicket: formatDetailResponse(ticket),
+        });
+      }
     }
 
     const currentStatus = ticket.status;
@@ -643,12 +684,43 @@ staffRouter.patch("/tickets/:id/status", async (req: Request, res: Response) => 
       });
     }
 
-    const updated = await prisma.ticket.update({
-      where: { id: ticketId },
-      data: {
-        status: targetStatus,
-      },
-      select: defaultTicketDetailSelect,
+    // BR-08: Action Completion Precondition Check when transitioning to RESOLVED
+    if (targetStatus === TicketStatus.RESOLVED) {
+      const pendingActionsCount = await prisma.actionTaken.count({
+        where: {
+          ticketId,
+          status: { in: [ActionTakenStatus.PENDING, ActionTakenStatus.IN_PROGRESS] },
+        },
+      });
+
+      if (pendingActionsCount > 0) {
+        return res.status(422).json({
+          error: "Cannot resolve ticket: all child actions taken must be completed or cancelled first",
+          pendingActionsCount,
+        });
+      }
+    }
+
+    const [updated] = await prisma.$transaction(async (tx) => {
+      const updatedTicket = await tx.ticket.update({
+        where: { id: ticketId },
+        data: {
+          status: targetStatus,
+        },
+        select: defaultTicketDetailSelect,
+      });
+
+      if (resolutionNote && typeof resolutionNote === "string" && resolutionNote.trim() !== "") {
+        await tx.publicComment.create({
+          data: {
+            ticketId,
+            authorId: req.user!.id,
+            content: `Resolution note: ${resolutionNote.trim()}`,
+          },
+        });
+      }
+
+      return [updatedTicket];
     });
 
     return res.status(200).json({

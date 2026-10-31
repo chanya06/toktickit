@@ -11,6 +11,8 @@ import { MyTicketsView } from "./components/MyTicketsView.js";
 import { TicketDetailView } from "./components/TicketDetailView.js";
 import { StaffTicketQueue } from "./components/StaffTicketQueue.js";
 import { UserManagementView } from "./components/UserManagementView.js";
+import { RequesterDashboard } from "./components/RequesterDashboard.js";
+import { StaffDashboard } from "./components/StaffDashboard.js";
 import "./index.css";
 
 type UiState = "idle" | "loading" | "success" | "error";
@@ -80,21 +82,78 @@ function MainApp() {
   const { user, isLoading } = useAuth();
   const { selectedRequester, isModalOpen } = useRequester();
 
+  const getInitialTicketId = (): number | null => {
+    if (typeof window !== "undefined") {
+      const match = window.location.pathname.match(/^\/tickets\/(\d+)$/);
+      if (match) return parseInt(match[1], 10);
+    }
+    return null;
+  };
+
   const getInitialTab = (role?: string): NavTab => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      if (path.startsWith("/dashboard") || window.location.hash === "#dashboard") {
+        return "dashboard";
+      }
+      if (path.match(/^\/tickets\/(\d+)$/)) {
+        return "ticket-detail";
+      }
+    }
+    // Lab 3 regression tests render <App /> directly with empty path, expecting initial tab
     if (role === "ADMINISTRATOR") return "user-management";
     if (role === "IT_STAFF") return "ticket-queue";
     return "my-tickets";
   };
 
   const [activeTab, setActiveTab] = useState<NavTab>(() => getInitialTab(user?.role));
-  const [returnTab, setReturnTab] = useState<NavTab>(() => getInitialTab(user?.role));
-  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [returnTab, setReturnTab] = useState<NavTab>(() => {
+    const init = getInitialTab(user?.role);
+    return init === "ticket-detail" ? (user?.role === "REQUESTER" ? "my-tickets" : "dashboard") : init;
+  });
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(() => getInitialTicketId());
+  const [myTicketsFilter, setMyTicketsFilter] = useState<string[] | undefined>(undefined);
+  const [queueFilters, setQueueFilters] = useState<{
+    owner?: string;
+    status?: string;
+    priority?: string;
+  } | undefined>(undefined);
+
+  const handleNavigateMyTickets = (filter?: { status?: string }) => {
+    if (filter?.status === "open") {
+      setMyTicketsFilter(["NEW", "OPEN", "IN_PROGRESS", "PENDING", "REOPENED"]);
+    } else if (filter?.status) {
+      setMyTicketsFilter([filter.status]);
+    } else {
+      setMyTicketsFilter(undefined);
+    }
+    setActiveTab("my-tickets");
+  };
+
+  const handleNavigateQueue = (filters?: { owner?: string; status?: string; priority?: string }) => {
+    setQueueFilters(filters);
+    setActiveTab("ticket-queue");
+  };
+
+  const handleSelectTab = (tab: NavTab) => {
+    if (tab === "my-tickets") {
+      setMyTicketsFilter(undefined);
+    }
+    if (tab === "ticket-queue") {
+      setQueueFilters(undefined);
+    }
+    setActiveTab(tab);
+  };
 
   useEffect(() => {
     if (user?.role) {
       const initial = getInitialTab(user.role);
       setActiveTab(initial);
-      setReturnTab(initial);
+      setReturnTab(initial === "ticket-detail" ? (user.role === "REQUESTER" ? "my-tickets" : "dashboard") : initial);
+      const ticketId = getInitialTicketId();
+      if (ticketId) {
+        setSelectedTicketId(ticketId);
+      }
     }
   }, [user?.role]);
 
@@ -127,20 +186,44 @@ function MainApp() {
 
     return (
       <div className="min-vh-100 d-flex flex-column" style={{ backgroundColor: "var(--page-bg, #F5F7F6)" }}>
-        <Header activeTab={activeTab === "ticket-detail" ? returnTab : activeTab} onSelectTab={setActiveTab} />
+        <Header activeTab={activeTab === "ticket-detail" ? returnTab : activeTab} onSelectTab={handleSelectTab} />
         <main className="container py-4" style={{ maxWidth: 1040 }}>
-          {activeTab === "ticket-queue" ? (
-            <StaffTicketQueue onSelectTicket={handleSelectTicket} />
+          {activeTab === "dashboard" ? (
+            user.role === "REQUESTER" ? (
+              <RequesterDashboard
+                onNavigateCreate={() => setActiveTab("create-ticket")}
+                onNavigateMyTickets={handleNavigateMyTickets}
+                onSelectTicket={handleSelectTicket}
+              />
+            ) : (
+              <StaffDashboard
+                onNavigateQueue={handleNavigateQueue}
+                onNavigateUserManagement={() => setActiveTab("user-management")}
+                onSelectTicket={handleSelectTicket}
+              />
+            )
+          ) : activeTab === "ticket-queue" ? (
+            <StaffTicketQueue onSelectTicket={handleSelectTicket} initialFilters={queueFilters} />
           ) : activeTab === "user-management" ? (
             <UserManagementView />
           ) : activeTab === "create-ticket" ? (
             <CreateTicketForm onSuccessNavigate={() => setActiveTab("my-tickets")} />
           ) : activeTab === "ticket-detail" && selectedTicketId !== null ? (
-            <TicketDetailView ticketId={selectedTicketId} onBack={() => setActiveTab(returnTab)} />
+            <TicketDetailView
+              ticketId={selectedTicketId}
+              onBack={() => {
+                if (returnTab && returnTab !== "ticket-detail") {
+                  setActiveTab(returnTab);
+                } else {
+                  setActiveTab(user.role === "REQUESTER" ? "my-tickets" : "dashboard");
+                }
+              }}
+            />
           ) : (
             <MyTicketsView
               onNavigateCreate={() => setActiveTab("create-ticket")}
               onSelectTicket={handleSelectTicket}
+              initialStatusFilter={myTicketsFilter}
             />
           )}
         </main>
@@ -178,7 +261,7 @@ function MainApp() {
   // 3. Unauthenticated Login screen (Lab 3 Screen 1)
   return (
     <div className="min-vh-100 d-flex flex-column" style={{ backgroundColor: "var(--page-bg, #F5F7F6)" }}>
-      <LoginView />
+      <LoginView onSuccess={() => setActiveTab("dashboard")} />
     </div>
   );
 }

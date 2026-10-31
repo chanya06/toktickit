@@ -457,4 +457,141 @@ describe("MyTicketsView Component (Issue 11)", () => {
       expect(screen.queryByTestId("category-load-error")).not.toBeInTheDocument();
     });
   });
+
+  it("filters and fetches tickets with WAITING_FOR_REQUESTER when initialStatusFilter is provided", async () => {
+    const mockWaitingTickets = [
+      {
+        id: 105,
+        ticketNumber: "TKT-2026-000105",
+        requesterId: 1,
+        categoryId: 1,
+        relatedSystemId: 7,
+        summary: "Waiting for requester details",
+        description: "Staff asked for log files",
+        requestedPriority: "MEDIUM",
+        itPriority: "MEDIUM",
+        status: "WAITING_FOR_REQUESTER",
+        createdAt: "2026-09-02T10:00:00.000Z",
+        category: { id: 1, name: "Software" },
+        relatedSystem: { id: 7, name: "Corporate Laptop" },
+        attachmentCount: 0,
+      },
+    ];
+
+    vi.mocked(api.fetchTickets).mockResolvedValueOnce({
+      data: mockWaitingTickets,
+      pagination: { totalItems: 1, totalPages: 1, currentPage: 1, pageSize: 10 },
+    });
+
+    render(
+      <RequesterContext.Provider
+        value={{
+          selectedRequester: mockRequester1,
+          requesters: [mockRequester1],
+          isLoading: false,
+          error: null,
+          isModalOpen: false,
+          selectRequester: vi.fn(),
+          openSelectorModal: vi.fn(),
+          closeSelectorModal: vi.fn(),
+          refreshRequesters: vi.fn(),
+        }}
+      >
+        <MyTicketsView
+          onNavigateCreate={vi.fn()}
+          initialStatusFilter={["WAITING_FOR_REQUESTER"]}
+        />
+      </RequesterContext.Provider>
+    );
+
+    await waitFor(() => {
+      expect(api.fetchTickets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: ["WAITING_FOR_REQUESTER"],
+        }),
+        expect.anything()
+      );
+    });
+
+    expect((await screen.findAllByText("TKT-2026-000105")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("WAITING_FOR_REQUESTER").length).toBeGreaterThan(0);
+  });
+
+  it("synchronizes status filter when initialStatusFilter prop changes dynamically (drill-down)", async () => {
+    const { rerender } = render(
+      <RequesterContext.Provider
+        value={{
+          selectedRequester: mockRequester1,
+          requesters: [mockRequester1],
+          isLoading: false,
+          error: null,
+          isModalOpen: false,
+          selectRequester: vi.fn(),
+          openSelectorModal: vi.fn(),
+          closeSelectorModal: vi.fn(),
+          refreshRequesters: vi.fn(),
+        }}
+      >
+        <MyTicketsView
+          onNavigateCreate={vi.fn()}
+          initialStatusFilter={["WAITING_FOR_REQUESTER"]}
+        />
+      </RequesterContext.Provider>
+    );
+
+    await waitFor(() => {
+      expect(api.fetchTickets).toHaveBeenCalledWith(
+        expect.objectContaining({ status: ["WAITING_FOR_REQUESTER"] }),
+        expect.anything()
+      );
+    });
+
+    // Simulate drill-down switch to Recently Resolved
+    rerender(
+      <RequesterContext.Provider
+        value={{
+          selectedRequester: mockRequester1,
+          requesters: [mockRequester1],
+          isLoading: false,
+          error: null,
+          isModalOpen: false,
+          selectRequester: vi.fn(),
+          openSelectorModal: vi.fn(),
+          closeSelectorModal: vi.fn(),
+          refreshRequesters: vi.fn(),
+        }}
+      >
+        <MyTicketsView
+          onNavigateCreate={vi.fn()}
+          initialStatusFilter={["RESOLVED"]}
+        />
+      </RequesterContext.Provider>
+    );
+
+    await waitFor(() => {
+      expect(api.fetchTickets).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: ["RESOLVED"] }),
+        expect.anything()
+      );
+    });
+  });
+
+  it("includes all 9 statuses in the status filter dropdown options", async () => {
+    render(<TestWrapper />);
+
+    await waitFor(() => expect(api.fetchTickets).toHaveBeenCalled());
+
+    const statusFilterBtn = screen.getByTestId("status-filter-btn");
+    fireEvent.click(statusFilterBtn);
+
+    expect(screen.getByTestId("status-filter-checkbox-NEW")).toBeInTheDocument();
+    expect(screen.getByTestId("status-filter-checkbox-OPEN")).toBeInTheDocument();
+    expect(screen.getByTestId("status-filter-checkbox-IN_PROGRESS")).toBeInTheDocument();
+    expect(screen.getByTestId("status-filter-checkbox-WAITING_FOR_REQUESTER")).toBeInTheDocument();
+    expect(screen.getByTestId("status-filter-checkbox-PENDING")).toBeInTheDocument();
+    expect(screen.getByTestId("status-filter-checkbox-RESOLVED")).toBeInTheDocument();
+    expect(screen.getByTestId("status-filter-checkbox-CLOSED")).toBeInTheDocument();
+    expect(screen.getByTestId("status-filter-checkbox-REOPENED")).toBeInTheDocument();
+    expect(screen.getByTestId("status-filter-checkbox-CANCELLED")).toBeInTheDocument();
+  });
 });

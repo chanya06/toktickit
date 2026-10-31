@@ -7,12 +7,15 @@ import crypto from "crypto";
 import multer from "multer";
 import { getPrisma } from "./prisma.js";
 import { createTicketAtomically } from "./utils/ticketNumber.js";
-import { RequestedPriority } from "@prisma/client";
+import { RequestedPriority, TicketStatus, Role, ActionTakenStatus } from "@prisma/client";
+import { PERMITTED_STATUS_TRANSITIONS } from "./routes/staff.js";
 import { authenticate } from "./middleware/auth.js";
 import { authRouter } from "./routes/auth.js";
 import { staffRouter } from "./routes/staff.js";
 import { commentsRouter } from "./routes/comments.js";
 import { usersRouter } from "./routes/users.js";
+import { actionsRouter } from "./routes/actions.js";
+import { dashboardRouter } from "./routes/dashboard.js";
 
 export const app = express();
 
@@ -24,7 +27,9 @@ app.use(authenticate);
 app.use("/api/auth", authRouter);
 app.use("/api/staff", staffRouter);
 app.use("/api/tickets", commentsRouter);
+app.use("/api/tickets", actionsRouter);
 app.use("/api/admin/users", usersRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 const uploadDir = path.join(process.cwd(), "uploads", "attachments");
 if (!fs.existsSync(uploadDir)) {
@@ -141,7 +146,7 @@ function isPositiveInteger(val: any): boolean {
 }
 
 const VALID_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"];
-const VALID_STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "PENDING", "RESOLVED", "CLOSED"];
+const VALID_STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "PENDING", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
 const ALLOWED_SORT_FIELDS = ["createdAt", "ticketNumber", "summary", "status", "requestedPriority", "itPriority", "updatedAt"];
 
 // Helper to parse multi-select query params (comma-separated string or array of strings)
@@ -589,6 +594,162 @@ app.post("/api/tickets/:id/resolve-indication", async (req: Request, res: Respon
   } catch (error) {
     console.error("Resolve indication error:", error);
     return res.status(500).json({ error: "Failed to record resolution indication" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Ticket Status Transition Endpoint (BR-07, BR-08, FR-12, FR-13, AC-10)
+// ---------------------------------------------------------------------------
+app.patch("/api/tickets/:id/status", async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized: Authentication required" });
+    }
+
+    if (req.user.mustChangePassword) {
+      return res.status(403).json({
+        error: "Password change required before accessing the application",
+        code: "MUST_CHANGE_PASSWORD",
+      });
+    }
+
+    const { id } = req.params;
+    if (!isPositiveInteger(id)) {
+      return res.status(400).json({ error: "Ticket id must be a valid positive integer" });
+    }
+
+    const ticketId = Number(id);
+    const { status, expectedUpdatedAt, resolutionNote } = req.body;
+
+    if (
+      !status ||
+      typeof status !== "string" ||
+      !Object.values(TicketStatus).includes(status.toUpperCase() as TicketStatus)
+    ) {
+      return res.status(400).json({
+        error: "Invalid status parameter. Must be a valid TicketStatus value",
+      });
+    }
+
+    const targetStatus = status.toUpperCase() as TicketStatus;
+    const prisma = getPrisma();
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        requester: { select: { id: true, fullName: true, name: true, email: true } },
+        owner: { select: { id: true, fullName: true, name: true, email: true, role: true } },
+        category: true,
+        relatedSystem: true,
+      },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    // Role authority check (FR-13, BR-07, BR-08)
+    if (req.user.role === Role.REQUESTER) {
+      if (ticket.requesterId !== req.user.id) {
+        return res.status(403).json({
+          error: "Forbidden: You do not have permission to modify this ticket",
+        });
+      }
+
+      // Requesters can ONLY transition from RESOLVED to REOPENED
+      if (ticket.status !== TicketStatus.RESOLVED || targetStatus !== TicketStatus.REOPENED) {
+        return res.status(403).json({
+          error: "Forbidden: Requesters are only permitted to reopen resolved tickets",
+        });
+      }
+    } else if (req.user.role !== Role.IT_STAFF && req.user.role !== Role.ADMINISTRATOR) {
+      return res.status(403).json({ error: "Forbidden: Insufficient privileges" });
+    }
+
+    // Optimistic Concurrency Check (FR-14 / AC-11)
+    if (expectedUpdatedAt) {
+      const expectedTime = new Date(expectedUpdatedAt).getTime();
+      const actualTime = new Date(ticket.updatedAt).getTime();
+      if (expectedTime !== actualTime) {
+        return res.status(409).json({
+          error: "Conflict: Ticket has been modified by another user",
+          code: "CONCURRENCY_CONFLICT",
+          currentTicket: ticket,
+        });
+      }
+    }
+
+    const currentStatus = ticket.status;
+
+    if (currentStatus === targetStatus) {
+      return res.status(200).json({
+        message: "Ticket status unchanged",
+        ticket,
+      });
+    }
+
+    // Validate transition against BR-07 status matrix
+    const permittedNext = PERMITTED_STATUS_TRANSITIONS[currentStatus] || [];
+    if (!permittedNext.includes(targetStatus)) {
+      return res.status(422).json({
+        error: `Invalid status transition: Cannot transition from ${currentStatus} to ${targetStatus}`,
+        currentStatus,
+        targetStatus,
+        permittedStatuses: permittedNext,
+      });
+    }
+
+    // BR-08: Action Completion Precondition Check when transitioning to RESOLVED
+    if (targetStatus === TicketStatus.RESOLVED) {
+      const pendingActionsCount = await prisma.actionTaken.count({
+        where: {
+          ticketId,
+          status: { in: [ActionTakenStatus.PENDING, ActionTakenStatus.IN_PROGRESS] },
+        },
+      });
+
+      if (pendingActionsCount > 0) {
+        return res.status(422).json({
+          error: "Cannot resolve ticket: all child actions taken must be completed or cancelled first",
+          pendingActionsCount,
+        });
+      }
+    }
+
+    const [updated] = await prisma.$transaction(async (tx) => {
+      const updatedTicket = await tx.ticket.update({
+        where: { id: ticketId },
+        data: {
+          status: targetStatus,
+        },
+        include: {
+          requester: { select: { id: true, fullName: true, name: true, email: true } },
+          owner: { select: { id: true, fullName: true, name: true, email: true, role: true } },
+          category: true,
+          relatedSystem: true,
+        },
+      });
+
+      if (resolutionNote && typeof resolutionNote === "string" && resolutionNote.trim() !== "") {
+        const commentPrefix = targetStatus === TicketStatus.REOPENED ? "Reopen reason:" : "Resolution note:";
+        await tx.publicComment.create({
+          data: {
+            ticketId,
+            authorId: req.user!.id,
+            content: `${commentPrefix} ${resolutionNote.trim()}`,
+          },
+        });
+      }
+      return [updatedTicket];
+    });
+
+    return res.status(200).json({
+      message: "Ticket status updated successfully",
+      ticket: updated,
+    });
+  } catch (error) {
+    console.error("Error updating ticket status:", error);
+    return res.status(500).json({ error: "Failed to update ticket status" });
   }
 });
 

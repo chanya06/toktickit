@@ -348,7 +348,7 @@ describe("IT Staff Ticket Operations & Status Matrix (Issue 24 / FR-11 & FR-13)"
       expect(optionValues).toEqual(["", "OPEN", "CANCELLED"]);
     });
 
-    it("enforces permitted next statuses for OPEN status (IN_PROGRESS, WAITING_FOR_REQUESTER, RESOLVED, CANCELLED)", async () => {
+    it("enforces permitted next statuses for OPEN status (IN_PROGRESS, WAITING_FOR_REQUESTER, PENDING, CANCELLED)", async () => {
       renderDetailWithAuth(mockOpenTicket, mockStaffUser);
 
       await waitFor(() => {
@@ -362,7 +362,7 @@ describe("IT Staff Ticket Operations & Status Matrix (Issue 24 / FR-11 & FR-13)"
         "",
         "IN_PROGRESS",
         "WAITING_FOR_REQUESTER",
-        "RESOLVED",
+        "PENDING",
         "CANCELLED",
       ]);
     });
@@ -420,7 +420,7 @@ describe("IT Staff Ticket Operations & Status Matrix (Issue 24 / FR-11 & FR-13)"
       });
     });
 
-    it("enforces permitted next statuses for REOPENED status (IN_PROGRESS, RESOLVED, CANCELLED)", async () => {
+    it("enforces permitted next statuses for REOPENED status (IN_PROGRESS, WAITING_FOR_REQUESTER, RESOLVED, CANCELLED)", async () => {
       const reopenedTicket = { ...mockOpenTicket, status: "REOPENED" };
       renderDetailWithAuth(reopenedTicket, mockStaffUser);
 
@@ -431,7 +431,7 @@ describe("IT Staff Ticket Operations & Status Matrix (Issue 24 / FR-11 & FR-13)"
       const statusSelect = screen.getByTestId("status-transition-selector") as HTMLSelectElement;
       const optionValues = Array.from(statusSelect.options).map((o) => o.value);
 
-      expect(optionValues).toEqual(["", "IN_PROGRESS", "RESOLVED", "CANCELLED"]);
+      expect(optionValues).toEqual(["", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"]);
     });
 
     it("displays contextual bottom back button text based on role", async () => {
@@ -493,7 +493,7 @@ describe("IT Staff Ticket Operations & Status Matrix (Issue 24 / FR-11 & FR-13)"
       const statusSelect = screen.getByTestId("status-transition-selector");
       const applyBtn = screen.getByTestId("apply-status-btn");
 
-      fireEvent.change(statusSelect, { target: { value: "RESOLVED" } });
+      fireEvent.change(statusSelect, { target: { value: "IN_PROGRESS" } });
       fireEvent.click(applyBtn);
 
       await waitFor(() => {
