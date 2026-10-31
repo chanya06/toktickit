@@ -2,7 +2,7 @@
 
 **Author:** Chanya Poolketkij — GitHub: @chanya06  
 **Peer reviewer:** Peer Reviewer — GitHub: @lmaybelgracel  
-**Partner reviewed by author:** [phatthidawadi/toktickit](https://github.com/phatthidawadi/toktickit)  
+**Partner reviewed by author:** Phatthidawadi — GitHub: @phatthidawadi  
 
 ---
 
@@ -22,7 +22,7 @@
 
 ---
 
-## 2. Pull Requests I Reviewed for Partner ([phatthidawadi/toktickit](https://github.com/phatthidawadi/toktickit))
+## 2. Pull Requests I Reviewed for Partner (@phatthidawadi)
 
 | PR # | Branch | Scope / Description | Reviewer Verdict | Status |
 | :--- | :--- | :--- | :--- | :--- |
