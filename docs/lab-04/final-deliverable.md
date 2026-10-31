@@ -37,7 +37,7 @@ All feature branches, peer review verdicts, and PR links for Lab 4 are tracked b
 | [#85](https://github.com/chanya06/toktickit/pull/85) | `feature/34-dashboard-ui` | Role Dashboards UI (Metric Cards, Recent Lists, Quick Actions & Drill-down) | Approved & Merged | Merged |
 | [#86](https://github.com/chanya06/toktickit/pull/86) | `feature/35-ticket-workflow-hardening` | Ticket Workflow Hardening, Resolution Gate & Stale Update Handling | Approved & Merged | Merged |
 | [#87](https://github.com/chanya06/toktickit/pull/87) | `feature/36-qa-regression-and-deliverables` | QA Automated Tests, Regression Suite, Screenshots & Release Deliverable | Approved & Merged | Merged |
-| [#88](https://github.com/chanya06/toktickit/pull/88) | `lab4-staging` | Release Sprint 4 (Lab 4): TokTickIT Actions Taken, Dashboards, and Final Regression | Pending Review | Open |
+| [#88](https://github.com/chanya06/toktickit/pull/88) | `lab4-staging` | Release Sprint 4 (Lab 4): TokTickIT Actions Taken, Dashboards, and Final Regression | Approved & Merged | Merged |
 
 #### Pull Requests Reviewed for Partner (`phatthidawadi/toktickit`)
 
