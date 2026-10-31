@@ -14,6 +14,7 @@ import { staffRouter } from "./routes/staff.js";
 import { commentsRouter } from "./routes/comments.js";
 import { usersRouter } from "./routes/users.js";
 import { actionsRouter } from "./routes/actions.js";
+import { dashboardRouter } from "./routes/dashboard.js";
 
 export const app = express();
 
@@ -27,6 +28,7 @@ app.use("/api/staff", staffRouter);
 app.use("/api/tickets", commentsRouter);
 app.use("/api/tickets", actionsRouter);
 app.use("/api/admin/users", usersRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 const uploadDir = path.join(process.cwd(), "uploads", "attachments");
 if (!fs.existsSync(uploadDir)) {

@@ -99,7 +99,34 @@
 
 ---
 
+### Prompt 9: Issue 33 Role Dashboards REST APIs & Latency Benchmarks
+- **User Intent**: Implement the role-based dashboard backend REST APIs under Issue 33 (`GET /api/dashboard/requester`, `GET /api/dashboard/staff`, `GET /api/dashboard/admin`) with role-based access control, strict session/identity isolation, zero-count guarantees, parallel aggregation queries via `Promise.all`, and sub-100ms latency benchmarks (`API-07`, `API-08`, `PERF-01`).
+- **AI Response Summary**:
+  - Implemented `server/src/routes/dashboard.ts` mounted under `/api/dashboard` in `server/src/app.ts`:
+    - `GET /api/dashboard/requester`: Role restricted to `REQUESTER`. Strictly isolated to `req.user.id`. Parallel aggregation via `Promise.all` for `myOpenTickets` (NEW, OPEN, IN_PROGRESS, PENDING, REOPENED), `waitingForRequester` (WAITING_FOR_REQUESTER), `recentlyUpdated` (past 7 days), `recentlyResolved` (past 30 days), and up to 10 `recentTickets` formatted with `actionsCount`. Guarantees exact integer 0 values and empty `[]` when tickets are 0.
+    - `GET /api/dashboard/staff`: Role restricted to `IT_STAFF` and `ADMINISTRATOR`. Returns `unassignedTickets` (`ownerId: null`), `myAssignedTickets` (`ownerId: req.user.id`), `byStatus` mapping (guaranteed 0 for all 9 enum values), `byPriority` mapping (guaranteed 0 for all 4 enum values), `recentlyUpdatedCount` (past 24h), `urgentTickets` (URGENT priority active tickets), and `recentTickets`.
+    - `GET /api/dashboard/admin`: Role restricted to `ADMINISTRATOR`. Returns IT Staff operational metrics plus `systemUserStats` (`totalUsers`, `activeRequesters`, `activeStaff`, `administrators`, `inactiveUsers`).
+  - Authored automated test suites:
+    - `server/tests/lab-04/requester-dashboard.api.test.ts` (7 tests covering `API-07`: metrics calculation, tenant isolation, zero metrics with David Lee, date range boundary for > 30d resolved, 401 unauthenticated, 403 staff/admin, 403 mustChangePassword).
+    - `server/tests/lab-04/staff-dashboard.api.test.ts` (8 tests covering `API-08`: triage metrics, status/priority breakdown, urgent/recent lists, myAssignedTickets scoping between staff, admin access to staff dashboard, 403 for requesters, 401 unauthenticated, admin dashboard `systemUserStats`, 403 non-admin on admin dashboard).
+    - `server/tests/lab-04/dashboard-perf.api.test.ts` (4 tests covering `PERF-01`: sub-100ms latency on requester, staff, and admin dashboard endpoints, plus concurrent query resilience).
+  - Maintained 100% pass across all 198 backend tests (20 files) and 132 frontend tests (16 files).
+
+---
+
+### Prompt 10: PR #84 Peer Review Defect Resolution & Dashboard Metric Boundary Hardening
+- **User Intent**: Address 4 specific review feedback points from peer reviewer `@lmaybelgracel` on PR #84: filter out terminal states (`RESOLVED`, `CLOSED`, `CANCELLED`) from `unassignedTickets` and `myAssignedTickets` per BR-10, restrict priority distribution (`byPriority`) to active operational workload, record Review Round 5 in `reviewer.md`, and author an automated test case in `staff-dashboard.api.test.ts` verifying terminal state exclusion from operational metrics.
+- **AI Response Summary**:
+  - Updated `computeStaffOperationalMetrics` in `server/src/routes/dashboard.ts`:
+    - Added `status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] }` to both `unassignedTickets` and `myAssignedTickets` count queries.
+    - Added `where: { status: { notIn: [TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketStatus.CANCELLED] } }` to the `byPriority` `groupBy` query, keeping priority metrics strictly focused on active backlog.
+  - Added automated test case `API-08i` in `server/tests/lab-04/staff-dashboard.api.test.ts` asserting that creating tickets in `CANCELLED`, `RESOLVED`, or `CLOSED` statuses does not inflate `unassignedTickets`, `myAssignedTickets`, or `byPriority` active counts, while `byStatus` accurately reflects overall queue lifecycle.
+  - Documented Review Round 5 verbatim review comments and author response plan in `docs/lab-04/reviewer.md`.
+  - Maintained 100% pass across all 199 backend tests (20 files) and 132 frontend tests (16 files).
+
 ## 3. Reflection on AI Pairing in Software Engineering
+
+---
 
 ### Specification-Agent Synergy
 Using the AI as a specification agent before writing implementation code forces rigor in defining boundaries, data structures, and edge cases. In Sprint 4, the introduction of a parent-child relationship (`Ticket -> ActionTaken`) could easily lead to concurrency bugs (e.g. overwriting an action outcome while another staff member transitions status) or authorization leaks (e.g. allowing requesters to edit actions). Defining explicit business rules (`BR-01` through `BR-10`) and HTTP status contracts upfront establishes an unambiguous contract that guides both development and peer review.
