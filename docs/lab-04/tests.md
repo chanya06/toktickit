@@ -12,14 +12,14 @@
 | **API-06** | API | AC-11 / FR-14 | Stale update optimistic concurrency detection | 409 Conflict if expectedUpdatedAt is stale | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
 | **API-07** | API | AC-06 / FR-07 | Requester dashboard metrics calculation | 200 OK; accurate counts isolated to auth user | `server/tests/lab-04/requester-dashboard.api.test.ts` | Pass |
 | **API-08** | API | AC-08 / FR-09 | IT Staff dashboard metrics calculation | 200 OK; unassigned, my assigned, status/priority | `server/tests/lab-04/staff-dashboard.api.test.ts` | Pass |
-| **API-09** | API | AC-10 / FR-12 | Requester resolution indication advisory gate | 200 OK; sets isResolutionIndicated: true; NOT resolved | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
-| **API-10** | API | AC-10 / FR-13 | Formal ticket status transition to RESOLVED | 200 OK for IT Staff; requires action verification | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
+| **API-09** | API | AC-10 / FR-12 | Requester resolution indication advisory gate | 200 OK; sets isResolutionIndicated: true; NOT resolved | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
+| **API-10** | API | AC-10 / FR-13 | Formal ticket status transition to RESOLVED | 200 OK for IT Staff; requires action verification | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
 | **UI-01** | UI | AC-01 / FR-01 | Actions Taken table & list rendering on Ticket Detail | Renders date, description, performer, status | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-02** | UI | AC-02 / FR-04 | Create Action Taken modal & follow-up toggle validation | Dynamically requires follow-up note input | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-03** | UI | AC-03 / FR-06 | Requester view hides "+ Add Action" and edit buttons | Read-only presentation for Requesters | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-04** | UI | AC-06 / FR-08 | Requester Dashboard metric cards & drill-down links | Metric values render; clicking card navigates to queue | `client/tests/lab-04/RequesterDashboard.test.tsx` | Pass |
 | **UI-05** | UI | AC-08 / FR-10 | IT Staff Dashboard cards, urgent list, and quick actions | Unassigned, My Assigned, priority breakdown render | `client/tests/lab-04/StaffDashboard.test.tsx` | Pass |
-| **UI-06** | UI | AC-10 / FR-12 | Ticket Resolution Gate advisory banner & controls | Banner shows requester report; status dropdown restricted | `client/tests/lab-04/TicketWorkflow.test.tsx` | Planned |
+| **UI-06** | UI | AC-10 / FR-12 | Ticket Resolution Gate advisory banner & controls | Banner shows requester report; status dropdown restricted | `client/tests/lab-04/TicketWorkflow.test.tsx` | Pass |
 | **STYLE-01** | Style | AC-12 / FR-16 | Responsive layout: Zero horizontal overflow at 375px mobile viewport | No horizontal scrolling (`overflow-x: hidden`), width strictly 375px | `client/tests/lab-04/ResponsiveLayout.test.tsx` | Planned |
 | **A11Y-01** | A11Y | AC-12 / FR-16 | Accessibility: Visible focus rings (`#006B3C`), keyboard tab navigation & ARIA labels | WCAG AA compliance; focus outlines visible on all interactive controls | `client/tests/lab-04/Accessibility.test.tsx` | Planned |
 | **PERF-01** | Perf | AC-06..08 / FR-07..09 | Performance-Smoke: Dashboard metric aggregation & query latency benchmark | Sub-100ms response time under concurrent query loads | `server/tests/lab-04/dashboard-perf.api.test.ts` | Pass |

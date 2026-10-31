@@ -171,6 +171,58 @@
   - Documented Review Round 6 verbatim reviewer feedback and author responses in `docs/lab-04/reviewer.md`.
   - Maintained 100% pass across all 153 client tests (18 files) and 199 backend tests (20 files).
 
+---
+
+### Prompt 13: Ticket Workflow Hardening, Resolution Gate & Concurrency Control (Issue 35 / Issue #79)
+- **User Intent**: Implement Issue 35: Enforce 8+1 status transition matrix (BR-07), Resolution Gate requiring verification of child actions taken before formal resolution (BR-08), optimistic concurrency control via expectedUpdatedAt returning HTTP 409 Conflict (FR-14 / AC-11), prominent Zen Green resolution banner, and full regression test alignment.
+- **AI Response Summary**:
+  - Hardened backend status transition matrix in `server/src/routes/staff.ts` per BR-07:
+    - `NEW` -> `OPEN`, `CANCELLED`
+    - `OPEN` -> `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `PENDING`, `CANCELLED`
+    - `IN_PROGRESS` -> `WAITING_FOR_REQUESTER`, `PENDING`, `RESOLVED`, `CANCELLED`
+    - `WAITING_FOR_REQUESTER` -> `IN_PROGRESS`, `RESOLVED`, `CANCELLED`
+    - `PENDING` -> `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CANCELLED`
+    - `RESOLVED` -> `CLOSED` (Staff/Admin), `REOPENED` (Requester/Staff/Admin)
+    - `REOPENED` -> `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CANCELLED`
+    - `CLOSED` and `CANCELLED` enforced as strictly terminal states (`[]`).
+  - Implemented Resolution Gate (BR-08): Transitioning to `RESOLVED` queries child `ActionTaken` records in `PENDING` or `IN_PROGRESS`; returns HTTP 422 Unprocessable Entity with *"Cannot resolve ticket: all child actions taken must be completed or cancelled first"* if any active actions remain.
+  - Implemented Optimistic Concurrency Control (FR-14 / AC-11): Added `expectedUpdatedAt` checking on `PATCH /status`, `PATCH /assign`, and `PATCH /it-priority`, returning HTTP 409 Conflict (`code: "CONCURRENCY_CONFLICT"`).
+  - Mounted Requester/Staff status route in `server/src/app.ts` (`PATCH /api/tickets/:id/status`) enforcing role permissions (`REQUESTER` may only reopen their own resolved tickets).
+  - Updated frontend API client `client/src/api.ts` and `TicketDetailView.tsx`:
+    - Updated `updateTicketStatus`, `assignTicket`, and `updateTicketITPriority` to accept `expectedUpdatedAt` and only pass defined arguments.
+    - Upgraded resolution indication banner with Zen Green styling (`#006B3C`, `#DCFCE7`).
+    - Aligned permitted next statuses with BR-07.
+  - Authored automated tests:
+    - `server/tests/lab-04/ticket-workflow.api.test.ts` (8 tests covering API-09 and API-10).
+    - `client/tests/lab-04/TicketWorkflow.test.tsx` (8 tests covering UI-06).
+    - Aligned Lab 3 regression tests (`client/tests/lab-03/StaffTicketDetail.test.tsx` and `server/tests/lab-03/staff-ticket-detail.api.test.ts`) with BR-07 terminal state rules.
+  - 100% pass across all 161 client tests (19 files) and 207 server tests (21 files).
+
+---
+
+---
+
+### Prompt 14: PR #86 Peer Review Defect Resolution (Requester Reopen, Resolution Note & Automated Tests)
+- **User Intent**: Address 4 defects identified in Review Round 7 for PR #86: add Requester Reopen button and modal on TicketDetailView.tsx, add Resolution Note input field when Staff transitions to RESOLVED, record Review Round 7 in reviewer.md, and author automated test cases (UI-06i, UI-06j, UI-06k) in TicketWorkflow.test.tsx.
+- **AI Response Summary**:
+  - Enhanced `client/src/components/TicketDetailView.tsx`:
+    - Added `canRequesterReopen` guard and rendered top-bar "Reopen Ticket" button (`reopen-ticket-btn`) and alert banner (`requester-reopen-banner`).
+    - Implemented Reopen Ticket Modal (`reopen-ticket-modal`) with `reopen-reason-input` and submit action calling `updateTicketStatus(ticketId, "REOPENED", ticket.updatedAt, reason)`.
+    - Added `resolution-note-input` textarea dynamically rendered when Staff selects `RESOLVED` in the status transition selector, passing `resolutionNote` to `updateTicketStatus`.
+    - Preserved direct state updates without unnecessary `retryToken` refetches, eliminating regression on test mocks.
+  - Updated `client/src/api.ts`:
+    - Updated `updateTicketStatus` to target `${API_URL}/api/tickets/${ticketId}/status`, enabling Requester reopen calls alongside Staff transitions.
+  - Enhanced `server/src/app.ts`:
+    - Formatted public comment prefix to `"Reopen reason:"` when transitioning to `REOPENED` and `"Resolution note:"` when transitioning to `RESOLVED`.
+  - Authored automated tests in `client/tests/lab-04/TicketWorkflow.test.tsx`:
+    - `UI-06i`: Verifies Requester sees Reopen button and banner when ticket status is `RESOLVED`.
+    - `UI-06j`: Verifies Requester opens modal, enters reason, and submits `REOPENED` transition with correct payload.
+    - `UI-06k`: Verifies Staff sees resolution note input when selecting `RESOLVED` and sends note with transition.
+  - Documented Review Round 7 in `docs/lab-04/reviewer.md`.
+  - 100% pass across all 164 client tests (19 files) and 207 server tests (21 files).
+
+---
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ---
