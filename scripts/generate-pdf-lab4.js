@@ -45,8 +45,8 @@ async function main() {
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 11px;
-      line-height: 1.55;
+      font-size: 13px;
+      line-height: 1.6;
       color: #1e293b;
       background-color: #ffffff;
       padding: 0;
@@ -56,7 +56,7 @@ async function main() {
     }
     h1 {
       color: #006B3C;
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 700;
       border-bottom: 3px solid #006B3C;
       padding-bottom: 6px;
@@ -65,7 +65,7 @@ async function main() {
     }
     h2 {
       color: #006B3C;
-      font-size: 15px;
+      font-size: 18px;
       font-weight: 700;
       border-bottom: 1.5px solid #0B7A46;
       padding-bottom: 4px;
@@ -82,7 +82,7 @@ async function main() {
     }
     h3 {
       color: #0f172a;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 600;
       margin-top: 14px;
       margin-bottom: 6px;
@@ -91,7 +91,7 @@ async function main() {
     }
     h4 {
       color: #334155;
-      font-size: 12px;
+      font-size: 13.5px;
       font-weight: 600;
       margin-top: 10px;
       margin-bottom: 4px;
@@ -131,8 +131,8 @@ async function main() {
       border-radius: 6px;
       overflow-x: auto;
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-      font-size: 10px;
-      line-height: 1.4;
+      font-size: 11px;
+      line-height: 1.45;
       margin: 10px 0;
       page-break-inside: avoid;
       break-inside: avoid;
@@ -153,7 +153,7 @@ async function main() {
       color: #78350f;
       padding: 8px 12px;
       margin: 10px 0;
-      font-size: 11px;
+      font-size: 12px;
       border-radius: 0 4px 4px 0;
       page-break-inside: avoid;
       break-inside: avoid;
@@ -164,7 +164,7 @@ async function main() {
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 10px;
+      font-size: 11.5px;
       margin: 10px 0 14px 0;
       page-break-inside: avoid;
       break-inside: avoid;
@@ -177,11 +177,13 @@ async function main() {
       padding: 6px 8px;
       border: 1px solid #00522e;
       text-align: left;
+      font-size: 11.5px;
     }
     td {
-      padding: 5px 8px;
+      padding: 6px 8px;
       border: 1px solid #cbd5e1;
       vertical-align: top;
+      font-size: 11.5px;
     }
     tr:nth-child(even) {
       background-color: #f8fafc;
@@ -189,7 +191,7 @@ async function main() {
     .badge {
       display: inline-block;
       padding: 2px 6px;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 600;
       border-radius: 4px;
       text-align: center;
@@ -213,9 +215,9 @@ async function main() {
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     .img-caption {
-      font-size: 9.5px;
+      font-size: 11px;
       color: #64748b;
-      margin-top: 3px;
+      margin-top: 4px;
       margin-bottom: 0;
     }
     hr {
@@ -243,11 +245,11 @@ async function main() {
     format: "A4",
     printBackground: true,
     displayHeaderFooter: true,
-    headerTemplate: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 8px; color: #94a3b8; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between;">
+    headerTemplate: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 9px; color: #94a3b8; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between;">
       <span>TokTickIT Lab 4 — Final Engineering Deliverable</span>
       <span>CPE 334 Software Engineering</span>
     </div>`,
-    footerTemplate: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 8px; color: #94a3b8; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between;">
+    footerTemplate: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 9px; color: #94a3b8; width: 100%; padding: 0 15mm; display: flex; justify-content: space-between;">
       <span>Author: Chanya Poolketkij (@chanya06)</span>
       <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
     </div>`,
