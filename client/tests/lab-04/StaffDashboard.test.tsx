@@ -101,9 +101,12 @@ function renderStaffDashboard(options?: {
 
   const authValue = {
     user,
+    token: "mock-token",
     isLoading: false,
+    error: null,
     login: vi.fn(),
     logout: vi.fn(),
+    changePassword: vi.fn(),
     refreshUser: vi.fn(),
   };
 
@@ -311,3 +314,4 @@ describe("StaffDashboard Component (UI-05 / FR-10 / FR-11 / AC-08)", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 });
+

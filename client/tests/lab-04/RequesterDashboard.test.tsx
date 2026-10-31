@@ -60,9 +60,12 @@ function renderRequesterDashboard(props?: {
 
   const authValue = {
     user: mockRequesterUser,
+    token: "mock-token",
     isLoading: false,
+    error: null,
     login: vi.fn(),
     logout: vi.fn(),
+    changePassword: vi.fn(),
     refreshUser: vi.fn(),
   };
 

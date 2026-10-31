@@ -68,6 +68,20 @@ export function StaffTicketQueue({ onSelectTicket, initialFilters }: StaffTicket
   const [selectedPriority, setSelectedPriority] = useState<string>(initialFilters?.priority || "");
   const [selectedOwner, setSelectedOwner] = useState<string>(initialFilters?.owner || "");
 
+  // Synchronize internal filter states when initialFilters prop changes (Handout Section 6.2 / BR-10)
+  useEffect(() => {
+    setSelectedCategory(initialFilters?.category || "");
+    setSelectedStatus(initialFilters?.status || "");
+    setSelectedPriority(initialFilters?.priority || "");
+    setSelectedOwner(initialFilters?.owner || "");
+    setPage(1);
+  }, [
+    initialFilters?.category,
+    initialFilters?.status,
+    initialFilters?.priority,
+    initialFilters?.owner,
+  ]);
+
   // Sorting & Pagination
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");

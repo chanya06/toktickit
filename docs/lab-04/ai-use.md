@@ -150,6 +150,27 @@
     - `client/tests/lab-04/StaffDashboard.test.tsx` (9 tests covering UI-05: operational metric cards, admin user stats, empty urgent queue message, tab toggling, drill-down callbacks, ticket detail navigation, queue shortcuts, refresh, error retry).
   - Maintained 100% pass across all 149 client tests (18 files) and 199 backend tests (20 files).
 
+---
+
+### Prompt 12: PR #85 Peer Review Defect Resolution & Filter Synchronization Hardening
+- **User Intent**: Address 4 specific review feedback points from peer reviewer `@lmaybelgracel` on PR #85: add missing statuses (`WAITING_FOR_REQUESTER`, `REOPENED`, `CANCELLED`) to `STATUSES` in `MyTicketsView.tsx`, implement `useEffect` filter state synchronization across dynamic dashboard drill-downs in `MyTicketsView.tsx` and `StaffTicketQueue.tsx`, record Review Round 6 in `reviewer.md`, and author automated tests verifying drill-down and filter options.
+- **AI Response Summary**:
+  - Updated `client/src/components/MyTicketsView.tsx`:
+    - Added `WAITING_FOR_REQUESTER`, `REOPENED`, and `CANCELLED` into the `STATUSES` array, enabling full 9-status multi-select filtering and option labels.
+    - Extended `getStatusBadgeClass` to style `WAITING_FOR_REQUESTER` (amber), `REOPENED` (danger), and `CANCELLED` (secondary).
+    - Implemented filter state synchronization `useEffect` with `isFirstRender` guard watching `initialStatusFilter` changes to update `selectedStatuses` and reset page to 1 upon dashboard drill-down.
+  - Updated `client/src/components/StaffTicketQueue.tsx`:
+    - Implemented filter state synchronization `useEffect` watching `initialFilters` (`category`, `status`, `priority`, `owner`) to sync queue filters and reset page to 1 upon dashboard card transitions.
+  - Hardened backend status query validation in `server/src/app.ts`:
+    - Updated `VALID_STATUSES` to include `WAITING_FOR_REQUESTER`, `REOPENED`, and `CANCELLED`, guaranteeing safe HTTP 200 filtering instead of HTTP 400 rejection.
+  - Authored automated tests:
+    - Added `"filters and fetches tickets with WAITING_FOR_REQUESTER when initialStatusFilter is provided"` in `client/tests/lab-02/MyTickets.test.tsx`.
+    - Added `"synchronizes status filter when initialStatusFilter prop changes dynamically (drill-down)"` in `client/tests/lab-02/MyTickets.test.tsx`.
+    - Added `"includes all 9 statuses in the status filter dropdown options"` in `client/tests/lab-02/MyTickets.test.tsx`.
+    - Added `"synchronizes filter states when initialFilters prop changes dynamically"` in `client/tests/lab-03/StaffTicketQueue.test.tsx`.
+  - Documented Review Round 6 verbatim reviewer feedback and author responses in `docs/lab-04/reviewer.md`.
+  - Maintained 100% pass across all 153 client tests (18 files) and 199 backend tests (20 files).
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ---

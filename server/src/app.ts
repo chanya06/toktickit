@@ -145,7 +145,7 @@ function isPositiveInteger(val: any): boolean {
 }
 
 const VALID_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"];
-const VALID_STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "PENDING", "RESOLVED", "CLOSED"];
+const VALID_STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "PENDING", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
 const ALLOWED_SORT_FIELDS = ["createdAt", "ticketNumber", "summary", "status", "requestedPriority", "itPriority", "updatedAt"];
 
 // Helper to parse multi-select query params (comma-separated string or array of strings)

@@ -18,7 +18,17 @@ export interface MyTicketsViewProps {
 }
 
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"];
-const STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "PENDING", "RESOLVED", "CLOSED"];
+const STATUSES = [
+  "NEW",
+  "OPEN",
+  "IN_PROGRESS",
+  "WAITING_FOR_REQUESTER",
+  "PENDING",
+  "RESOLVED",
+  "CLOSED",
+  "REOPENED",
+  "CANCELLED",
+];
 
 interface MultiSelectFilterProps<T extends string | number> {
   id: string;
@@ -193,6 +203,18 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket, initialStatusF
   const [page, setPage] = useState<number>(1);
   const [retryToken, setRetryToken] = useState<number>(0);
 
+  // Synchronize internal filter state when initialStatusFilter prop changes (Handout Section 6.2 / BR-07)
+  const isFirstRender = useRef(true);
+  const initialStatusKey = initialStatusFilter ? initialStatusFilter.slice().sort().join(",") : "";
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    setSelectedStatuses(initialStatusFilter ? [...initialStatusFilter] : []);
+    setPage(1);
+  }, [initialStatusKey]);
+
   // Debounce search input (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -314,6 +336,12 @@ export function MyTicketsView({ onNavigateCreate, onSelectTicket, initialStatusF
 
   function getStatusBadgeClass(ticketStatus: string) {
     switch (ticketStatus.toUpperCase()) {
+      case "WAITING_FOR_REQUESTER":
+        return "badge bg-warning text-dark";
+      case "REOPENED":
+        return "badge bg-danger text-white";
+      case "CANCELLED":
+        return "badge bg-secondary text-white";
       case "NEW":
         return "badge bg-primary text-white";
       case "OPEN":
