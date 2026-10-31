@@ -815,7 +815,7 @@ export async function updateTicketStatus(
   expectedUpdatedAt?: string,
   resolutionNote?: string
 ): Promise<{ message: string; ticket: TicketResponse }> {
-  const res = await fetch(`${API_URL}/api/staff/tickets/${ticketId}/status`, {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/status`, {
     method: "PATCH",
     headers: getAuthHeaders({ "Content-Type": "application/json" }),
     credentials: "include",

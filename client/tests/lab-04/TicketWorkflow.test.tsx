@@ -211,4 +211,81 @@ describe("Ticket Workflow Hardening, Resolution Gate & UI Guards (UI-06 / Issue 
     expect(await screen.findByTestId("ticket-detail-view")).toBeInTheDocument();
     expect(screen.queryByTestId("staff-operations-panel")).not.toBeInTheDocument();
   });
+
+  it("UI-06i: displays Reopen Ticket button and banner for Requester when ticket is RESOLVED", async () => {
+    renderTicketDetail(mockRequesterUser, { ...baseTicket, status: "RESOLVED" });
+
+    expect(await screen.findByTestId("ticket-detail-view")).toBeInTheDocument();
+    expect(screen.getByTestId("reopen-ticket-btn")).toBeInTheDocument();
+    expect(screen.getByTestId("requester-reopen-banner")).toBeInTheDocument();
+    expect(screen.getByTestId("banner-reopen-ticket-btn")).toBeInTheDocument();
+  });
+
+  it("UI-06j: allows Requester to submit reopen request with reason and updates ticket status to REOPENED", async () => {
+    vi.mocked(api.updateTicketStatus).mockResolvedValueOnce({
+      message: "Ticket status successfully changed to REOPENED",
+      ticket: { ...baseTicket, status: "REOPENED" },
+    });
+
+    renderTicketDetail(mockRequesterUser, { ...baseTicket, status: "RESOLVED" });
+
+    expect(await screen.findByTestId("reopen-ticket-btn")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("reopen-ticket-btn"));
+
+    // Modal appears
+    expect(await screen.findByTestId("reopen-ticket-modal")).toBeInTheDocument();
+    const reasonInput = screen.getByTestId("reopen-reason-input");
+    fireEvent.change(reasonInput, { target: { value: "VPN error returned after laptop restart" } });
+
+    const confirmBtn = screen.getByTestId("confirm-reopen-btn");
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(api.updateTicketStatus).toHaveBeenCalledWith(
+        301,
+        "REOPENED",
+        baseTicket.updatedAt,
+        "VPN error returned after laptop restart"
+      );
+    });
+
+    expect(await screen.findByTestId("operation-feedback")).toHaveTextContent(
+      "Ticket has been successfully reopened."
+    );
+  });
+
+  it("UI-06k: renders resolution note textarea when Staff selects RESOLVED and passes note to updateTicketStatus", async () => {
+    vi.mocked(api.updateTicketStatus).mockResolvedValueOnce({
+      message: "Ticket status successfully changed to RESOLVED",
+      ticket: { ...baseTicket, status: "RESOLVED" },
+    });
+
+    renderTicketDetail(mockStaffUser, { ...baseTicket, status: "IN_PROGRESS" });
+
+    expect(await screen.findByTestId("status-transition-selector")).toBeInTheDocument();
+    const statusSelect = screen.getByTestId("status-transition-selector");
+
+    // Initially resolution note is not rendered
+    expect(screen.queryByTestId("resolution-note-input")).not.toBeInTheDocument();
+
+    // Select RESOLVED
+    fireEvent.change(statusSelect, { target: { value: "RESOLVED" } });
+
+    // Resolution note textarea appears
+    expect(await screen.findByTestId("resolution-note-input")).toBeInTheDocument();
+    const noteInput = screen.getByTestId("resolution-note-input");
+    fireEvent.change(noteInput, { target: { value: "Updated VPN gateway firewall rules and verified tunnel stability" } });
+
+    const applyBtn = screen.getByTestId("apply-status-btn");
+    fireEvent.click(applyBtn);
+
+    await waitFor(() => {
+      expect(api.updateTicketStatus).toHaveBeenCalledWith(
+        301,
+        "RESOLVED",
+        baseTicket.updatedAt,
+        "Updated VPN gateway firewall rules and verified tunnel stability"
+      );
+    });
+  });
 });

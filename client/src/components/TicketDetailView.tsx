@@ -77,6 +77,13 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
   const [isOperating, setIsOperating] = useState<boolean>(false);
   const [operationMessage, setOperationMessage] = useState<{ type: "success" | "danger"; text: string } | null>(null);
   const [selectedNextStatus, setSelectedNextStatus] = useState<string>("");
+  const [staffResolutionNote, setStaffResolutionNote] = useState<string>("");
+
+  // Requester Reopen State (Defect 1)
+  const [showReopenModal, setShowReopenModal] = useState<boolean>(false);
+  const [reopenReason, setReopenReason] = useState<string>("");
+  const [isSubmittingReopen, setIsSubmittingReopen] = useState<boolean>(false);
+  const [reopenError, setReopenError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isStaffOrAdmin) return;
@@ -114,6 +121,34 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
       setResolutionError(err.message || "Failed to submit resolution indication");
     } finally {
       setIsSubmittingResolution(false);
+    }
+  };
+
+  const canRequesterReopen =
+    (!user || user.role === "REQUESTER") &&
+    ticket?.status === "RESOLVED";
+
+  const handleReopenTicket = async () => {
+    setIsSubmittingReopen(true);
+    setReopenError(null);
+    try {
+      const reason = reopenReason.trim() || undefined;
+      const res = ticket?.updatedAt !== undefined
+        ? (reason
+            ? await updateTicketStatus(ticketId, "REOPENED", ticket.updatedAt, reason)
+            : await updateTicketStatus(ticketId, "REOPENED", ticket.updatedAt))
+        : (reason
+            ? await updateTicketStatus(ticketId, "REOPENED", undefined, reason)
+            : await updateTicketStatus(ticketId, "REOPENED"));
+
+      setTicket((prev) => (prev ? { ...prev, ...res.ticket, status: "REOPENED" } : res.ticket));
+      setShowReopenModal(false);
+      setReopenReason("");
+      setOperationMessage({ type: "success", text: "Ticket has been successfully reopened." });
+    } catch (err: any) {
+      setReopenError(err.message || "Failed to reopen ticket");
+    } finally {
+      setIsSubmittingReopen(false);
     }
   };
 
@@ -167,9 +202,17 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
     setIsOperating(true);
     setOperationMessage(null);
     try {
-      const res = ticket?.updatedAt !== undefined ? await updateTicketStatus(ticketId, selectedNextStatus, ticket.updatedAt) : await updateTicketStatus(ticketId, selectedNextStatus);
+      const note = selectedNextStatus === "RESOLVED" && staffResolutionNote.trim() ? staffResolutionNote.trim() : undefined;
+      const res = ticket?.updatedAt !== undefined
+        ? (note
+            ? await updateTicketStatus(ticketId, selectedNextStatus, ticket.updatedAt, note)
+            : await updateTicketStatus(ticketId, selectedNextStatus, ticket.updatedAt))
+        : (note
+            ? await updateTicketStatus(ticketId, selectedNextStatus, undefined, note)
+            : await updateTicketStatus(ticketId, selectedNextStatus));
       setTicket((prev) => (prev ? { ...prev, ...res.ticket } : res.ticket));
       setSelectedNextStatus("");
+      setStaffResolutionNote("");
       setOperationMessage({
         type: "success",
         text: `Ticket status successfully changed to ${STATUS_LABELS[res.ticket.status] || res.ticket.status}.`,
@@ -444,6 +487,20 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
               <span>Problem Appears Resolved</span>
             </button>
           )}
+          {canRequesterReopen && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-warning d-flex align-items-center gap-1"
+              onClick={() => setShowReopenModal(true)}
+              data-testid="reopen-ticket-btn"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 4v6h6" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+              </svg>
+              <span>Reopen Ticket</span>
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
@@ -469,6 +526,49 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
           <div>
             <strong>Problem Appears Resolved:</strong> The requester indicated that the problem appears resolved. Awaiting IT Staff confirmation and formal closure.
           </div>
+        </div>
+      )}
+
+      {canRequesterReopen && (
+        <div
+          className="alert alert-warning d-flex justify-content-between align-items-center mb-3 shadow-sm"
+          data-testid="requester-reopen-banner"
+          role="alert"
+        >
+          <div className="d-flex align-items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warning flex-shrink-0">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <div>
+              <strong className="text-dark">Ticket Resolved:</strong> IT Staff has marked this ticket as resolved. If the issue is not solved or recurs, you can reopen it.
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn btn-sm btn-warning d-flex align-items-center gap-1 flex-shrink-0 ms-3 fw-semibold"
+            onClick={() => setShowReopenModal(true)}
+            data-testid="banner-reopen-ticket-btn"
+          >
+            <span>Reopen Ticket</span>
+          </button>
+        </div>
+      )}
+
+      {operationMessage && !isStaffOrAdmin && (
+        <div
+          className={`alert alert-${operationMessage.type} alert-dismissible py-2 px-3 mb-3 small d-flex justify-content-between align-items-center shadow-sm`}
+          role="alert"
+          data-testid="operation-feedback"
+        >
+          <span>{operationMessage.text}</span>
+          <button
+            type="button"
+            className="btn-close py-2"
+            aria-label="Close"
+            onClick={() => setOperationMessage(null)}
+          />
         </div>
       )}
 
@@ -710,6 +810,23 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
                     Apply
                   </button>
                 </div>
+                {selectedNextStatus === "RESOLVED" && (
+                  <div className="mt-2" data-testid="resolution-note-container">
+                    <label htmlFor="staff-resolution-note-input" className="form-label fw-semibold text-muted small mb-1">
+                      Resolution Note (Optional)
+                    </label>
+                    <textarea
+                      id="staff-resolution-note-input"
+                      className="form-control form-control-sm"
+                      rows={2}
+                      placeholder="Summary of resolution / actions taken..."
+                      value={staffResolutionNote}
+                      onChange={(e) => setStaffResolutionNote(e.target.value)}
+                      data-testid="resolution-note-input"
+                      disabled={isOperating}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -850,6 +967,92 @@ export function TicketDetailView({ ticketId, onBack }: TicketDetailViewProps) {
           &laquo; {isStaffOrAdmin ? "Back to Ticket Queue" : "Back to My Tickets List"}
         </button>
       </div>
+      {/* Requester Reopen Ticket Modal (Issue 35 / Defect 1) */}
+      {showReopenModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+          data-testid="reopen-ticket-modal"
+        >
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content shadow">
+              <div className="modal-header bg-warning bg-opacity-10 border-bottom">
+                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warning">
+                    <path d="M1 4v6h6" />
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                  </svg>
+                  Reopen Ticket
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={() => {
+                    setShowReopenModal(false);
+                    setReopenReason("");
+                    setReopenError(null);
+                  }}
+                  disabled={isSubmittingReopen}
+                />
+              </div>
+              <div className="modal-body">
+                <p className="text-muted small mb-3">
+                  Please provide a reason describing why the issue requires further attention.
+                </p>
+                {reopenError && (
+                  <div className="alert alert-danger py-2 small mb-3" data-testid="reopen-error-alert">
+                    {reopenError}
+                  </div>
+                )}
+                <div className="mb-3">
+                  <label htmlFor="reopen-reason-input" className="form-label fw-semibold small">
+                    Reason for Reopening (Optional)
+                  </label>
+                  <textarea
+                    id="reopen-reason-input"
+                    className="form-control"
+                    rows={3}
+                    placeholder="Describe what is still broken or recurring..."
+                    value={reopenReason}
+                    onChange={(e) => setReopenReason(e.target.value)}
+                    data-testid="reopen-reason-input"
+                    disabled={isSubmittingReopen}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer bg-light border-top">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => {
+                    setShowReopenModal(false);
+                    setReopenReason("");
+                    setReopenError(null);
+                  }}
+                  disabled={isSubmittingReopen}
+                  data-testid="cancel-reopen-btn"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-warning fw-semibold"
+                  onClick={handleReopenTicket}
+                  disabled={isSubmittingReopen}
+                  data-testid="confirm-reopen-btn"
+                >
+                  {isSubmittingReopen ? "Reopening..." : "Confirm Reopen"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Requester Resolution Indication Modal */}
       {showResolutionModal && (
         <div className="modal show d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} data-testid="resolution-modal">

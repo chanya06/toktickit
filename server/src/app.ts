@@ -731,15 +731,15 @@ app.patch("/api/tickets/:id/status", async (req: Request, res: Response) => {
       });
 
       if (resolutionNote && typeof resolutionNote === "string" && resolutionNote.trim() !== "") {
+        const commentPrefix = targetStatus === TicketStatus.REOPENED ? "Reopen reason:" : "Resolution note:";
         await tx.publicComment.create({
           data: {
             ticketId,
             authorId: req.user!.id,
-            content: `Resolution note: ${resolutionNote.trim()}`,
+            content: `${commentPrefix} ${resolutionNote.trim()}`,
           },
         });
       }
-
       return [updatedTicket];
     });
 

@@ -200,6 +200,29 @@
 
 ---
 
+---
+
+### Prompt 14: PR #86 Peer Review Defect Resolution (Requester Reopen, Resolution Note & Automated Tests)
+- **User Intent**: Address 4 defects identified in Review Round 7 for PR #86: add Requester Reopen button and modal on TicketDetailView.tsx, add Resolution Note input field when Staff transitions to RESOLVED, record Review Round 7 in reviewer.md, and author automated test cases (UI-06i, UI-06j, UI-06k) in TicketWorkflow.test.tsx.
+- **AI Response Summary**:
+  - Enhanced `client/src/components/TicketDetailView.tsx`:
+    - Added `canRequesterReopen` guard and rendered top-bar "Reopen Ticket" button (`reopen-ticket-btn`) and alert banner (`requester-reopen-banner`).
+    - Implemented Reopen Ticket Modal (`reopen-ticket-modal`) with `reopen-reason-input` and submit action calling `updateTicketStatus(ticketId, "REOPENED", ticket.updatedAt, reason)`.
+    - Added `resolution-note-input` textarea dynamically rendered when Staff selects `RESOLVED` in the status transition selector, passing `resolutionNote` to `updateTicketStatus`.
+    - Preserved direct state updates without unnecessary `retryToken` refetches, eliminating regression on test mocks.
+  - Updated `client/src/api.ts`:
+    - Updated `updateTicketStatus` to target `${API_URL}/api/tickets/${ticketId}/status`, enabling Requester reopen calls alongside Staff transitions.
+  - Enhanced `server/src/app.ts`:
+    - Formatted public comment prefix to `"Reopen reason:"` when transitioning to `REOPENED` and `"Resolution note:"` when transitioning to `RESOLVED`.
+  - Authored automated tests in `client/tests/lab-04/TicketWorkflow.test.tsx`:
+    - `UI-06i`: Verifies Requester sees Reopen button and banner when ticket status is `RESOLVED`.
+    - `UI-06j`: Verifies Requester opens modal, enters reason, and submits `REOPENED` transition with correct payload.
+    - `UI-06k`: Verifies Staff sees resolution note input when selecting `RESOLVED` and sends note with transition.
+  - Documented Review Round 7 in `docs/lab-04/reviewer.md`.
+  - 100% pass across all 164 client tests (19 files) and 207 server tests (21 files).
+
+---
+
 ## 3. Reflection on AI Pairing in Software Engineering
 
 ---

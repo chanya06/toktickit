@@ -16,7 +16,7 @@
 | [PR #83](https://github.com/chanya06/toktickit/pull/83) | `feature/32-actions-taken-ui` | Actions Taken UI on Ticket Detail Screen & Responsive Cards | Approved & Merged | Merged |
 | [PR #84](https://github.com/chanya06/toktickit/pull/84) | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Approved & Merged | Merged |
 | [PR #85](https://github.com/chanya06/toktickit/pull/85) | `feature/34-dashboard-ui` | Role Dashboards UI (Metric Cards, Recent Lists, Quick Actions & Drill-down) | Approved & Merged | Merged |
-| [PR #86](https://github.com/chanya06/toktickit/pull/86) | `feature/35-ticket-workflow-hardening` | Ticket Workflow Hardening, Resolution Gate & Stale Update Handling | Pending Review | In Review |
+| [PR #86](https://github.com/chanya06/toktickit/pull/86) | `feature/35-ticket-workflow-hardening` | Ticket Workflow Hardening, Resolution Gate & Stale Update Handling | Changes Requested (Resolved) | In Review |
 | [PR # (Pending)] | `feature/36-qa-regression-and-deliverables` | QA Automated Tests, Regression Suite, Screenshots & Final PDF Deliverable | Pending | Planned |
 | [PR # (Pending)] | `lab4-staging` | Release Integration PR into `main` | Pending | Planned |
 
@@ -326,3 +326,53 @@
 >    - เพิ่มเคส `"synchronizes filter states when initialFilters prop changes dynamically"` ใน `client/tests/lab-03/StaffTicketQueue.test.tsx`
 >    - ชุดทดสอบ Client ทั้งหมด 18 ไฟล์ (153 tests) ผ่านครบ 100%
 
+
+
+---
+
+### Reviewer Comments on [PR #86](https://github.com/chanya06/toktickit/pull/86) (feature/35-ticket-workflow-hardening) - Review Round 7
+
+> **Reviewer:** `@lmaybelgracel` — **Verdict:** CHANGES REQUESTED  
+> จากการตรวจทานการบังคับใช้กฎวงจรสถานะตั๋ว (Ticket Workflow Hardening), กลไก Resolution Gate และการควบคุมการทำงานพร้อมกัน (Concurrency Control) ใน PR [#86](https://github.com/chanya06/toktickit/pull/86) (สาขา feature/35-ticket-workflow-hardening) เทียบกับเกณฑ์บังคับของอาจารย์ใน Handout Lab 4 (Sections 4.5, 6.2, 10 และ 14) และสัญญาข้อกำหนด specification.md / ui-spec.md พบข้อบกพร่องสำคัญ 4 จุดที่ต้องได้รับการปรับปรุงแก้ไขก่อนการอนุมัติ:  
+> 
+> 1. **การขาดปุ่มหรือส่วนควบคุมให้ Requester ทำการ Reopen ตั๋วที่สถานะเป็น RESOLVED บนหน้าจอ TicketDetailView (FR-13 / AC-10):**  
+>    - *เกณฑ์บังคับ:* Handout Section 4.5, 6.2 และ specification.md (FR-13 / AC-10) กำหนดให้ผู้แจ้งตั๋ว (Requester) มีสิทธิ์เปิดตั๋วใหม่ (Reopen) จากสถานะ RESOLVED ได้เมื่อปัญหาเกิดขึ้นซ้ำ  
+>    - *ข้อผิดพลาด:* ฝั่งเซิร์ฟเวอร์มีการสร้างเส้นทาง PATCH /api/tickets/:id/status อนุญาตให้ Requester ส่งคำขอเปลี่ยนสถานะตั๋วจาก RESOLVED เป็น REOPENED เรียบร้อยแล้ว แต่ในฝั่งหน้าบ้าน `client/src/components/TicketDetailView.tsx` กล่องการจัดการตั๋ว (`staff-operations-panel`) ถูกจำกัดการแสดงผลเฉพาะ IT Staff และ Admin (`isStaffOrAdmin`) เท่านั้น โดยไม่มีปุ่มหรือการควบคุมใด ๆ ให้ Requester กด Reopen บนหน้าจอเมื่อตั๋วมีสถานะเป็น RESOLVED  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มปุ่ม "Reopen Ticket" (พร้อมช่องกรอกหรือคำยืนยันระบุเหตุผล) ให้แสดงผลสำหรับผู้ใช้ที่เป็นเจ้าของตั๋ว (Requester) เมื่อตั๋วอยู่ในสถานะ RESOLVED บน `TicketDetailView.tsx`  
+> 
+> 2. **การขาดช่องกรอกเหตุผลการปิดงาน (Resolution Note Input) เมื่อเปลี่ยนสถานะตั๋วสู่ RESOLVED บน UI:**  
+>    - *เกณฑ์บังคับ:* Handout Section 4.5, 6.2 และ specification.md กำหนดว่าเมื่อเปลี่ยนสถานะตั๋วเป็น RESOLVED ต้องสามารถบันทึกข้อความสรุปการแก้ไขปัญหา (Resolution Note) ซึ่งจะถูกบันทึกเป็น Public Comment ต่อท้ายตั๋วโดยอัตโนมัติ  
+>    - *ข้อผิดพลาด:* ใน `server/src/routes/staff.ts` และ `client/src/api.ts` ฟังก์ชัน `updateTicketStatus` รองรับพารามิเตอร์ `resolutionNote` เรียบร้อยแล้ว แต่ใน `TicketDetailView.tsx` เมื่อผู้ใช้เลือกสถานะถัดไปเป็น RESOLVED ไม่มีช่อง Input หรือ Modal ให้กรอก `resolutionNote` และฟังก์ชัน `handleExecuteStatusTransition` ไม่มีการส่ง `resolutionNote` ไปยัง API  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มช่องกรอก `resolutionNote` (หรือ Modal ยืนยันการปิดงาน) บน `TicketDetailView.tsx` เมื่อผู้ใช้เลือกเปลี่ยนสถานะเป็น RESOLVED และส่งค่านั้นไปยัง `updateTicketStatus`  
+> 
+> 3. **การขาดหัวข้อบันทึกการรีวิว PR [#86](https://github.com/chanya06/toktickit/pull/86) ในเอกสารกระบวนการวิศวกรรม (`docs/lab-04/reviewer.md`):**  
+>    - *เกณฑ์บังคับ:* Handout Section 14 (Answer Part 1: Git Use with Engineering Workflow) กำหนดให้เอกสาร reviewer.md ต้องปรากฏหลักฐานการรีวิวของทุก PR ประกอบด้วย ตัวตนผู้ตรวจ ลิงก์ PR ข้อคิดเห็น/ข้อบกพร่องที่พบ (Comments) การตอบกลับของผู้พัฒนา (Responses) และผลการอนุมัติ (Approvals)  
+>    - *ข้อผิดพลาด:* ใน `docs/lab-04/reviewer.md` มีเพียงการอัปเดตบรรทัด PR [#86](https://github.com/chanya06/toktickit/pull/86) ในตารางสรุปด้านบน (Pending Review | In Review) แต่ยังไม่มีหัวข้อเนื้อหา Review Round 7 สำหรับ PR [#86](https://github.com/chanya06/toktickit/pull/86) ที่บันทึกข้อคิดเห็นการตรวจทาน  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มหัวข้อ Review Round 7: PR [#86](https://github.com/chanya06/toktickit/pull/86) ใน `docs/lab-04/reviewer.md` บันทึกรายละเอียดข้อเสนอแนะและเปิดพื้นที่ให้ผู้พัฒนาตอบกลับแผนการดำเนินงาน  
+> 
+> 4. **การขาดเคสทดสอบอัตโนมัติสำหรับ Requester Reopen Action ในชุดทดสอบหน้าบ้าน (`TicketWorkflow.test.tsx`):**  
+>    - *เกณฑ์บังคับ:* Handout Section 10 กำหนดให้การทำงานของ Workflow และการอนุญาตตามบทบาทผู้ใช้บน UI ต้องมีชุดทดสอบอัตโนมัติรองรับอย่างครอบคลุม  
+>    - *ข้อผิดพลาด:* ใน `client/tests/lab-04/TicketWorkflow.test.tsx` มีเฉพาะเคส UI-06h ที่ทดสอบว่าซ่อน staff-operations-panel เมื่อผู้ใช้เป็น Requester แต่ยังขาดเคสทดสอบยืนยันว่าเมื่อ Requester เปิดดูตั๋วสถานะ RESOLVED จะต้องมองเห็นและสามารถกดปุ่ม Reopen เพื่อเรียก API เปลี่ยนสถานะเป็น REOPENED ได้  
+>    - *สิ่งที่ต้องแก้ไข:* เพิ่มเคสทดสอบอัตโนมัติใน `TicketWorkflow.test.tsx` ยืนยันการแสดงผลปุ่ม Reopen และการเรียกใช้ API ของ Requester สำหรับตั๋วสถานะ RESOLVED  
+> 
+> ---
+> 
+> ### Author Response & Action Plan (`@chanya06`):
+> ขอบคุณสำหรับข้อเสนอแนะการตรวจทานเชิงลึกของวงจรสถานะตั๋วและสิทธิ์ผู้ใช้งาน ได้ดำเนินการปรับปรุงแก้ไขในสาขา `feature/35-ticket-workflow-hardening` ครบทั้ง 4 ประเด็นเรียบร้อยแล้ว:
+> 
+> 1. **เพิ่มปุ่มและ Modal สำหรับ Requester ในการ Reopen ตั๋วสถานะ RESOLVED บน `TicketDetailView.tsx`:**
+>    - เพิ่มการตรวจสอบสิทธิ์ `canRequesterReopen = (!user || user.role === "REQUESTER") && ticket?.status === "RESOLVED"`
+>    - เพิ่มปุ่ม "Reopen Ticket" บน Header Action Bar (`reopen-ticket-btn`) และแบนเนอร์แจ้งเตือนสถานะตั๋วปิดงานสำหรับ Requester (`requester-reopen-banner` และ `banner-reopen-ticket-btn`)
+>    - เพิ่ม Reopen Ticket Modal (`reopen-ticket-modal`) พร้อมช่องกรอกเหตุผลการเปิดตั๋วใหม่ (`reopen-reason-input`) เมื่อยืนยันจะเรียก `updateTicketStatus(ticketId, "REOPENED", ticket.updatedAt, reason)` และบันทึก Reopen Reason เป็น Public Comment
+>    - ปรับปรุง `client/src/api.ts` ในฟังก์ชัน `updateTicketStatus` ให้เรียก Endpoint `${API_URL}/api/tickets/${ticketId}/status` ซึ่งรองรับสิทธิ์ของ Requester แทนเส้นทาง staff-only
+> 2. **เพิ่มช่องกรอก Resolution Note เมื่อเปลี่ยนสถานะเป็น RESOLVED บน UI:**
+>    - เพิ่ม Textarea `resolution-note-input` ภายใต้การควบคุมสถานะใน Staff Operations Panel ซึ่งจะแสดงผลทันทีเมื่อเจ้าหน้าที่เลือกสถานะถัดไปเป็น `RESOLVED`
+>    - ปรับปรุงฟังก์ชัน `handleExecuteStatusTransition` ให้ส่ง `resolutionNote` เป็นอาร์กิวเมนต์ที่ 4 ไปยัง `updateTicketStatus` เพื่อให้เซิร์ฟเวอร์นำไปบันทึกเป็น Public Comment ต่อท้ายตั๋วโดยอัตโนมัติ
+> 3. **บันทึกหลักฐานการรีวิว PR #86 ใน `docs/lab-04/reviewer.md`:**
+>    - บันทึกรายละเอียด Review Round 7 สำหรับ PR #86 ครบถ้วนตามเกณฑ์ Handout Section 14 (Answer Part 1)
+>    - อัปเดตสถานะ PR #86 ในตารางสรุปเป็น `Changes Requested (Resolved) | In Review`
+> 4. **เพิ่มเคสทดสอบอัตโนมัติสำหรับ Requester Reopen และ Resolution Note ใน `TicketWorkflow.test.tsx`:**
+>    - เพิ่มเคส `UI-06i`: ทดสอบการแสดงผลปุ่ม Reopen Ticket และ Requester Reopen Banner เมื่อ Requester ดูตั๋วสถานะ RESOLVED
+>    - เพิ่มเคส `UI-06j`: ทดสอบการเปิด Reopen Modal, การกรอกเหตุผล และการส่งคำขอเปลี่ยนสถานะตั๋วเป็น REOPENED พร้อมตรวจสอบ Argument ที่ส่งไปยัง `updateTicketStatus`
+>    - เพิ่มเคส `UI-06k`: ทดสอบการแสดงผลช่อง Resolution Note เมื่อเลือก RESOLVED และตรวจสอบการส่ง Note ร่วมกับการเปลี่ยนสถานะ
+>    - ชุดทดสอบ Client ทั้งหมด 19 ไฟล์ (164 tests) และ Server ทั้งหมด 21 ไฟล์ (207 tests) ผ่านครบ 100% (รวม 371 tests)
