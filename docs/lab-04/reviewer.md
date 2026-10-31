@@ -17,8 +17,8 @@
 | [PR #84](https://github.com/chanya06/toktickit/pull/84) | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Approved & Merged | Merged |
 | [PR #85](https://github.com/chanya06/toktickit/pull/85) | `feature/34-dashboard-ui` | Role Dashboards UI (Metric Cards, Recent Lists, Quick Actions & Drill-down) | Approved & Merged | Merged |
 | [PR #86](https://github.com/chanya06/toktickit/pull/86) | `feature/35-ticket-workflow-hardening` | Ticket Workflow Hardening, Resolution Gate & Stale Update Handling | Approved & Merged | Merged |
-| [PR #87](https://github.com/chanya06/toktickit/pull/87) | `feature/36-qa-regression-and-deliverables` | QA Automated Tests, Regression Suite, Screenshots & Final PDF Deliverable | Pending Review | In Review |
-| [PR # (Pending)] | `lab4-staging` | Release Integration PR into `main` | Pending | Planned |
+| [PR #87](https://github.com/chanya06/toktickit/pull/87) | `feature/36-qa-regression-and-deliverables` | QA Automated Tests, Regression Suite, Screenshots & Final PDF Deliverable | Approved & Merged | Merged |
+| [PR #88](https://github.com/chanya06/toktickit/pull/88) | `lab4-staging` | Release Sprint 4 (Lab 4): TokTickIT Actions Taken, Dashboards, and Final Regression | Pending Review | Open |
 
 ---
 
@@ -26,7 +26,15 @@
 
 | PR # | Branch | Scope / Description | Reviewer Verdict | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| [PR # (Pending)] | `feature/29-spec-and-tests` | Sprint 4 Specifications and Test Contracts | Pending Review | Open |
+| [phatthidawadi/toktickit#72](https://github.com/phatthidawadi/toktickit/pull/72) | `feature/26-doc-spec-tests` | Sprint 4 Engineering Contract Documentation (Issue #26) | Approved (Round 1 & 2: Changes Requested, Round 3: Approved) | Merged |
+| [phatthidawadi/toktickit#73](https://github.com/phatthidawadi/toktickit/pull/73) | `feature/27-actions-taken-foundation` | Actions Taken Foundation — Migration, Model, Seed, APIs, AuthZ, Tests (Issue #27) | Approved with comments | Merged |
+| [phatthidawadi/toktickit#74](https://github.com/phatthidawadi/toktickit/pull/74) | `feature/28-actions-taken-ui` | Actions Taken UI — Ticket Detail Section (Issue #28) | Approved with comments | Merged |
+| [phatthidawadi/toktickit#75](https://github.com/phatthidawadi/toktickit/pull/75) | `feature/29-ticket-workflow-and-resolution` | Ticket Workflow and Resolution Gate (Issue #29) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
+| [phatthidawadi/toktickit#76](https://github.com/phatthidawadi/toktickit/pull/76) | `feature/30-role-based-dashboards` | Role-Based Dashboards — API, UI Components, and Default Landing Navigation (Issue #30) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
+| [phatthidawadi/toktickit#77](https://github.com/phatthidawadi/toktickit/pull/77) | `feature/31-e2e-automated-testing-and-screenshots` | Playwright Multi-Viewport E2E Test Suite, Performance-Smoke Tests, and Visual Screenshots (Issue #31) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
+| [phatthidawadi/toktickit#78](https://github.com/phatthidawadi/toktickit/pull/78) | `feature/32-visual-style-accessibility-hardening` | Zen Green Visual Style, Accessibility, Regression, and Final Hardening (Issue #32) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
+| [phatthidawadi/toktickit#79](https://github.com/phatthidawadi/toktickit/pull/79) | `feature/33-doc-reviewer-ai-use` | Sprint 4 Peer Reviewer Documentation, AI Usage Reflection, and Release Integration (Issue #33) | Approved with comments | Merged |
+| [phatthidawadi/toktickit#80](https://github.com/phatthidawadi/toktickit/pull/80) | `lab4-staging` | Release Sprint 4 (Lab 4): Actions Taken, Dashboards, and Final Regression | Pending Final Merge | Open |
 
 ---
 
@@ -376,3 +384,457 @@
 >    - เพิ่มเคส `UI-06j`: ทดสอบการเปิด Reopen Modal, การกรอกเหตุผล และการส่งคำขอเปลี่ยนสถานะตั๋วเป็น REOPENED พร้อมตรวจสอบ Argument ที่ส่งไปยัง `updateTicketStatus`
 >    - เพิ่มเคส `UI-06k`: ทดสอบการแสดงผลช่อง Resolution Note เมื่อเลือก RESOLVED และตรวจสอบการส่ง Note ร่วมกับการเปลี่ยนสถานะ
 >    - ชุดทดสอบ Client ทั้งหมด 19 ไฟล์ (164 tests) และ Server ทั้งหมด 21 ไฟล์ (207 tests) ผ่านครบ 100% (รวม 371 tests)
+
+---
+
+### Reviewer Approval on [PR #87](https://github.com/chanya06/toktickit/pull/87) (feature/36-qa-regression-and-deliverables)
+
+> **Reviewer:** `@lmaybelgracel` — **Verdict:** APPROVED  
+> ### Peer Review: QA Automated Tests, Regression Suite, Screenshots & Release Deliverable (PR #87) - Approved  
+> ได้ทำการตรวจทานโค้ด ชุดทดสอบ E2E ภาพหลักฐานการทดสอบ และเล่มเอกสารส่งงานฉบับสมบูรณ์ใน PR #87 อย่างละเอียดครบถ้วน:  
+> 1. **Playwright E2E Test Suites (`e2e/lab-04/`):** ชุดทดสอบอัตโนมัติทั้ง 3 มิติ (`dashboards.spec.ts`, `actions-taken-flow.spec.ts`, `ticket-resolution.spec.ts`) ครอบคลุมการทำงานตั้งแต่การแสดงผล Metric Cards, Drill-down, วงจร Action Taken, การป้องกัน Safe Failure (BR-04, BR-05), Resolution Gate Preconditions (BR-08) ไปจนถึง Requester Reopen Flow (FR-13 / AC-10) อย่างสมบูรณ์และเป็น Idempotent  
+> 2. **Visual Proofs & Responsive Audit (`artifacts/lab-04/screenshots/`):** มีไฟล์ภาพหลักฐานครบทั้ง 26 ภาพ ครอบคลุม 3 Viewports (Desktop, Tablet, Mobile) พร้อมภาพยืนยันการไม่มี Horizontal Overflow บนหน้าจอมือถือ 375px และ Keyboard Focus Indicators ตามเกณฑ์ WCAG AA  
+> 3. **Engineering Deliverables (`docs/lab-04/`):** เอกสาร `final-deliverable.md` จัดทำเนื้อหาครอบคลุม Answer Parts 1–9 ครบถ้วนตาม Handout Section 14 และไฟล์เล่มรายงาน `final-deliverable.pdf` (ขนาด 4.8 MB) ถูกสร้างและจัดหน้าอย่างประณีต พร้อมสำหรับการส่งมอบงาน  
+> 4. **Test & Build Integrity:** ชุดทดสอบ Regression รวมทั้งระบบ (375 tests) ผ่านครบ 100% และผ่านการทดสอบ Production Build ไร้ข้อผิดพลาด  
+> 
+> อนุมัติ (APPROVE) ให้ Merge เข้าสู่สาขา `lab4-staging` ได้ทันที
+
+---
+
+## 4. Verbatim Review Comments Provided to Partner (@phatthidawadi)
+
+### My Review Comment on Partner PR [#72](https://github.com/phatthidawadi/toktickit/pull/72):
+> โดยรวมเอกสารครอบคลุมโจทย์ Lab 4 ดี โดยเฉพาะ Actions Taken, dashboard, UI spec และ traceability ของ test plan
+>
+> มี 4 จุดที่อยากให้แก้ก่อน approve:
+> 1. Ticket transition กับ authorization ยังไม่ตรงกัน
+>    ใน specification.md ระบุว่า Requester สามารถเปลี่ยนสถานะ RESOLVED → CLOSED/REOPENED ได้ แต่ api-spec.md ระบุว่า endpoint เปลี่ยน status ใช้ได้เฉพาะ IT Staff/Admin และ UI เป็นแนวให้ Requester ดูข้อมูลอย่างเดียว
+>    อยากให้เลือก behavior ที่ต้องการให้ชัด แล้วปรับ specification, API spec, UI spec และ tests ให้ตรงกัน
+> 2. Optimistic locking ยังไม่ชัด
+>    BR-10 บอกว่า mutation ทุกตัวต้องส่ง version แต่ API spec ของ status update เขียนว่า version optional และ resolve-ack / cancel ยังไม่มี version ใน request contract
+>    ควรกำหนดให้ชัดว่า endpoint ไหนต้องใช้ version แล้วทำให้ request, response, error และ test สอดคล้องกัน
+> 3. Test plan ยังขาด performance-smoke coverage
+>    ตาม handout ต้องมี performance-smoke test แต่ใน tests.md ยังไม่เห็น test กลุ่มนี้
+>    แนะนำเพิ่ม test สำหรับ dashboard query หรือ action list โดยมีเกณฑ์ตรวจสอบที่ชัดเจน
+> 4. ไฟล์ประกอบ Lab 4 ยังไม่ครบ
+>    Handout ระบุให้มี docs/lab-04/reviewer.md และ docs/lab-04/ai-use.md เพิ่มด้วย ตอนนี้ PR มีเฉพาะ 4 ไฟล์หลัก
+>    ถ้าตั้งใจแยกไป PR ถัดไปก็ได้ แต่ควรวางแผนให้ครบก่อนส่งงาน
+
+### Partner Response (@phatthidawadi on PR #72):
+> ดำเนินการแก้ไขและปรับความสอดคล้องทั้ง 4 จุดเรียบร้อยแล้วใน commit 3d7531a:
+>
+> 1. **Ticket Transition & Authorization Alignment:**
+>    - กำหนดให้การเปลี่ยนสถานะตั๋วอย่างเป็นทางการ (Formal Status Transition) รวมถึง `RESOLVED -> CLOSED` และ `RESOLVED -> REOPENED` ดำเนินการโดย **`IT_STAFF` และ `ADMINISTRATOR` เท่านั้น** ผ่าน `PATCH /api/staff/tickets/:id/status` (Requesters ได้รับ HTTP 403 Forbidden)
+>    - บทบาทของ Requester ต่อสถานะตั๋วมีเพียง:
+>      - ยกเลิกตั๋วของตนเองเมื่ออยู่ในสถานะ `NEW`: `NEW -> CANCELLED` ผ่าน `PATCH /api/tickets/:id/cancel`
+>      - ส่งความเห็นเชิงแนะนำผ่าน Toggle "Problem Appears Resolved" ผ่าน `PATCH /api/tickets/:id/resolve-ack` ซึ่งเป็นเพียง Advisory indicator (`isRequesterResolved = true`) แต่ไม่เปลี่ยนสถานะตั๋ว
+>      - ระบบ auto-transition ตั๋วจาก `WAITING_FOR_REQUESTER -> IN_PROGRESS` อัตโนมัติเมื่อ Requester ตอบคอมเมนต์ (BR-09)
+>    - ปรับปรุงให้สอดคล้องกันครบทั้ง `specification.md` (ตาราง 5.1, 5.2), `api-spec.md` (§3.1), `ui-spec.md` (§3.5), และ `tests.md`
+>
+> 2. **Optimistic Locking & Mandatory Versioning:**
+>    - กำหนดให้ทุก mutation บน Ticket (`/api/staff/tickets/:id/status`, `/api/tickets/:id/resolve-ack`, `/api/tickets/:id/cancel`) และ Action Taken (`/api/actions/:id`) ต้องส่ง `"version": <integer>` เป็น **Mandatory field** ใน Request body เสมอ
+>    - หาก `version` ไม่ตรงกับฐานข้อมูลจะถูก reject ด้วย HTTP `409 Conflict` (`CONCURRENCY_CONFLICT`)
+>    - อัปเดต contracts, error schema และ test cases (`ACT-API-09`, `FLOW-API-06`, `FLOW-API-07`, `FLOW-API-08`) ครบถ้วน
+>
+> 3. **Performance-Smoke Test Coverage:**
+>    - เพิ่มหมวด Performance-Smoke Tests ใน `tests.md` (§2.4) ได้แก่:
+>      - `PERF-SMK-01`: Dashboard queries benchmark (`/api/dashboard/requester`, `/api/dashboard/staff`) latency p95 < 200ms ภายใต้ฐานข้อมูล 100+ tickets
+>      - `PERF-SMK-02`: Actions Taken query latency (`/api/tickets/:id/actions`) latency p95 < 150ms สำหรับ ticket ที่มี 20+ action lines
+>      - `PERF-SMK-03`: Burst concurrency conflict throughput (10 concurrent requests) latency เฉลี่ย < 300ms
+>    - เพิ่ม `AC-17 (Performance-Smoke Benchmarks)` ใน `specification.md` และแมปลงใน Traceability Matrix (100% covered)
+>
+> 4. **ไฟล์ประกอบ Lab 4:**
+>    - ได้เพิ่มไฟล์ `docs/lab-04/reviewer.md` และ `docs/lab-04/ai-use.md` เข้ามาใน PR นี้เรียบร้อยแล้ว ทำให้โครงสร้างโฟลเดอร์ `docs/lab-04/` มีครบทั้ง 6 ไฟล์ตามเกณฑ์ Handout Section 12
+>
+> รบกวนตรวจสอบอีกครั้งนะ
+
+---
+
+### My Round 2 Review Comment on Partner PR [#72](https://github.com/phatthidawadi/toktickit/pull/72):
+> ตรวจรอบล่าสุดแล้ว 4 ประเด็นหลักแก้ได้ดีขึ้นมาก โดยเฉพาะ mandatory versioning, performance-smoke tests และการเพิ่มไฟล์ประกอบ Lab 4  
+>
+> เหลือขอแก้อีก 3 จุดก่อน approve:
+> 1. PATCH /api/tickets/:id/cancel ยังระบุสิทธิ์ไม่ตรงกันระหว่าง api-spec.md กับ specification.md ว่า Staff/Admin ใช้ได้หรือไม่
+> 2. reviewer.md ระบุว่า PR #72 “Approved with comments” แล้ว แต่ตอนนี้ยังอยู่ระหว่างรีวิว ขอให้เปลี่ยนเป็น Changes requested หรือ Under review ก่อน
+> 3. เพิ่ม Performance-Smoke Tests แล้ว แต่ tests.md และ ai-use.md ยังระบุว่ามีเพียง 8 coverage layers ควรอัปเดตเป็น 9 layers
+> แก้ 3 จุดนี้แล้วส่งมาได้เลย
+
+### Partner Round 2 Response (@phatthidawadi on PR #72):
+> ดำเนินการปรับปรุงแก้ไขทั้ง 3 จุดเรียบร้อยแล้วใน commit a50f408:
+>
+> 1. **ปรับสิทธิ์ `PATCH /api/tickets/:id/cancel` ให้ตรงกัน:**
+>    - ปรับใน `api-spec.md` (§3.3) ให้ตรงกับ `specification.md` (BR-08, §8.2) และ `ui-spec.md` (§3.5) อย่างสมบูรณ์:
+>      - `PATCH /api/tickets/:id/cancel` กำหนด Authorized Role เป็น **`REQUESTER` (owned ticket in `NEW` status only)** สำหรับการถอนตั๋วก่อน triage
+>      - ระบุหมายเหตุชัดเจนว่า `IT_STAFF` และ `ADMINISTRATOR` ทำการ cancel ตั๋วผ่าน endpoint หลัก `PATCH /api/staff/tickets/:id/status` ด้วย payload `{ "status": "CANCELLED", "version": <int> }` ซึ่งรองรับการยกเลิกจากหลายสถานะ (`NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`) ตาม Transition Matrix
+>
+> 2. **อัปเดตสถานะใน `reviewer.md`:**
+>    - ปรับสถานะของ PR #72 ในตารางเป็น **`Under review (Changes requested)`** และ Status เป็น **`Under Review`** ให้ตรงกับสถานะจริงในระหว่างรีวิว และเพิ่มบันทึก Round 2 logs เรียบร้อยครับ
+>
+> 3. **อัปเดต Coverage Layers เป็น 9 Layers ครบทุกจุด:**
+>    - ใน `docs/lab-04/tests.md`:
+>      - อัปเดต §1 เป็น **9 Coverage Layers** โดยเพิ่มข้อ *9. Performance-Smoke Tests: Latency benchmarks across dashboard aggregations (< 200ms), actions chronological queries (< 150ms), and burst concurrency conflict throughput under operational loads.*
+>      - อัปเดตเกณฑ์ความครอบคลุมเป็น `FR-01` ถึง `FR-12`, `BR-01` ถึง `BR-16`, และ `AC-01` ถึง `AC-17`
+>    - ใน `docs/lab-04/ai-use.md`:
+>      - อัปเดตข้อความใน Prompt log และ Reflection ให้ระบุ 9 coverage layers สอดคล้องกันทั้งหมด
+>
+> ตอนนี้เนื้อหาครบถ้วนและสอดคล้องกัน 100% แล้ว รบกวนตรวจสอบอีกครั้ง
+
+---
+
+### My Approval Verdict on Partner PR [#72](https://github.com/phatthidawadi/toktickit/pull/72):
+> ตรวจแล้ว 3 จุดที่เหลือแก้ครบและสอดคล้องกันแล้ว:
+> - cancel endpoint จำกัดเฉพาะ Requester เจ้าของ ticket ที่สถานะ NEW; Staff/Admin ใช้ status endpoint หลัก
+> - reviewer.md เปลี่ยนเป็น Under review (Changes requested) แล้ว
+> - tests.md และ ai-use.md อัปเดตเป็น 9 coverage layers และครอบคลุม AC-17 แล้ว
+
+---
+
+### My Review Comment on Partner PR [#73](https://github.com/phatthidawadi/toktickit/pull/73):
+> ตรวจสอบโค้ดจริงของ PR #73 ครอบคลุม Prisma Schema, Migration SQL, Database Seed, REST APIs และ Automated Tests เทียบกับข้อกำหนด Lab 4 Handout และ engineering contract ใน `docs/lab-04/`:
+>
+> 1. **Data Model & Migration:**
+>    - โมเดล `ActionTaken` มีฟิลด์ครบตาม Handout Section 4.1 (`actionDateTime`, `description`, `result`, `performedById`, `followUpRequired`, `followUpNote`, `attachmentNotes`, `assigneeId`, `status`)
+>    - Foreign Keys ถูกต้อง: `ticket` (Cascade delete), `performedBy` (Restrict), `assignee` (SetNull)
+>    - Migration `20261015000000_init_lab4_actions_taken` ปลอดภัย เป็น non-destructive มี `IF NOT EXISTS` ไม่กระทบข้อมูลเดิม
+>
+> 2. **Seed Data:**
+>    - `server/prisma/seed.ts` มี sample tickets ครบทั้ง 3 กรณีตาม Handout §5.3:
+>      - Ticket 1 (`TKT-2026-000001`): มี 2 actions (Completed 1, In Progress 1)
+>      - Ticket 2 (`TKT-2026-000002`): Legacy ticket มี 0 actions
+>      - Ticket 3 (`TKT-2026-000003`): Resolved ticket มี 1 action
+>    - Seed logic ทำงานแบบ idempotent (`findFirst` check)
+>
+> 3. **REST APIs & Authorization:**
+>    - `POST /api/tickets/:id/actions`: ป้องกัน Requester ด้วย 403, `performedById` ดึงจาก Session Token อัตโนมัติ, ตรวจสอบ assignee ต้องเป็น active IT Staff หรือ Admin
+>    - `GET /api/tickets/:id/actions`: Requester ดูได้เฉพาะตั๋วที่ตนเองเป็นเจ้าของ (ดูของคนอื่นตอบ 403 `FORBIDDEN`), เรียงลำดับ `actionDateTime ASC, id ASC` สม่ำเสมอ
+>    - `PATCH /api/actions/:id`: ตรวจสอบ version mismatch แล้วส่ง `409 CONCURRENCY_CONFLICT` ตาม BR-10
+>
+> 4. **Automated Tests:**
+>    - `server/tests/lab-04/actions-taken.api.test.ts` มี 10 test cases (`ACT-API-01` ถึง `ACT-API-09` และ `MIG-API-01`) ยืนยันพฤติกรรมครบทุกเงื่อนไข
+>
+> **ข้อเสนอแนะเพิ่มเติม (Non-blocking):**
+> - ใน `PATCH /api/actions/:id` สามารถปรับให้ version check เป็น atomic update ผ่าน `updateMany` ในระดับ database ได้
+> - อัปเดตตารางใน `docs/lab-04/reviewer.md` ให้ใส่ลิงก์ `[PR #73]`
+
+### Partner Response (@phatthidawadi on PR #73):
+> ขอบคุณสำหรับคำแนะนำและการตรวจทานโค้ดอย่างละเอียดครับ ได้ดำเนินการปรับปรุงทั้ง 2 จุดตามข้อเสนอแนะเรียบร้อยแล้ว:
+>
+> 1. **Atomic Version Check ใน `PATCH /api/actions/:id`:**
+>    - ปรับปรุงการอัปเดตข้อมูลให้ใช้ `prisma.actionTaken.updateMany` โดยกำหนดเงื่อนไข `where: { id: actionId, version }` และ `version: { increment: 1 }` โดยตรงในระดับฐานข้อมูล ทำให้การตรวจสอบและเพิ่มค่า version เกิดขึ้นแบบ Atomic Operation ป้องกัน Concurrency Race Condition ระหว่าง concurrent requests ได้ 100%
+>
+> 2. **อัปเดตตารางใน `reviewer.md`:**
+>    - บันทึกลิงก์ `[PR #73]` และระบุผลการตรวจทานเป็น `Approved with comments` พร้อมบันทึกข้อคิดเห็นจากรีวิวและการตอบกลับอย่างครบถ้วน
+
+---
+
+### My Approval Verdict on Partner PR [#73](https://github.com/phatthidawadi/toktickit/pull/73):
+> ### Re-review — PR #73 (Round 2) — 
+> 
+> ตรวจ head ล่าสุด commit `0412dc5` และยืนยันผลจากโค้ดจริงทุกจุดเรียบร้อยแล้วค่ะ จุดที่ให้ข้อเสนอแนะไว้ในรอบแรกแก้ไขได้ถูกต้อง รัดกุม และสมบูรณ์แบบมากค่ะ:
+> 
+> 1. ✅ **Atomic Optimistic Concurrency Update (`server/src/app.ts`)**:
+>    - ปรับ `PATCH /api/actions/:id` มาใช้ `prisma.actionTaken.updateMany` โดยระบุเงื่อนไข `where: { id: actionId, version }` และ `version: { increment: 1 }`
+>    - ตรวจจับ `updateResult.count === 0` ตอบกลับ `409 CONCURRENCY_CONFLICT` ทันที ทำให้การล็อกและตรวจสอบ version เป็น Atomic Operation ในระดับฐานข้อมูล PostgreSQL ป้องกัน Concurrency Race Condition ระหว่าง concurrent requests ได้ 100%
+> 
+> 2. ✅ **Peer Review Record Updated (`docs/lab-04/reviewer.md`)**:
+>    - อัปเดตตารางสถานะของ `[PR #73]` เป็น **`Approved with comments`** เรียบร้อย
+>    - บันทึกรายละเอียดข้อเสนอแนะจาก Reviewer และคำชี้แจงการแก้ไขจาก Author ครบถ้วนตามมาตรฐานกระบวนการของรายวิชา
+> 
+> 3. ✅ **Test Suite & Verification**:
+>    - ชุดทดสอบ Actions Taken API (`ACT-API-01` ถึง `ACT-API-09` และ `MIG-API-01`) ผ่านครบ 10/10 tests
+>    - ชุดทดสอบ Full Regression ฝั่ง Server ผ่าน 94/94 tests ครอบคลุม 19 test files และ Client Production Build ผ่านสมบูรณ์
+
+---
+
+### My Review Comment on Partner PR [#74](https://github.com/phatthidawadi/toktickit/pull/74):
+> ตรวจทานโค้ดจริงทั้งหมดใน branch `feature/28-actions-taken-ui` เทียบกับ **Lab 4 Handout (§4.3, §8.3)**, `specification.md`, `ui-spec.md` และ `tests.md` อย่างละเอียดเรียบร้อยแล้ว:
+>
+> 1. ✅ **Component Integration & Role-Based Visibility**:
+>    - นำคอมโพเนนต์ `ActionsTakenSection` ไปฝังในทั้ง `StaffTicketDetail.tsx` (Staff/Admin) และ `TicketDetailView.tsx` (Requester) ได้อย่างถูกต้อง
+>    - แยกสิทธิ์ชัดเจน: Requester เห็นประวัติการทำงานแบบ Read-only (ซ่อนปุ่มสร้างและแก้ไขทั้งหมด) ขณะที่ Staff/Admin มีปุ่ม `+ Record Action` และปุ่ม `Edit` ครบถ้วนตาม Handout §4.3
+>
+> 2. ✅ **Responsive Design & Dual Layout**:
+>    - รองรับการแสดงผลแบบตารางบน Desktop/Tablet ($\ge$ 768px) และสลับเป็น Stacked Cards บน Mobile (< 768px) อัตโนมัติ ป้องกันปัญหาหน้าจอล้น (No horizontal scrolling)
+>    - ปุ่มกดสำคัญผ่านเกณฑ์ Touch Target $\ge$ 44px และมี Visible Focus Ring (`2px solid #0B7A46`) ตามมาตรฐาน Zen Green Theme
+>
+> 3. ✅ **Validation & Dynamic UX**:
+>    - ตรวจสอบฟิลด์บังคับ Description และ Result (1–2,000 ตัวอักษร) พร้อม Toggle กล่องข้อความ Follow-up Note สีเหลืองอำพัน (`#FEF3C7`) เฉพาะเมื่อต้องการงานติดตามต่อ
+>    - เชื่อมต่อ Dropdown ผู้รับผิดชอบกับ Endpoint `GET /api/staff/assignees` ที่กรองเฉพาะ active IT Staff/Admin อย่างรัดกุม
+>
+> 4. ✅ **Optimistic Concurrency Conflict Handling (HTTP 409)**:
+>    - จัดการ Conflict ในระดับ UI ได้อย่างนุ่มนวล โดยแสดงแบนเนอร์แจ้งเตือนพร้อมปุ่ม `Reload Latest Data` เพื่อดึงเวอร์ชันล่าสุดมาให้แก้ไขใหม่โดยไม่ทำลายข้อมูลที่ผู้ใช้พิมพ์ค้างไว้
+>
+> 5. ✅ **Automated Tests**:
+>    - ชุดทดสอบ `client/tests/lab-04/ActionsTaken.test.tsx` ครอบคลุมครบทั้ง 5 เคส (`UI-ACT-01` ถึง `UI-ACT-05`) ผ่าน 100%
+>
+> **ข้อเสนอแนะเพิ่มเติม (Non-blocking):**
+> - ใน `docs/lab-04/api-spec.md` แนะนำเพิ่มการบันทึก Endpoint ใหม่ `GET /api/staff/assignees` ที่เพิ่มเข้ามาใน PR นี้ เพื่อให้เอกสารสัญญาตรงกับโค้ดจริง
+> - สามารถพิจารณาเพิ่ม Keyboard Event Listener ดักจับปุ่ม `Escape` สำหรับการปิด Modal เพื่อเพิ่มความสะดวกในการใช้งานผ่านคีย์บอร์ด
+
+### Partner Response (@phatthidawadi on PR #74):
+> ขอบคุณสำหรับข้อเสนอแนะและการตรวจทานโค้ดอย่างละเอียดครับ ได้ดำเนินการปรับปรุงและตอบสนองทั้ง 2 ข้อเรียบร้อยแล้ว:
+>
+> 1. **บันทึกเอกสาร API Spec (`GET /api/staff/assignees`):**
+>    - เพิ่มการบันทึก Endpoint `GET /api/staff/assignees` ใน `docs/lab-04/api-spec.md` (หัวข้อ 2.4 List Eligible Staff Assignees) พร้อมรายละเอียด Authorized Roles (`IT_STAFF`, `ADMINISTRATOR`), Request Headers และตัวอย่าง JSON Response ของเจ้าหน้าที่ที่พร้อมรับงานอย่างสมบูรณ์
+>
+> 2. **เพิ่ม Keyboard Event Listener ปิด Modal ด้วยปุ่ม `Escape`:**
+>    - เพิ่ม `useEffect` ดักจับ `keydown` Event บน window เพื่อตรวจสอบ `e.key === "Escape"` เมื่อเปิด Record Modal หรือ Edit Modal อยู่ ให้เรียกสั่งปิด `closeModals()` พร้อม Clean-up Event Listener อย่างถูกต้องตามมาตรฐาน WCAG 2.1 AA Keyboard Accessibility
+>
+> ได้รันชุดทดสอบ Client Tests ผ่าน 5/5 tests และ Client Production Build ผ่าน 100% เรียบร้อยครับ
+
+---
+
+### My Approval Verdict on Partner PR [#74](https://github.com/phatthidawadi/toktickit/pull/74):
+> ### Review — PR #74: Actions Taken UI (Issue #28)
+> 
+> ตรวจโค้ดจริงบน branch `feature/28-actions-taken-ui` รวมทั้ง commit `a4fc2d7` ล่าสุดเรียบร้อยแล้วค่ะ:
+> 
+> - ✅ **Actions Taken UI**: คอมโพเนนต์ `ActionsTakenSection` เชื่อมต่อกับหน้ารายละเอียดตั๋วทั้ง 2 ฝั่งถูกต้อง (Requester เป็น Read-only, Staff/Admin บันทึกและแก้ไขได้)
+> - ✅ **Responsive & Theme**: แสดงผลแบบ Table บนจอใหญ่ และปรับเป็น Stacked Cards บนจอมือถือ (< 768px) ป้องกันหน้าจอล้น สไตล์และสีตรงตาม Zen Green Theme
+> - ✅ **Optimistic Locking**: จัดการ 409 Conflict ได้นุ่มนวล มีปุ่ม Reload ข้อมูลล่าสุดโดยไม่ทำลายข้อมูลที่กรอกค้างไว้
+> - ✅ **Accessibility & Contract**: มีการดักปุ่ม `Escape` เพื่อปิด Modal ครบถ้วน และเอกสาร `docs/lab-04/api-spec.md` บันทึก endpoint `GET /api/staff/assignees` ครบถ้วนแล้ว
+> - ✅ **Tests**: ชุดทดสอบ `client/tests/lab-04/ActionsTaken.test.tsx` ผ่านครบ 5/5 tests
+
+---
+
+### My Review Comment on Partner PR [#75](https://github.com/phatthidawadi/toktickit/pull/75):
+> ตรวจทานโค้ดจริงบน branch `feature/29-ticket-workflow-and-resolution` เทียบกับ **Lab 4 Handout (§4.5, §8.4)** และ **Specification (§5.1)** แล้ว ภาพรวมการทำ Resolution Gate, Optimistic Locking และหน้าบ้านทำมาได้ดีมาก
+>
+> แต่พบ **1 จุดที่เป็น Spec Deviation ที่ฝั่ง Backend** ที่อยากให้ปรับแก้ให้ตรงกันก่อน:
+>
+> **`server/src/utils/workflow.ts` (L3, L7) ยังมี Transition ที่ไม่อนุญาตตามสเปกค้างอยู่:**
+> - ใน `specification.md` §5.1 และใน `StaffTicketDetail.tsx`:
+>   - `OPEN` สามารถเปลี่ยนได้แค่ `["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"]` เท่านั้น (ไม่อนุญาตให้ข้ามไป `RESOLVED` โดยตรงตามหลัก Resolution Gate)
+>   - `REOPENED` สามารถเปลี่ยนได้แค่ `["IN_PROGRESS"]` เท่านั้น
+> - แต่ใน `server/src/utils/workflow.ts` ตอนนั้นยังเป็น:
+>   - `OPEN: { to: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"] }`
+>   - `REOPENED: { to: ["IN_PROGRESS", "RESOLVED", "CANCELLED"] }`
+>   ทำให้ถ้ามีการยิง API ตรง Backend จะยังยอมให้ `OPEN -> RESOLVED` ได้อยู่
+>
+> **จุดแนะนำเพิ่มเติม (Non-blocking):**
+> - ใน `TicketDetailView.tsx` สามารถเพิ่ม Escape key handler สำหรับปิด Cancel Confirmation Modal ได้
+
+### Partner Response (@phatthidawadi on PR #75):
+> ดำเนินการแก้ไขทั้ง 2 จุดเรียบร้อยแล้วใน commit `b4d2b57`:
+>
+> 1. **แก้ Transition Matrix ใน `server/src/utils/workflow.ts` ให้ตรงกับ specification.md §5.1:**
+>    - ปรับ `OPEN` ให้มี `to` เป็น `["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"]` เท่านั้น โดยเอา `"RESOLVED"` ออก เพื่อบังคับให้ตั๋วต้องผ่านสถานะ `IN_PROGRESS` หรือ `WAITING_FOR_REQUESTER` ก่อนจะถึง `RESOLVED` ได้ ตามหลัก Resolution Gate
+>    - ปรับ `REOPENED` ให้มี `to` เป็น `["IN_PROGRESS"]` เท่านั้น โดยเอา `"RESOLVED"` และ `"CANCELLED"` ออก ทำให้ตั๋วที่ถูก Reopen ต้องกลับไปอยู่สถานะ `IN_PROGRESS` เสมอ
+>    - ตอนนี้ workflow.ts, StaffTicketDetail.tsx และ specification.md §5.1 สอดคล้องกัน 100% ป้องกัน `OPEN -> RESOLVED` Bypass ได้ทั้งในระดับ API และ UI
+>    - ชุดทดสอบ `ticket-workflow.api.test.ts` ผ่านครบ 10/10 tests
+>
+> 2. **เพิ่ม Escape Key Handler ใน `TicketDetailView.tsx`:**
+>    - เพิ่ม `useEffect` ดักจับ `keydown` Event บน window ตรวจสอบ `e.key === "Escape"` เมื่อ `showCancelModal` เป็น `true` และไม่อยู่ระหว่าง Cancelling เพื่อปิด Modal โดยเรียก `setShowCancelModal(false)` พร้อม Clean-up Event Listener อย่างถูกต้อง สอดคล้องกับ pattern เดียวกับ ActionsTakenSection.tsx
+
+---
+
+### My Approval Verdict on Partner PR [#75](https://github.com/phatthidawadi/toktickit/pull/75):
+> ### Re-review — PR #75 (Round 2) —
+>
+> ตรวจ head ล่าสุด commit `b4d2b57` เรียบร้อยแล้วค่ะ จุดที่ขอให้แก้ไขได้รับการปรับปรุงอย่างถูกต้องและรวดเร็วมาก:
+>
+> - **Resolution Gate Strictly Enforced**: ปรับปรุง `server/src/utils/workflow.ts` ให้ตัด `RESOLVED` ออกจาก `OPEN` และตัด `RESOLVED`, `CANCELLED` ออกจาก `REOPENED` ทำให้ Transition Matrix สอดคล้องกับ `specification.md` §5.1 และ `StaffTicketDetail.tsx` ครบ 100% ปิดช่องโหว่การ bypass ข้ามขั้นตอนได้อย่างสมบูรณ์
+> - **Keyboard Accessibility**: เพิ่ม `Escape` key event listener ใน `TicketDetailView.tsx` สำหรับปิด Cancel Confirmation Modal ช่วยให้การใช้งานผ่านคีย์บอร์ดสะดวกและตรงตามมาตรฐานสเปก
+> - **Test Verification**: ยืนยันผลการทดสอบ Server Integration Tests (`ticket-workflow.api.test.ts`) ผ่านครบ 10/10 tests และ Client Component Tests ผ่านครบถ้วน
+
+---
+
+
+### PR #76 — Issue #30: Role-Based Dashboards (feature/30-role-based-dashboards)
+
+### My Review Comment on Partner PR [#76](https://github.com/phatthidawadi/toktickit/pull/76):
+> ตรวจทานโค้ดบนสาขา `feature/30-role-based-dashboards` (commit `31e44a7`) เทียบกับข้อกำหนด Lab 4 Handout, `specification.md` (FR-08 ถึง FR-12, BR-11 ถึง BR-13), `api-spec.md` และ `tests.md` เรียบร้อยแล้ว
+>
+> **จุดที่ต้องแก้ไข (Request Changes ⛔):**
+> 1. **การส่งต่อ Filter State จาก Dashboard ไปยัง Queue/Ticket Views (FR-11, AC-13):**
+>    - ใน `client/src/App.tsx` ฟังก์ชัน Callback ของ Dashboard ทั้งสอง (`onNavigateToTickets`, `onNavigateToQueue`) มีการประกาศ parameter `_filter` ไว้ แต่ไม่ได้ส่งต่อไปยัง Component ลูก (`StaffTicketQueue` และ `MyTicketsView`) ทำให้เมื่อผู้ใช้คลิกการ์ดตัวชี้วัด เช่น "Unassigned" หรือ "Urgent Priority" หรือ "Waiting on You" ตัวหน้า Queue/Ticket View ปลายทางไม่ได้ถูก Pre-filter ตามการ์ดที่กดจริง
+> 2. **โครงสร้าง Response ในเอกสาร `api-spec.md` ไม่ตรงกับการ Implement จริง (Spec Sync):**
+>    - ใน `docs/lab-04/api-spec.md` (§4.1 และ §4.2) ยังระบุตัวอย่าง Response ของทั้ง Requester และ Staff Dashboard ในรูปแบบที่มี wrapper ซ้อนอยู่ (`metrics: { ... }`) และใช้ชื่อฟิลด์เก่า แต่ในโค้ดจริงเป็น Flat object ที่ root (`totalOpenTickets`, `unassignedTickets`, ฯลฯ) และใช้ชื่อฟิลด์ `myRecentTickets`
+> 3. **ความสอดคล้องของนิยาม `myAssignedTickets` ในเอกสาร `api-spec.md`:**
+>    - ใน `api-spec.md` §4.2 ระบุว่า `myAssignedTickets` นับเฉพาะสถานะ `NOT IN ('CLOSED', 'CANCELLED')` แต่ในโค้ดจริงใช้ `ACTIVE_STATUSES` (ไม่รวม `RESOLVED` ด้วย) อยากให้ปรับคำอธิบายให้ระบุเงื่อนไขให้ตรงกับที่โค้ดทำงานจริง
+>
+> **คำแนะนำเพิ่มเติม (Suggestions / Non-blocking 💡):**
+> - ใน `server/src/app.ts` สำหรับ `GET /api/dashboard/staff` มีการดึง Ticket ทั้งหมดมาวนลูป group by ในหน่วยความจำ ในอนาคตหากมีตั๋วปริมาณมาก การใช้ Database Aggregation โดยตรงจะช่วยลด Memory Footprint ได้ดีขึ้น
+
+### Partner Response (@phatthidawadi on PR #76):
+> ดำเนินการปรับปรุงแก้ไขทั้ง 3 จุดเรียบร้อยแล้ว:
+>
+> 1. **เชื่อมต่อ Drill-Down Filtering ใน `client/src/App.tsx`, `StaffTicketQueue.tsx`, และ `MyTicketsView.tsx` (FR-11, AC-13):**
+>    - เพิ่ม state `queueFilter` และ `ticketsFilter` ใน `App.tsx` เพื่อรับ filter key จากการคลิกการ์ดบน `StaffDashboard` และ `RequesterDashboard`
+>    - ส่งต่อเป็น prop `initialFilter` ไปยัง `StaffTicketQueue` และ `MyTicketsView`
+>    - เพิ่ม helper `resolveInitialFilters` ใน `StaffTicketQueue` เพื่อ map filter (`"unassigned"`, `"my-assigned"`, `"urgent"`, `"waiting"`) ไปยัง state ตัวกรอง (`assignedStaffId`, `itPriority`, `status`) ส่งผลให้คิวถูก Pre-filter ทันทีที่เปิดหน้า และเคลียร์ filter เมื่อคลิกเปลี่ยนแท็บจาก Header
+>    - เพิ่ม helper `resolveMyTicketsFilter` ใน `MyTicketsView` เพื่อ map filter (`"waiting"`, `"resolved"`) เข้ากับ `selectedStatus` และเพิ่มตัวเลือกสถานะ (`OPEN`, `WAITING_FOR_REQUESTER`, `REOPENED`, `CANCELLED`) ใน status filter dropdown ให้ครบถ้วน
+>
+> 2. **ปรับปรุง Response Structure ใน `docs/lab-04/api-spec.md` (§4.1 และ §4.2) ให้ตรงกับ Implementation จริง:**
+>    - ปรับ JSON Response ตัวอย่างของทั้ง Requester Dashboard (`GET /api/dashboard/requester`) และ Staff Dashboard (`GET /api/dashboard/staff`) ให้เป็น Flat root object โดยนำ wrapper `metrics: {}` ออก
+>    - ปรับชื่อฟิลด์จาก `recentTickets` เป็น `myRecentTickets` พร้อมอธิบายโครงสร้างตั๋วที่คืนกลับมา
+>    - อัปเดต Zero-State behavior ให้ตรงกับผลลัพธ์จริง (คืนค่าเคาน์เตอร์ 0 ทุกตัว และ `myRecentTickets: []`)
+>
+> 3. **ปรับแก้คำอธิบายการคำนวณ `myAssignedTickets` และ `ticketsByPriority` ใน `api-spec.md` §4.2:**
+>    - ระบุชัดเจนว่านับเฉพาะ Active Workload สถานะ `IN ('NEW', 'OPEN', 'IN_PROGRESS', 'WAITING_FOR_REQUESTER', 'REOPENED')` (ตัด RESOLVED/CLOSED/CANCELLED ออก)
+>    - ระบุเงื่อนไข `ticketsByPriority` ว่านับเฉพาะ active tickets เพื่อให้สอดคล้องกับพฤติกรรมจริงของระบบ
+>
+> 4. **การตรวจสอบและชุดทดสอบ:**
+>    - Server Integration Tests (`dashboard.api.test.ts` และชุดทดสอบทั้งหมด 21 ไฟล์): ผ่านครบ **112/112 tests**
+>    - Client Component Tests (`Dashboard.test.tsx`, `TicketWorkflow.test.tsx`, `ActionsTaken.test.tsx`): ผ่านครบ **13/13 tests**
+>    - Client Build (`npm run build`): ผ่านฉลุย (TypeScript + Vite)
+
+### My Approval Verdict on Partner PR [#76](https://github.com/phatthidawadi/toktickit/pull/76):
+> **คำตัดสิน: Approved with comments ✅**
+>
+> ได้รับการตรวจทานซ้ำ (Re-review) หลังจากการปรับปรุงใน commit `b24c6df` และ `e0ff16c` ครบถ้วน:
+> 1. เชื่อมต่อ Drill-Down Filtering ใน `App.tsx`, `StaffTicketQueue.tsx`, และ `MyTicketsView.tsx` ได้อย่างสมบูรณ์ รองรับการส่งต่อและรีเซ็ต filter state ตามการคลิกการ์ดตัวชี้วัด (AC-13, FR-11)
+> 2. ปรับปรุงเอกสาร `docs/lab-04/api-spec.md` (§4.1 และ §4.2) ให้มีโครงสร้าง Flat JSON Response และชื่อฟิลด์ `myRecentTickets` สอดคล้องกับ Server implementation จริง
+> 3. ปรับแก้นิยามการคำนวณ `myAssignedTickets` และ `ticketsByPriority` ให้ชัดเจนว่าประเมินเฉพาะ Active Tickets เท่านั้น
+> 4. ยืนยันผลการทดสอบ Server Integration Tests (112/112 tests), Client Component Tests (13/13 tests) และ Client Production Build ผ่านครบถ้วน 100%
+>
+> อนุมัติการรวมโค้ด (Approved & Ready to Merge) เข้าสู่สาขา `lab4-staging` เรียบร้อยครับ
+
+---
+
+### My Review Comment on Partner PR [#77](https://github.com/phatthidawadi/toktickit/pull/77):
+
+> **คำตัดสิน: Changes Requested**
+>
+> จากการตรวจทานโค้ดในสาขา `feature/31-e2e-automated-testing-and-screenshots` (commit `d733c56`) พบจุดบกพร่องสำคัญที่ต้องขอให้ปรับปรุงก่อนอนุมัติ ดังนี้:
+>
+> 1. **[Critical] False Positive Test ใน `ticket-resolution.spec.ts` (E2E-02-B):**
+>    - ในบรรทัด 219 มีการ Hardcode URL เรียก `/api/tickets/2/actions` แต่เนื่องจาก `POST /api/test/reset-db` ลบข้อมูลในตาราง Ticket โดยไม่รีเซ็ต SQLite autoincrement sequence ทำให้ ID ของตั๋ว `TKT-2026-000002` เปลี่ยนไปเป็นค่าอื่น
+>    - โค้ดได้นำการทดสอบ 409 Concurrency Conflict ไปครอบไว้ใน `if (actionsData && actionsData.length > 0)` เมื่อ API คืนค่าว่าง ตัวเทสต์จึงข้ามการทดสอบ 409 และการ Assert แบนเนอร์แจ้งเตือนไปโดยสิ้นเชิง แต่เทสต์กลับรายงานผลว่าผ่าน (False Positive)
+>    - ส่งผลให้รูปภาพ `03-concurrency-conflict-alert-chromium.png` ไม่ได้ถูกสร้างและขาดหายไปจากโฟลเดอร์ `artifacts/lab-04/screenshots/ticket-resolution/`
+>    - **วิธีแก้:** ดึง `actionId` จาก attribute ของปุ่ม Edit บนหน้าจอโดยตรง (เช่น `edit-action-btn-${id}`), นำ `if (actionsData && actionsData.length > 0)` ออกเพื่อให้เทสต์ Fail หากไม่พบข้อมูล และรันสร้างรูปภาพ `03-concurrency-conflict-alert-*.png` Commit เข้ามาให้ครบถ้วน
+>
+> 2. **[Medium] หลีกเลี่ยง Conditional Assertions (`if`) ใน E2E Specs:**
+>    - ใน `dashboards.spec.ts` (บรรทัด 66) มีการเขียน `if (await statusSelect.isVisible())` ครอบการ Assert ค่า Filter
+>    - ใน `actions-taken-flow.spec.ts` (บรรทัด 206) มีการเขียน `if (await recordBtn.isVisible())` ครอบการตรวจ Touch target 44px
+>    - **วิธีแก้:** ปรับเปลี่ยนจากการใช้ `if` เป็นการ Assert `await expect(...).toBeVisible()` โดยตรง เพื่อป้องกันการข้าม Assertion เงียบๆ เมื่อ Element ไม่แสดงผล
+
+### Partner Response (@phatthidawadi on PR #77):
+
+> ดำเนินการปรับปรุงแก้ไขทั้ง 2 จุดตามข้อเสนอแนะของ Reviewer เรียบร้อยแล้ว:
+>
+> 1. **แก้ไข False Positive และเพิ่มภาพ Screenshot 409 Concurrency Conflict (`ticket-resolution.spec.ts`):**
+>    - สกัด `actionId` จาก attribute `id` ของปุ่ม Edit บนหน้าจอ (`edit-action-btn-${id}`) โดยตรง ทำให้ไม่ขึ้นกับ Ticket ID หรือ Autoincrement sequence
+>    - นำ conditional wrapper `if (actionsData && actionsData.length > 0)` ออกทั้งหมด เพื่อให้มั่นใจว่าการจำลอง concurrent update และการตรวจสอบ HTTP 409 Concurrency Conflict (`#action-concurrency-conflict`) ถูกรันจริง 100% โดยไม่เกิด False Positive
+>    - รันการทดสอบและสร้างไฟล์ภาพหลักฐาน `03-concurrency-conflict-alert-chromium.png` บันทึกเข้าโฟลเดอร์ `artifacts/lab-04/screenshots/ticket-resolution/` ครบถ้วน
+>
+> 2. **ยกเลิก Conditional Assertions (`if`) ในทุก E2E Spec files:**
+>    - ใน `dashboards.spec.ts`: ปรับเป็น `await expect(statusSelect).toBeVisible()` และ `await expect(viewQueueBtn).toBeVisible()` โดยตรง ปราศจากการครอบด้วย `if`
+>    - ใน `actions-taken-flow.spec.ts`: ปรับเป็น `await expect(recordBtn).toBeVisible()` ก่อนวัดขนาด Touch Target (>= 44px) ปราศจากการครอบด้วย `if`
+>
+> 3. **การตรวจสอบผลการทดสอบ (Verification):**
+>    - ชุดทดสอบ Playwright E2E ทั้ง 8/8 tests บน Chromium ผ่าน 100%
+>    - ชุดทดสอบ Vitest Server ทั้ง 115/115 tests ผ่าน 100%
+>    - Client Production Build ผ่าน 0 errors
+
+### My Approval Verdict on Partner PR [#77](https://github.com/phatthidawadi/toktickit/pull/77):
+
+> ### คำตัดสินการตรวจทานรอบสุดท้าย (Final Review Verdict)
+>
+> ตรวจสอบการปรับปรุงแก้ไขใน commit `1978bb8` ครบถ้วนทุกจุดแล้ว:
+>
+> 1. **แก้ไข False Positive ใน Concurrency Conflict Test (AC-09, E2E-02-B):**
+>    - มีการดึง `actionId` จากปุ่ม Edit บนหน้าจอโดยตรง ทำให้ไม่พึ่งพา Autoincrement sequence ของฐานข้อมูล
+>    - นำเงื่อนไข `if` ที่ครอบการทดสอบออกทั้งหมด ทำให้กระบวนการจำลอง HTTP 409 Concurrency Conflict (`#action-concurrency-conflict`) ถูกรันจริงและ Assert ผลอย่างแม่นยำ
+>    - เพิ่มไฟล์ภาพหลักฐาน `03-concurrency-conflict-alert-chromium.png` เข้าสู่ Repository เรียบร้อย
+>
+> 2. **ยกเลิก Conditional Assertions (`if`) ใน E2E Specs:**
+>    - ใน `dashboards.spec.ts` และ `actions-taken-flow.spec.ts` มีการ Assert `toBeVisible()` นำหน้าโดยตรง ปราศจากการใช้ `if` ครอบ ทำให้ไม่มีการข้าม Assertion เงียบๆ อีกต่อไป
+>
+> 3. **ความสมบูรณ์ของการทดสอบและหลักฐาน:**
+>    - ชุดทดสอบ Playwright E2E ทั้ง 8/8 tests, Performance-Smoke tests (PERF-SMK-01 ถึง 03) และ Server Vitest 115/115 tests ผ่านครบถ้วน 100%
+>    - ภาพหลักฐาน Screenshot ครบทั้ง 12 ภาพครอบคลุม Desktop, Tablet, Mobile และ Concurrency Alert
+
+---
+
+### My Review Comment on Partner PR [#78](https://github.com/phatthidawadi/toktickit/pull/78):
+
+> ### Reviewer Comment (PR #78)
+>
+> **คำตัดสิน: Changes Requested**
+>
+> จากการตรวจทานโค้ดในสาขา `feature/32-visual-style-accessibility-hardening` (commit `d131ee7`) พบจุดบกพร่องสำคัญที่ต้องขอให้ปรับปรุงก่อนอนุมัติ ดังนี้:
+>
+> #### 1. [Medium] ข้อผิดพลาด TypeScript Compilation บน Server (`server/src/app.ts`):
+> เมื่อรันการทดสอบ Type checking และ Build ฝั่ง Server ด้วย `npm --prefix server run build` (`tsc`) พบ Type Error 5 จุด ทำให้กระบวนการ Build ล้มเหลว (Exit Code 1):
+> ใน `server/src/app.ts` (บรรทัด 2072, 2134, 2137, 2140) ตัวแปร `ACTIVE_STATUSES` และ `ALL_STATUSES` ถูกระบุเป็น `string[]` ทั่วไป ซึ่งไม่ตรงกับ Prisma enum `TicketStatus[]` ที่ Prisma Client กำหนดไว้สำหรับฟิลด์ `currentStatus`
+> ใน `server/tests/lab-04/performance-smoke.test.ts` (บรรทัด 61) ค่า `currentStatus` ถูกส่งเป็น `string` ทั่วไป ทำให้เกิด Type Mismatch กับ `TicketStatus`
+> **วิธีแก้:** นำเข้า `TicketStatus` จาก `@prisma/client` ใน `server/src/app.ts` และระบุ Type ให้ชัดเจน (`const ACTIVE_STATUSES: TicketStatus[] = ...`, `const ALL_STATUSES: TicketStatus[] = ...`) และ cast ค่าใน `performance-smoke.test.ts` ให้เป็น `TicketStatus` เพื่อให้ `npm --prefix server run build` ผ่าน 0 errors
+>
+> #### 2. [Low] ขาด Keyboard Focus Trap ใน Modal Dialogs (`ActionsTakenSection.tsx`):
+> ใน `ActionsTakenSection.tsx` หน้าต่าง Modal ทั้ง Record Action (`#record-action-modal`) และ Edit Action (`#edit-action-modal`) มีการใส่ `role="dialog"`, `aria-modal="true"` และปุ่มปิด `Escape` ครบถ้วนแล้ว
+> อย่างไรก็ตาม เมื่อผู้ใช้กดปุ่ม `Tab` บนคีย์บอร์ดผ่านปุ่มสุดท้ายภายใน Modal ("Save Action Taken" หรือ "Cancel") โฟกัสสามารถหลุดออกไปยัง Element บนหน้าเว็บด้านหลัง Modal ได้ ซึ่งขัดกับมาตรฐาน Accessible Modal Dialog (WCAG 2.4.3 Focus Order)
+> **วิธีแก้:** เพิ่มการดักจับ Event `Tab` / `Shift + Tab` ภายใน Modal เพื่อให้ Focus วนลูปอยู่เฉพาะภายใน Interactive Elements ของ Modal Dialog เท่านั้น จนกว่าจะปิดหน้าต่าง
+
+### Partner Response (@phatthidawadi on PR #78):
+
+> ดำเนินการปรับปรุงแก้ไขทั้ง 2 จุดตามข้อเสนอแนะของ Reviewer เรียบร้อยแล้ว:
+>
+> 1. **แก้ไข TypeScript Compilation Errors ฝั่ง Server (`app.ts` และ `performance-smoke.test.ts`):**
+>    - นำเข้า `TicketStatus` enum จาก `@prisma/client` ใน `server/src/app.ts`
+>    - ประกาศ Type ชัดเจนให้กับ `ACTIVE_STATUSES: TicketStatus[]` และ `ALL_STATUSES: TicketStatus[]`
+>    - Cast ค่า `currentStatus` ใน `server/tests/lab-04/performance-smoke.test.ts` ให้เป็น `TicketStatus`
+>    - ยืนยันการรัน `npm --prefix server run build` (`tsc`) ผ่านสมบูรณ์ 0 errors
+>
+> 2. **เพิ่ม Accessible Keyboard Focus Trap ให้กับ Modal Dialogs (`ActionsTakenSection.tsx`):**
+>    - เพิ่มการดักจับ Event `Tab` และ `Shift + Tab` ภายใน `useEffect` ของ `ActionsTakenSection.tsx`
+>    - ควบคุมให้ Keyboard Focus วนลูปอยู่เฉพาะภายใน Focusable elements ของ Modal ที่เปิดอยู่ (`#record-action-modal` หรือ `#edit-action-modal`) ป้องกัน Focus หลุดออกไปนอก Modal ตามมาตรฐาน WCAG 2.4.3
+>
+> 3. **ผลการทดสอบและการ Build:**
+>    - `npm --prefix server run build`: ผ่าน 0 errors (Exit code 0)
+>    - `npm --prefix client run build`: ผ่าน 0 errors (Exit code 0)
+>    - `npm test --prefix server`: ผ่าน 115/115 tests (22 test files)
+>    - `npm test --prefix client`: ผ่าน 52/52 tests (22 test files)
+
+### My Approval Verdict on Partner PR [#78](https://github.com/phatthidawadi/toktickit/pull/78):
+
+> ### คำตัดสินการตรวจทานรอบสุดท้าย (Final Review Verdict)
+>
+> ตรวจสอบการปรับปรุงแก้ไขใน commit `6a5f03a` เรียบร้อยแล้ว ครบถ้วนตามมาตรฐานและข้อกำหนดทุกประการ:
+>
+> 1. **แก้ไข Server TypeScript Compilation (`app.ts` และ `performance-smoke.test.ts`):**
+>    - มีการนำเข้าและระบุ Type ของ `TicketStatus` Prisma enum สำหรับ `ACTIVE_STATUSES` และ `ALL_STATUSES` อย่างชัดเจน
+>    - คำสั่ง build ฝั่ง Server (`npm --prefix server run build`) ผ่านสมบูรณ์ 0 errors ปราศจาก Type Error
+>
+> 2. **เพิ่ม Accessible Modal Focus Trap (`ActionsTakenSection.tsx`):**
+>    - มีการดักจับ Event `Tab` และ `Shift + Tab` เพื่อล็อก Keyboard Focus ให้อยู่เฉพาะภายใน Focusable elements ของ Modal Dialog ที่เปิดอยู่
+>    - รองรับการวนลูป (Focus Loop) ระหว่าง element แรกและสุดท้ายอย่างถูกต้องตามเกณฑ์มาตรฐาน WCAG 2.4.3 Focus Order
+>
+> 3. **ความสมบูรณ์ของการทดสอบและหลักฐาน Visual Evidence:**
+>    - ทั้ง Server Build และ Client Build ผ่านฉลุย 0 errors
+>    - ชุดทดสอบทั้งหมด 115 Server tests, 52 Client tests และ 24 Playwright E2E tests ผ่านครบถ้วน 100%
+>    - ภาพหลักฐาน Screenshot ครบทั้ง 36 ภาพครอบคลุม Chromium Desktop, Tablet และ Mobile ทุก Subsystems
+
+### My Approval Verdict on Partner PR [#79](https://github.com/phatthidawadi/toktickit/pull/79):
+
+> ### ผลการตรวจทาน Peer Review
+>
+> ### สรุปผลการตรวจทานเชิงลึก (Audit Findings)
+>
+> #### 1. เอกสารบันทึกการรีวิว (`docs/lab-04/reviewer.md`) — ครบถ้วนตามเกณฑ์ Handout §10 & Part 1
+> - **ตารางสรุป PRs:** บันทึกและอัปเดตสถานะของ PR ทั้งหมดตั้งแต่ PR #72 ถึง #78 (ได้รับการ Approve พร้อมบันทึก Comment ตรวจรับจริงและการแก้ไข) และระบุ PR #79 เป็นขั้นตอน Final Release Integration ไว้อย่างถูกต้อง
+> - **การแบ่งบทบาท:** มีการแยกส่วนระหว่าง **"Tasks Authored"** โดย @phatthidawadi และ **"Tasks Reviewed"** โดยคู่ Partner (@chanya06) ไว้อย่างชัดเจน ถูกต้องตามเกณฑ์การประเมิน Part 1
+>
+> #### 2. เอกสารบันทึกการใช้งาน AI (`docs/lab-04/ai-use.md`) — สมบูรณ์ตามเกณฑ์ Handout §10 & Part 4
+> - **การระบุโมเดล:** ระบุเครื่องมือ LLM ที่ใช้งานจริงอย่างเป็นทางการ (`Gemini 3.8 Flash & Gemini 3.6 Flash via Antigravity`)
+> - **Key Prompts ทั้ง 10 ข้อ:** ถอดคำว่า `*(Planned)*` ออกทั้งหมด และบันทึกคำสั่งสำคัญ 10 ข้อที่สะท้อนการตัดสินใจทางสถาปัตยกรรมและการแก้ไขปัญหาหน้างานจริง (เช่น การออกแบบ Schema และ Optimistic Concurrency 409, การบังคับ Status Matrix, การทำ Dynamic DOM Selector แก้ปัญหา SQLite autoincrement ใน E2E, และการใส่ Focus Trap)
+> - **บทวิเคราะห์ (Reflection):** มีการถอดบทเรียนเปรียบเทียบระหว่าง **Spec-Agent** และ **Coding-Agent** อย่างลึกซึ้ง ครอบคลุมทั้งประเด็น Type Safety ของ Prisma enums, การดักจับ False Positives ในเทสต์ E2E และการรองรับ Accessibility ตามเกณฑ์ WCAG 2.4.3
+>
+> #### 3. โครงสร้างไฟล์ทดสอบตรงตามเกณฑ์ 100% (Handout §12 Minimum Structure)
+> - ดำเนินการแยกไฟล์ทดสอบ Dashboard ออกเป็น 4 ไฟล์ย่อยตรงตามหน้า 9 ของ Handout:
+>   - `server/tests/lab-04/requester-dashboard.api.test.ts` (DASH-API-01 ถึง 04)
+>   - `server/tests/lab-04/staff-dashboard.api.test.ts` (DASH-API-05 ถึง 08)
+>   - `client/tests/lab-04/RequesterDashboard.test.tsx` (UI-DASH-01 ถึง 03)
+>   - `client/tests/lab-04/StaffDashboard.test.tsx` (UI-DASH-04 ถึง 05)
+> - เพิ่มไฟล์ `artifacts/lab-04/.gitkeep` ตามข้อกำหนดโครงสร้างขั้นต่ำเรียบร้อย
+>
+> #### 4. คลังภาพหลักฐาน Visual Evidence (Handout §10 & §14)
+> - โฟลเดอร์ `artifacts/lab-04/screenshots/` จัดเก็บภาพหลักฐานครบถ้วน **36 ภาพ** ครอบคลุมทั้ง 4 Subsystems บนทั้ง 3 Viewports (Desktop 1280x720, Tablet 768x1024, Mobile 375x667)
+>
+> #### 5. สุขภาพของระบบและการทดสอบทั้งหมด (Build & Test Health)
+> - **Server Build (`tsc`):** ผ่านสมบูรณ์ 0 errors
+> - **Client Build (`vite build`):** ผ่านสมบูรณ์ 0 errors
+> - **Server Vitest Tests:** ผ่านครบ 115/115 tests (22 test suites)
+> - **Client Vitest Tests:** ผ่านครบ 52/52 tests (22 test suites)
+> - **Playwright E2E Tests:** ผ่านครบ 24/24 tests บนทุกเบราว์เซอร์และวิวพอร์ต
+

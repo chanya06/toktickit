@@ -6,10 +6,10 @@
 | **Student / Author** | `chanya06` (Chanya Poolketkij) — GitHub: [@chanya06](https://github.com/chanya06) |
 | **Peer Reviewer** | Peer Reviewer — GitHub: [@lmaybelgracel](https://github.com/lmaybelgracel) |
 | **Partner Reviewed by Author** | Phatthidawadi — GitHub: [@phatthidawadi](https://github.com/phatthidawadi) (`phatthidawadi/toktickit`) |
-| **Repository & Branch** | [`chanya06/toktickit`](https://github.com/chanya06/toktickit) — `feature/36-qa-regression-and-deliverables` (targeting `lab4-staging`) |
+| **Repository & Branch** | [`chanya06/toktickit`](https://github.com/chanya06/toktickit) — `lab4-staging` (targeting `main`) |
 | **GitHub Project Board** | [Backlog · TokTickIT Individual Sprints (Board #3)](https://github.com/users/chanya06/projects/3) |
-| **Release PR** | [PR #87 (Pending)](https://github.com/chanya06/toktickit/pull/87) (`feature/36-qa-regression-and-deliverables` -> `lab4-staging`) |
-| **Final Test Metric** | **374 / 374 Automated Tests Passed (100% Pass Rate)** (Server: 207, Client: 164, Playwright E2E: 3 suites) |
+| **Release PR** | [PR #88](https://github.com/chanya06/toktickit/pull/88) (`lab4-staging` -> `main`) |
+| **Final Test Metric** | **375 / 375 Automated Tests Passed (100% Pass Rate)** (Server: 207, Client: 164, Playwright E2E: 4 tests across 3 suites) |
 | **Build Status** | Clean Production Build (`tsc && vite build`) — Zero errors |
 | **Deliverable Date** | October 31, 2026 |
 
@@ -36,7 +36,22 @@ All feature branches, peer review verdicts, and PR links for Lab 4 are tracked b
 | [#84](https://github.com/chanya06/toktickit/pull/84) | `feature/33-dashboard-api` | Role Dashboards REST API (Requester & IT Staff Metrics) | Approved & Merged | Merged |
 | [#85](https://github.com/chanya06/toktickit/pull/85) | `feature/34-dashboard-ui` | Role Dashboards UI (Metric Cards, Recent Lists, Quick Actions & Drill-down) | Approved & Merged | Merged |
 | [#86](https://github.com/chanya06/toktickit/pull/86) | `feature/35-ticket-workflow-hardening` | Ticket Workflow Hardening, Resolution Gate & Stale Update Handling | Approved & Merged | Merged |
-| [#87](https://github.com/chanya06/toktickit/pull/87) | `feature/36-qa-regression-and-deliverables` | QA Automated Tests, Regression Suite, Screenshots & Release Deliverable | Pending Review | Open |
+| [#87](https://github.com/chanya06/toktickit/pull/87) | `feature/36-qa-regression-and-deliverables` | QA Automated Tests, Regression Suite, Screenshots & Release Deliverable | Approved & Merged | Merged |
+| [#88](https://github.com/chanya06/toktickit/pull/88) | `lab4-staging` | Release Sprint 4 (Lab 4): TokTickIT Actions Taken, Dashboards, and Final Regression | Pending Review | Open |
+
+#### Pull Requests Reviewed for Partner (`phatthidawadi/toktickit`)
+
+| PR # | Branch | Scope / Description | Reviewer Verdict (`@chanya06`) | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| [phatthidawadi/toktickit#72](https://github.com/phatthidawadi/toktickit/pull/72) | `feature/26-doc-spec-tests` | Sprint 4 Engineering Contract Documentation (Issue #26) | Approved (Round 1 & 2: Changes Requested, Round 3: Approved) | Merged |
+| [phatthidawadi/toktickit#73](https://github.com/phatthidawadi/toktickit/pull/73) | `feature/27-actions-taken-foundation` | Actions Taken Foundation — Migration, Model, Seed, APIs, AuthZ, Tests (Issue #27) | Approved with comments | Merged |
+| [phatthidawadi/toktickit#74](https://github.com/phatthidawadi/toktickit/pull/74) | `feature/28-actions-taken-ui` | Actions Taken UI — Ticket Detail Section (Issue #28) | Approved with comments | Merged |
+| [phatthidawadi/toktickit#75](https://github.com/phatthidawadi/toktickit/pull/75) | `feature/29-ticket-workflow-and-resolution` | Ticket Workflow and Resolution Gate (Issue #29) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
+| [phatthidawadi/toktickit#76](https://github.com/phatthidawadi/toktickit/pull/76) | `feature/30-role-based-dashboards` | Role-Based Dashboards — API, UI Components, and Default Landing Navigation (Issue #30) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
+| [phatthidawadi/toktickit#77](https://github.com/phatthidawadi/toktickit/pull/77) | `feature/31-e2e-automated-testing-and-screenshots` | Playwright Multi-Viewport E2E Test Suite, Performance-Smoke Tests, and Visual Screenshots (Issue #31) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
+| [phatthidawadi/toktickit#78](https://github.com/phatthidawadi/toktickit/pull/78) | `feature/32-visual-style-accessibility-hardening` | Zen Green Visual Style, Accessibility, Regression, and Final Hardening (Issue #32) | Approved (Round 1: Changes Requested, Round 2: Approved) | Merged |
+| [phatthidawadi/toktickit#79](https://github.com/phatthidawadi/toktickit/pull/79) | `feature/33-doc-reviewer-ai-use` | Sprint 4 Peer Reviewer Documentation, AI Usage Reflection, and Release Integration (Issue #33) | Approved with comments | Merged |
+| [phatthidawadi/toktickit#80](https://github.com/phatthidawadi/toktickit/pull/80) | `lab4-staging` | Release Sprint 4 (Lab 4): Actions Taken, Dashboards, and Final Regression | Pending Final Merge | Open |
 
 ### 1.3 Git Commit History Evidence
 The Git commit graph confirms disciplined branch merging with linear traceability across all Lab 4 sprint deliverables:
