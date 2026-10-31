@@ -79,7 +79,7 @@ export const RequesterDashboard: React.FC<RequesterDashboardProps> = ({
   return (
     <div className="requester-dashboard" data-testid="requester-dashboard">
       {/* 1. Welcome Banner */}
-      <div className="card shadow-sm border-0 mb-4" style={{ backgroundColor: "#FFFFFF" }}>
+      <div className="card shadow-sm border-0 mb-4" style={{ backgroundColor: "#FFFFFF" }} data-testid="dashboard-welcome-banner">
         <div className="card-body p-3 p-md-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
           <div>
             <div className="d-flex align-items-center gap-2 mb-1">

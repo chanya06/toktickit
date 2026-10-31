@@ -82,11 +82,22 @@ function MainApp() {
   const { user, isLoading } = useAuth();
   const { selectedRequester, isModalOpen } = useRequester();
 
+  const getInitialTicketId = (): number | null => {
+    if (typeof window !== "undefined") {
+      const match = window.location.pathname.match(/^\/tickets\/(\d+)$/);
+      if (match) return parseInt(match[1], 10);
+    }
+    return null;
+  };
+
   const getInitialTab = (role?: string): NavTab => {
     if (typeof window !== "undefined") {
       const path = window.location.pathname;
       if (path.startsWith("/dashboard") || window.location.hash === "#dashboard") {
         return "dashboard";
+      }
+      if (path.match(/^\/tickets\/(\d+)$/)) {
+        return "ticket-detail";
       }
     }
     // Lab 3 regression tests render <App /> directly with empty path, expecting initial tab
@@ -96,8 +107,11 @@ function MainApp() {
   };
 
   const [activeTab, setActiveTab] = useState<NavTab>(() => getInitialTab(user?.role));
-  const [returnTab, setReturnTab] = useState<NavTab>(() => getInitialTab(user?.role));
-  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
+  const [returnTab, setReturnTab] = useState<NavTab>(() => {
+    const init = getInitialTab(user?.role);
+    return init === "ticket-detail" ? (user?.role === "REQUESTER" ? "my-tickets" : "dashboard") : init;
+  });
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(() => getInitialTicketId());
   const [myTicketsFilter, setMyTicketsFilter] = useState<string[] | undefined>(undefined);
   const [queueFilters, setQueueFilters] = useState<{
     owner?: string;
@@ -135,7 +149,11 @@ function MainApp() {
     if (user?.role) {
       const initial = getInitialTab(user.role);
       setActiveTab(initial);
-      setReturnTab(initial);
+      setReturnTab(initial === "ticket-detail" ? (user.role === "REQUESTER" ? "my-tickets" : "dashboard") : initial);
+      const ticketId = getInitialTicketId();
+      if (ticketId) {
+        setSelectedTicketId(ticketId);
+      }
     }
   }, [user?.role]);
 
@@ -191,7 +209,16 @@ function MainApp() {
           ) : activeTab === "create-ticket" ? (
             <CreateTicketForm onSuccessNavigate={() => setActiveTab("my-tickets")} />
           ) : activeTab === "ticket-detail" && selectedTicketId !== null ? (
-            <TicketDetailView ticketId={selectedTicketId} onBack={() => setActiveTab(returnTab)} />
+            <TicketDetailView
+              ticketId={selectedTicketId}
+              onBack={() => {
+                if (returnTab && returnTab !== "ticket-detail") {
+                  setActiveTab(returnTab);
+                } else {
+                  setActiveTab(user.role === "REQUESTER" ? "my-tickets" : "dashboard");
+                }
+              }}
+            />
           ) : (
             <MyTicketsView
               onNavigateCreate={() => setActiveTab("create-ticket")}
