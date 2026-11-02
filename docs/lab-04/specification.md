@@ -209,6 +209,11 @@ model ActionTaken {
 4. **Decision 4: Application-Layer Enforcement of Conditional Follow-up Invariants over Database CHECK Constraints**:
    - *Rationale*: The business rule requiring `followUpNote` when `followUpRequired = true` is intentionally enforced in the application/API layer rather than via a PostgreSQL `CHECK` constraint. Application-layer validation allows the API to return human-readable, field-targeted error responses (`400 Bad Request` with `{ field: "followUpNote", message: "..." }`) that directly drive accessible UI validation states, rather than generic database error codes (`23514 check_violation` / 500 error). Furthermore, Prisma schema syntax does not natively generate cross-database SQL `CHECK` constraints in its declarative schema, so keeping this domain invariant in the service layer maintains clean ORM portability and testability across test runners and in-memory mocks.
 
+5. **Decision 5: Retention of Legacy `PENDING` Ticket Status (8+1 State Architecture & Risk Trade-off)**:
+   - *Context & Rationale*: Handout Section 4.5 states: *"the set of ticket statuses remains: New, Open, In Progress, Waiting for Requester, Resolved, Closed, Reopened, and Cancelled"*. However, during Lab 2 and Lab 3, the system schema introduced `PENDING` as an external third-party dependency state (e.g. waiting for vendor hardware delivery). Existing tickets and regression test suites in `server/tests/lab-02/` and `server/tests/lab-03/` rely on the existence of `PENDING` in the `TicketStatus` enum.
+   - *Architectural Decision*: The team elected to retain `PENDING` as a backward-compatible 9th state in the state machine matrix (BR-07), rather than executing a destructive enum drop or database migration that would corrupt existing tickets and fail 277 legacy regression tests.
+   - *Identified Risk & Mitigation*: Retaining `PENDING` introduces a slight divergence from the 8 statuses strictly enumerated in Handout §4.5. This risk is mitigated by ensuring all dashboard queries, workflow validation guards, and staff queues treat `PENDING` as an active operational status, fully supporting all transitions to `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, and `CANCELLED`.
+
 ### 7.3 Migration Strategy, Rollback Procedure & Disaster Recovery Plan (Handout Section 5.2 Requirement)
 - **Forward Migration Execution**:
   ```bash

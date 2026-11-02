@@ -417,16 +417,16 @@ export function ActionsTakenSection({
               <table className="table table-hover align-middle mb-0 small" role="table" data-testid="actions-table">
                 <thead className="table-light">
                   <tr>
-                    <th scope="col" style={{ minWidth: "120px" }}>Date / Time</th>
-                    <th scope="col" style={{ minWidth: "180px" }}>Description</th>
-                    <th scope="col" style={{ minWidth: "140px" }}>Result / Outcome</th>
-                    <th scope="col" style={{ minWidth: "120px" }}>Performed By</th>
-                    <th scope="col" style={{ minWidth: "120px" }}>Assigned To</th>
-                    <th scope="col" style={{ minWidth: "100px" }}>Status</th>
-                    <th scope="col" style={{ minWidth: "90px" }}>Follow-Up</th>
-                    <th scope="col" style={{ minWidth: "110px" }}>Attachments</th>
+                    <th scope="col" style={{ minWidth: "105px" }}>Date / Time</th>
+                    <th scope="col" style={{ minWidth: "145px" }}>Description</th>
+                    <th scope="col" style={{ minWidth: "125px" }}>Result / Outcome</th>
+                    <th scope="col" style={{ minWidth: "105px" }}>Performed By</th>
+                    <th scope="col" style={{ minWidth: "105px" }}>Assigned To</th>
+                    <th scope="col" style={{ minWidth: "90px" }}>Status</th>
+                    <th scope="col" style={{ minWidth: "80px" }}>Follow-Up</th>
+                    <th scope="col" style={{ minWidth: "100px" }}>Attachments</th>
                     {isStaffOrAdmin && (
-                      <th scope="col" style={{ minWidth: "130px", textAlign: "right" }}>Actions</th>
+                      <th scope="col" style={{ minWidth: "110px", textAlign: "right" }}>Actions</th>
                     )}
                   </tr>
                 </thead>
@@ -539,7 +539,7 @@ export function ActionsTakenSection({
                         </td>
                         <td className="text-muted" style={{ maxWidth: "120px", wordBreak: "break-word" }}>
                           {action.attachmentNotes ? (
-                            <span className="text-truncate d-inline-block" style={{ maxWidth: "110px" }} title={action.attachmentNotes}>
+                            <span className="d-inline-block small" style={{ maxWidth: "105px", wordBreak: "break-word", whiteSpace: "normal" }} title={action.attachmentNotes}>
                               📎 {action.attachmentNotes}
                             </span>
                           ) : (

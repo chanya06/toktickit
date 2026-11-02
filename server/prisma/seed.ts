@@ -401,7 +401,7 @@ async function main() {
       summary: "Campus Wi-Fi drops recurrently after initial fix",
       description: "After the switch reboot, wireless connectivity worked for 2 hours then began disconnecting again in Building 3.",
       requestedPriority: "HIGH" as const,
-      itPriority: "HIGH" as const,
+      itPriority: "URGENT" as const,
       status: "REOPENED" as const,
       isResolutionIndicated: false,
       actions: [

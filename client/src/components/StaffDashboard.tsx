@@ -588,13 +588,13 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
                   <table className="table table-hover align-middle mb-0" data-testid="triage-tickets-table">
                     <thead className="table-light">
                       <tr className="small text-muted text-uppercase">
-                        <th style={{ minWidth: "120px" }}>Ticket No</th>
-                        <th style={{ minWidth: "170px" }}>Summary</th>
-                        <th>Priority</th>
-                        <th>Status</th>
-                        <th>Owner</th>
-                        <th>Updated</th>
-                        <th className="text-end">Action</th>
+                        <th style={{ minWidth: "115px" }}>Ticket No</th>
+                        <th style={{ minWidth: "150px" }}>Summary</th>
+                        <th style={{ minWidth: "85px" }}>Priority</th>
+                        <th style={{ minWidth: "95px" }}>Status</th>
+                        <th style={{ minWidth: "105px" }}>Owner</th>
+                        <th style={{ minWidth: "95px" }}>Updated</th>
+                        <th className="text-end" style={{ minWidth: "75px" }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -619,7 +619,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({
                             </td>
                             <td>
                               <div className="d-flex flex-column">
-                                <span className="small fw-semibold text-dark text-truncate" style={{ maxWidth: "240px" }}>
+                                <span className="small fw-semibold text-dark" style={{ maxWidth: "240px", wordBreak: "break-word", whiteSpace: "normal" }}>
                                   {t.summary}
                                 </span>
                                 <div className="d-flex align-items-center gap-1 mt-1">
